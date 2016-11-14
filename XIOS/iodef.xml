@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<simulation> 
+<!-- <context id="romsc" calendar_type="Gregorian" start_date="2012-03-01 15:00:00" time_origin="2012-02-29 15:00:00"> -->
+ <context id="roms" time_origin="1950-01-01 00:00:00" >
+    
+
+
+  <!-- ========================================================================== -->
+  <!-- ========================================================================== -->
+
+    <field_definition src="./field_def.xml"/>
+
+   <!-- ========================================================================== -->
+   <!-- ========================================================================== -->
+
+   <file_definition type="one_file"  name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1h" min_digits="4">
+<!--   <file_definition type="one_file" output_freq="1800s" output_level="10" enabled=".TRUE."> -->
+      <file_group id="1ts" output_freq="1ts"  output_level="10" enabled=".TRUE."/> <!-- 1 time step files -->
+      <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."/> <!-- 1h files -->
+      <file_group id="2h" output_freq="2h"  output_level="10" enabled=".TRUE."/> <!-- 2h files -->
+      <file_group id="3h" output_freq="3h"  output_level="10" enabled=".TRUE."/> <!-- 3h files -->
+      <file_group id="4h" output_freq="4h"  output_level="10" enabled=".TRUE."/> <!-- 4h files -->
+      <file_group id="6h" output_freq="6h"  output_level="10" enabled=".TRUE."/> <!-- 6h files -->
+      <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE."/> <!-- 1d files -->
+      <file_group id="3d" output_freq="3d"  output_level="10" enabled=".TRUE."/> <!-- 3d files -->
+
+     <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE." >  <!-- 1d files -->
+     <file id="file1" name_suffix="_his" >
+       <field_group id="grid_fields" operation="once">
+        <field field_ref="hc" />
+        <field field_ref="theta_s" />
+        <field field_ref="theta_b" />
+        <field field_ref="Tcline" />
+        <field field_ref="Vtransform" />
+        <field field_ref="h" />
+        <field field_ref="f" />
+        <field field_ref="pm" />
+        <field field_ref="pn" />
+        <field field_ref="lon_rho" />
+        <field field_ref="lat_rho" />
+        <field field_ref="lon_u" />
+        <field field_ref="lat_u" />
+        <field field_ref="lon_v" />
+        <field field_ref="lat_v" />
+        <field field_ref="angle" />
+        <field field_ref="mask_rho" />
+        <field field_ref="Cs_r" />
+        <field field_ref="Cs_w" />
+        <field field_ref="sc_r" />
+        <field field_ref="sc_w" />
+      </field_group>
+
+       <field_group id="his_fields" operation="instant">
+        <field field_ref="zeta" />
+        <field field_ref="u" name="u" />
+        <field field_ref="ubar" name="ubar" />
+        <field field_ref="v" name="v" />
+        <field field_ref="vbar" name="vbar" />
+        <field field_ref="w" name="w" />
+        <field field_ref="temp" name="T" />
+       </field_group>
+      </file>
+    </file_group>
+
+   </file_definition>
+
+  <!-- ========================================================================== -->
+  <!-- ========================================================================== -->
+
+   <axis_definition>
+     <axis id="s_rho" />
+     <axis id="s_w" />
+ <!-- For Sediment -->
+     <axis id="s_b" />
+   </axis_definition>
+
+   <domain_definition src="./domain_def.xml"/>
+
+   <grid_definition>    
+     <grid id="rho_2D" domain_ref="rho"/>
+     <grid id="rho_3D" domain_ref="rho" axis_ref="s_rho"/>
+     <grid id="u_2D" domain_ref="u"/>
+     <grid id="u_3D" domain_ref="u" axis_ref="s_rho"/>
+     <grid id="v_2D" domain_ref="v"/>
+     <grid id="v_3D" domain_ref="v" axis_ref="s_rho"/>
+     <grid id="w_2D" domain_ref="w"/>
+     <grid id="w_3D" domain_ref="w" axis_ref="s_w"/> 
+     <grid id="b_2D" domain_ref="b"/>
+     <grid id="b_3D" domain_ref="b" axis_ref="s_b"/> 
+   </grid_definition>    
+  
+  </context>
+
+  
+
+  <!-- ========================================================================== -->
+  <!-- ========================================================================== -->
+
+ <context id="roms.1" time_origin="1950-01-01 00:00:00" >
+    
+
+
+  <!-- ========================================================================== -->
+  <!-- ========================================================================== -->
+
+    <field_definition src="./field_def.xml"/>
+
+   <!-- ========================================================================== -->
+   <!-- ========================================================================== -->
+
+   <file_definition type="one_file"  name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1d" min_digits="4">
+<!--   <file_definition type="one_file" output_freq="1800s" output_level="10" enabled=".TRUE."> -->
+      <file_group id="1ts" output_freq="1ts"  output_level="10" enabled=".TRUE."/> <!-- 1 time step files -->
+      <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."/> <!-- 1h files -->
+      <file_group id="2h" output_freq="2h"  output_level="10" enabled=".TRUE."/> <!-- 2h files -->
+      <file_group id="3h" output_freq="3h"  output_level="10" enabled=".TRUE."/> <!-- 3h files -->
+      <file_group id="4h" output_freq="4h"  output_level="10" enabled=".TRUE."/> <!-- 4h files -->
+      <file_group id="6h" output_freq="6h"  output_level="10" enabled=".TRUE."/> <!-- 6h files -->
+      <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE."/> <!-- 1d files -->
+      <file_group id="3d" output_freq="3d"  output_level="10" enabled=".TRUE."/> <!-- 3d files -->
+
+     <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE." >  <!-- 1d files -->
+     <file id="file1" name_suffix="_his" >
+       <field_group id="grid_fields" operation="once">
+        <field field_ref="hc" />
+        <field field_ref="theta_s" />
+        <field field_ref="theta_b" />
+        <field field_ref="Tcline" />
+        <field field_ref="Vtransform" />
+        <field field_ref="h" />
+        <field field_ref="f" />
+        <field field_ref="pm" />
+        <field field_ref="pn" />
+        <field field_ref="lon_rho" />
+        <field field_ref="lat_rho" />
+        <field field_ref="lon_u" />
+        <field field_ref="lat_u" />
+        <field field_ref="lon_v" />
+        <field field_ref="lat_v" />
+        <field field_ref="angle" />
+        <field field_ref="mask_rho" />
+        <field field_ref="Cs_r" />
+        <field field_ref="Cs_w" />
+        <field field_ref="sc_r" />
+        <field field_ref="sc_w" />
+      </field_group>
+
+       <field_group id="his_fields" operation="instant">
+        <field field_ref="zeta" />
+        <field field_ref="u" name="u" />
+        <field field_ref="ubar" name="ubar" />
+        <field field_ref="v" name="v" />
+        <field field_ref="vbar" name="vbar" />
+        <field field_ref="w" name="w" />
+        <field field_ref="temp" name="T" />
+       </field_group>
+      </file>
+    </file_group>
+
+   </file_definition>
+
+  <!-- ========================================================================== -->
+  <!-- ========================================================================== -->
+
+   <axis_definition>
+     <axis id="s_rho" />
+     <axis id="s_w" />
+ <!-- For Sediment -->
+     <axis id="s_b" />
+   </axis_definition>
+
+   <domain_definition src="./domain_def.xml"/>
+
+   <grid_definition>    
+     <grid id="rho_2D" domain_ref="rho"/>
+     <grid id="rho_3D" domain_ref="rho" axis_ref="s_rho"/>
+     <grid id="u_2D" domain_ref="u"/>
+     <grid id="u_3D" domain_ref="u" axis_ref="s_rho"/>
+     <grid id="v_2D" domain_ref="v"/>
+     <grid id="v_3D" domain_ref="v" axis_ref="s_rho"/>
+     <grid id="w_2D" domain_ref="w"/>
+     <grid id="w_3D" domain_ref="w" axis_ref="s_w"/> 
+     <grid id="b_2D" domain_ref="b"/>
+     <grid id="b_3D" domain_ref="b" axis_ref="s_b"/> 
+   </grid_definition>    
+  
+  </context>
+
+  
+
+  <!-- ========================================================================== -->
+  <!-- ========================================================================== -->
+
+  
+  <context id="xios">
+      <variable_definition>
+          <variable id="buffer_size"               type="integer">5000000</variable>
+          <variable id="buffer_server_factor_size" type="integer">2</variable>
+          <variable id="info_level"                type="integer">0</variable>
+          <variable id="using_server"              type="boolean">true</variable>
+          <variable id="using_oasis"               type="boolean">false</variable>
+          <variable id="oasis_codes_id"            type="string" >oceanx</variable>
+      </variable_definition>
+  </context>
+
+</simulation>
+

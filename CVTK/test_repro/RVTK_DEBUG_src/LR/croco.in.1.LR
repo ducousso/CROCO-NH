@@ -1,0 +1,127 @@
+title:
+        BENGUELA TEST MODEL ZOOM LEVEL #1
+time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+                15      1200     60      1
+S-coord: THETA_S,   THETA_B,    Hc (m)
+           6.0d0      0.0d0      10.0d0
+grid:  filename
+  CROCO_FILES/croco_grd.nc.1
+forcing: filename
+  CROCO_FILES/croco_frc.nc.1
+bulk_forcing: filename
+  CROCO_FILES/croco_blk.nc.1
+climatology: filename
+  XXXXXXXXX
+boundary: filename
+  XXXXXXXXX
+initial: NRREC  filename
+          1
+  CROCO_FILES/croco_ini.nc.1
+restart:          NRST, NRPFRST / filename
+                 15   -1
+  CROCO_FILES/croco_rst.nc.1
+history: LDEFHIS, NWRT, NRPFHIS / filename 
+            T     15     0
+  CROCO_FILES/croco_his.nc.1
+averages: NTSAVG, NAVG, NRPFAVG / filename
+            1     15     0
+  CROCO_FILES/croco_avg.nc.1
+
+primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                          T    T   T   T  T    30*T
+auxiliary_history_fields:   rho Omega  W  Akv  Akt  Aks  HBL HBBL Bostr Wstr UWstr VWstr rsw rlw lat sen HEL
+                             F   F     T   F    T    F    T   T    T     T    T    T     30*F             
+
+primary_averages: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                   T    T    T    T  T   30*T
+auxiliary_averages: rho Omega  W  Akv  Akt  Aks  HBL HBBL Bostr Wstr Wstr UWst  rsw rlw lat sen HEL
+                     F   T     T   F    T    F    T   T    T     T   T    T     30*F             
+
+rho0:
+      1025.d0
+
+lateral_visc:   VISC2,    VISC4    [m^2/sec for all]
+                 0.       0.
+
+tracer_diff2: TNU2(1:NT)           [m^2/sec for all]
+               30*0.d0 
+
+tracer_diff4: TNU4(1:NT)           [m^4/sec for all]
+               30*0.d11
+
+vertical_mixing: Akv_bak, Akt_bak [m^2/sec]
+                   0.d0    30*0.d0
+
+bottom_drag:     RDRG [m/s],  RDRG2,  Zob [m],  Cdb_min, Cdb_max
+                 3.0d-04      0.d-3    0.d-3     1.d-4    1.d-1 
+
+gamma2:
+                 1.d0
+
+sponge:          X_SPONGE [m],    V_SPONGE [m^2/sec]
+                   5e+04           11
+
+nudg_cof:    TauT_in, TauT_out, TauM_in, TauM_out  [days for all]
+                1.       360.      3.      360.
+
+diagnostics:   ldefdia   nwrtdia    nrpfdia /filename
+                  T       15         0
+                                 CROCO_FILES/croco_dia.nc.1
+diagnostics_history_fields:   TXadv(1:NT !!EXACT!!)  TYadv   TVadv   THmix  TVmix  Tforc  Trate  Xadvml  Yadvml   Vadvml  THmixml TVmixml Tforcml Tentml Trateml
+ T T       T T   T T     T T     T T     T T      T T    T T      T T       T T       T T    T T      T T      T T    T T  
+
+diag_avg: ldefdia_avg  ntsdia_avg  nwrtdia_avg  nprfdia_avg /filename
+               T          1          15            0
+                                 CROCO_FILES/croco_dia_avg.nc.1
+diagnostics_average_fields:  TXadv (1:NT !!EXACT!!)TYadv  TVadv  THmix   TVmix   Tforc   Trate Xadvml  Yadvml   Vadvml  THmixml TVmixml Tforcml Tentml Trateml
+ T T       T T   T T     T T     T T     T T      T T    T T      T T       T T       T T    T T      T T      T T    T T 
+
+diagnosticsM:   ldefdiaM   nwrtdiaM    nrpfdiaM /filename
+                   T         15          0
+                                 CROCO_FILES/croco_diaM.nc.1
+diagnosticsM_history_fields: MXadv MYadv MVadv MCor MPrsgrd MHmix MVmix MRate
+                                               T T     T T    T T       T T      T T       T T        T T        T T
+
+diagM_avg: ldefdiaM_avg  ntsdiaM_avg  nwrtdiaM_avg  nprfdiaM_avg /filename
+               T          1           15            0
+                                 CROCO_FILES/croco_diaM_avg.nc.1
+diagnosticsM_average_fields: MXadv MYadv MVadv MCor MPrsgrd MHmix MVmix MRate
+                                               T T     T T     T T       T T      T T       T T        T T        T T
+
+diagnostics_bio:   ldefdiabio   nwrtdiabio    nrpfdiabio /filename
+                        T          15             0
+                                 CROCO_FILES/croco_diabio.nc
+diagbio_avg: ldefdiabio_avg  ntsdiabio_avg  nwrtdiabio_avg  nprfdiabio_avg /filename
+                  T              1              15              0
+                                 CROCO_FILES/croco_diabio_avg.nc
+
+biology:   forcing file
+           croco_frcbio.nc
+
+sediments: input file
+           sediment.in
+sediment_history_fields: bed_thick bed_poros bed_fra(sand,silt)
+                            T         F        T  T
+
+bbl_history_fields: Abed Hripple Lripple Zbnot Zbapp Bostrw
+                     T      F       F      T     F     T
+
+floats: LDEFFLT, NFLT, NRPFFLT / inpname, hisname
+           T       6      0
+                                   floats.in
+                                   CROCO_FILES/floats.nc
+float_fields:  Grdvar Temp Salt Rho Vel
+                 F     F    F    F   F
+
+stations: LDEFSTA, NSTA, NRPFSTA / inpname, hisname
+             T      400      0
+                                    stations.in
+                                    CROCO_FILES/stations.nc
+station_fields:  Grdvar Temp Salt Rho Vel
+                   T     T    T    T   T
+
+psource:   Nsrc  Isrc  Jsrc  Dsrc  Qbar [m3/s]    Lsrc        Tsrc
+            2
+                  3    54     1    200.            T T      5. 0.
+                  3    40     0    200.            T T      5. 0.
+

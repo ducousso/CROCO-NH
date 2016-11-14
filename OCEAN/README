@@ -1,0 +1,33 @@
+!......................................................................
+!
+!                             Roms_Agrif
+!
+!......................................................................
+
+for information:
+
+Roms_Agrif: http://www.brest.ird.fr/Roms_tools/
+Roms:       http://marine.rutgers.edu/po/index.php?model=roms
+Agrif:	    http://www-lmc.imag.fr/IDOPT/AGRIF/
+
+
+
+November 25 2003
+-----------------
+Roms_Agrif makes use of a script (jobcomp) in order to produce a generic 
+Makefile (write machine-dependent definitions in "Makedefs" included in 
+the Makefile). Currently, jobcomp takes care automatically of Linux, 
+Compaq, and IBM systems. 
+
+Global flags are defined in cppdefs.h (as usual for Roms). Flags are 
+available to switch on/off AGRIF. In case where AGRIF is switched off, 
+Roms is back to "normal" and can be compiled with a 77 fortran compiler
+(no pointers used).
+
+Parallelization with OpenMP or MPI can be used by turning the appropriate 
+flags.
+
+...
+
+
+SEE CHANGELOG ON CROCO WEB SITE FOR UPGRADES ...

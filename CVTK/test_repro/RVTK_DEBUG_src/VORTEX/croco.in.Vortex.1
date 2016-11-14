@@ -1,0 +1,58 @@
+title:
+        Vortex Example Zoom #1 (DON'T FORGET make_vortex.m)
+
+time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+               1        960      48       1
+
+S-coord: THETA_S,   THETA_B,    Hc (m)
+         1.0d0      0.0d0       5000.0d0
+
+grid:  filename
+                          TEST_CASES/vortex_grd.nc.1
+
+initial: NRREC  filename
+          0 
+                          TEST_CASES/vortex_ini.nc.1
+
+climatology: filename
+                          XXXXX
+
+restart:          NRST, NRPFRST / filename
+                  1800   -1
+                          TEST_CASES/vortex_rst.nc.1
+
+history: LDEFHIS, NWRT, NRPFHIS / filename
+            T      180      0
+                          TEST_CASES/vortex_his.nc.1
+
+primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                          T    T   T   T  T    30*T
+auxiliary_history_fields:   rho Omega W  Akv  Akt  Aks Visc3d Diff3d  HBL HBBL Bostr Wstr Ustr Vstr Shfl rsw rlw lat sen Hm HEL BIOL
+                             T   F    T   F    T    F   F      F       F   F    F     20*F
+
+rho0:
+      1024.4
+
+bottom_drag:     RDRG(m/s),      RDRG2, Zob [m],  Cdb_min, Cdb_max
+                 0.              0.     0.        0.       0.
+
+gamma2:
+                 1.
+
+lin_EOS_cff:  R0 [86kg/m3], T0 [Celsius], S0 [PSU], TCOEF [1/Celsius], SCOEF [1/PSU]
+              30.           0.            0.        0.28               0.
+
+vertical_mixing: Akv_bak, Akt_bak [m^2/sec]
+                 0.       0.
+
+sponge:          X_SPONGE [m],    V_SPONGE [m^2/sec]
+                 100.e3           400.
+
+nudg_cof:    TauT_in, TauT_out, TauM_in, TauM_out  [days for all]
+             1.       360.      1.       360.
+
+lateral_visc:   VISC2,    VISC4    [m^2/sec for all]
+                0.       0.
+
+tracer_diff2: TNU2(1:NT)           [m^2/sec for all]
+              0.d0 0.d0 0.d0 0.d0 0.d0 0.d0 0.d0 0.d0 0.d0

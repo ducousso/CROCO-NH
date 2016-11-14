@@ -1,0 +1,10 @@
+1  Ftitle (a80)
+CROCO 1.0 - Initial Drifters Locations
+2  Ft0,   Fx0,   Fy0,      Fz0, Fgrd,Fcoor,Ftype,Fcount,    Fdt,   Fdx,   Fdy,      Fdz
+  0.0     10      40        -3    0    0       0    1          0.0   0.0   0.000   0.0
+  0.0     20      40        -3    0    0       0    1          0.0   0.0   0.000   0.0
+  0.0     30      20        -3    0    0       0    1          0.0   0.0   0.000   0.0
+  0.0     40      30        -3    0    0       0    1          0.0   0.0   0.000   0.0
+  0.0     40      40        -3    0    0       0    1          0.0   0.0   0.000   0.0
+  0.0     10      60        -3    0    0       0    5          0.0   0.0   0.000   0.0
+99 END of float input data

@@ -1,0 +1,84 @@
+1  Stitle (a80)
+CROCO - Sediment - Test
+
+2  Sd(1-NST), CSED, SRHO,  WSED,  ERATE,  TAU_CE, TAU_CD, BED_FRAC(1:NLAY)
+      0.125   9.9   2650.  9.4    25.0e-5  0.05    0.14    0.4  0.4
+      0.050   0.0   2650.  1.6     4.0e-5  0.01    0.14    0.6  0.6
+
+3 BTHK(1:NLAY)
+       0.3E-2   10. 
+            
+4 BPOR(1:NLAY)
+       0.41    0.42
+
+5 Hrip             
+       0.03  
+
+6 Lrip
+       0.14  
+
+99 END of sediment input data
+
+!
+!=====================================================================
+!  Copyright (c) 2004 UCLA/Rutgers
+!==================================== Meinte Blaas | Hernan G. Arango =
+!
+   GLOSSARY
+   ========
+
+*** CARD 1: String with a maximum of eighty characters.
+
+  Stitle    Sediment case title.
+
+
+*** CARD 2: Sediment grain parameters & initial values (NST lines).
+
+  Sd        Diameter of grain size class [mm].
+
+  CSED      Initial concentration (spatially uniform) [mg/l].  
+  
+  SRHO      Density of sediment material of size class [kg/m3]. 
+            Quartz: SRHO=2650 kg/m3  
+  
+  WSED      Settling velocity of size class [mm/s].   
+            Typically WSED  = 1E3*  {visk*(sqrt(10.36^2+1.049*D^3)-10.36)/d50} [mm/s] (Soulsby 97)
+            with  D=d50*(g*(srho/rhow-1)/(visk^2))^0.33333
+                  rhow=1000 kg/m3; d50=Sd*1.e-3 m; 
+                  visk=1.3e-3/rhow m2/s; g=9.8 m/s2  
+            
+  ERATE     Erosion rate of size class [kg/m2/s].  
+            Typically ERATE  =gam0*WSED*1.e-3*SRHO [kg/m2s];
+            with gam0=1E-3 - 1E-5 (Smith & McLean, Drake&al)
+             
+  TAU_CE    Critical shear stress for sediment motion [N/m2]
+            (initiation of bedload for coarses, suspension for fines). 
+            Typically TAU_CE =tau_cb=thetcr.*(g*(srho-rhow).*d50) [N/m2]; (Shields, bedload)
+            with thetcr = 0.3./(1+1.2*D) + 0.055*(1-exp(-0.02*D)) (Soulsby & Whitehouse 97) 
+            TAU_CE   = rhow*(0.8 WSED*1E-3)^2 [N/m2] (suspended load)
+            
+  TAU_CD    Critical shear stress for depostion of cohesive sediments [N/m2]
+  
+  BED_FRAC  Volume fraction of each size class in each bed layer (NLAY columns) [0<BED_FRAC<1] 
+
+
+*** CARD 3: Sediment bed thickness, 1st field is top layer ('delt_a')
+
+  BTHK      Initial thicknesses of bed layers [m]
+            Bthk(1) active layer thickness, fixed in simulation unless SUM(Bthk(:))<Bthk(1)
+  
+*** CARD 4: Sediment bed porosity
+
+   BPOR     Initial porosity of bed layers [m]
+            used in ana_sediment ifdef ANA_SEDIMENT || not in init.nc*
+  
+*** CARD 5: Bottom ripple height         
+
+   Hrip     Initial ripple height [m]
+            used in ana_sediment ifdef ANA_SEDIMENT || not in init.nc*
+
+*** CARD 6: Bottom ripple length
+
+   Lrip     Initial ripple length [m]
+            used in ana_sediment ifdef ANA_SEDIMENT || not in init.nc*
+  

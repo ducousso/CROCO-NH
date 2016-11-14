@@ -1,0 +1,20 @@
+#include "cppdefs.h"
+%
+% Parameters
+%
+2D LLm,MMm;
+
+parammodule scrum_deriv_param;
+parammodule scrum_physical_grid;
+parammodule scrum_private_param;
+#ifdef MPI
+parammodule comm_setup_mpi;
+#endif
+
+%
+% Misc
+%
+#if !defined AGRIF_ADAPTIVE
+USE ONLY_FIXED_GRIDS;
+#endif
+USE F77;

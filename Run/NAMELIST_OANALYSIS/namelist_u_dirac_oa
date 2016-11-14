@@ -1,0 +1,118 @@
+!************************************************************************************************
+!************************************************************************************************
+!************************************************************************************************
+!                                 NAMELIST MODULE OA 
+!************************************************************************************************
+!************************************************************************************************
+!************************************************************************************************
+
+!************************************************************************************************
+!        Cette namelist est dédiée au module d'analyse OA
+! 
+! Elle définit une analyse OA particulière et son nom doit être déclaré dans namelist_oa.
+! Elle contient le bloc "oa_parameters" qui décrit l'analyse: type de variable/configuration, 
+! type d'analyse ( ondelette, dirac, peigne,...), domaine temporel, spatial, fréquenciel, temps
+! d'analyse,...etc.
+!
+!                             
+!************************************************************************************************
+
+
+!************************************************************************************************
+!************************************************************************************************
+!                                      bloc oa_parameters
+!************************************************************************************************
+!************************************************************************************************
+!
+! NZV_W             Nombre de variables ou de configuration
+! TW_V              Type de variable (de la config): les variables ont un code.
+!                   NOT NECESSARY ANYMORE -> see namelist_oa
+!
+! TPSI_W            Type of atom (0:Dirac, 1:Ondelette de Morlet, 2:Windowed Fourier, 3: Fourier)
+!
+! SAVE_W            Sauvegarde de la variable (0,1:variable utilisateur,2:variable commune)
+! UPDV_W            Remise à jour de la variable interactivement 
+!
+! SWT_WFPF_W        Sortie demandées: 
+!                       1 : Wf  
+!                       2 : Energie Pf
+!                       4 : Partie réelle
+! FL_REC_W          XXXX
+!                       0 : coef. brut, 
+!                       1 : reconstruction
+! PER_W(1)          Period minimum:
+!                       sec.   : wavelets & fourier windows
+!                       Length : Dirac brush, if 0 then dirac delta
+! PER_W(2)          Period maximum:
+!                       sec.   : wavelets & fourier windows
+!                       Length : Dirac brush, if 0 then dirac delta
+! PER_W(3)          Step determining # of periods to be examined, DPériode (h) (-99=optimum)
+! DORI_W            XXXX
+!                       1 : Discrétisation
+!                       2 : Integration
+! DELTA_T_W         1/2 Largeur de l'atome ou nombre de périodes par atome
+!                       1         : Dirac, 
+!                       2 ou plus : Wavelet
+! NZPT_PER_W        Nombre de points de calcul par périodes
+! CNB_W             Call number 0,1,... (depending on where a variable needs to be called)
+! SWT_T_W           Domaine temporel:
+!                       1 : période [T1:T2] , 
+!                       2 : fin , 
+!                       3 : date-->T1, 
+!                       4 : toute la simulation).
+! SWT_D_W           Domaine spatial:
+!                       1 : région [lat1,lat2],[lon1,lon2], 
+!                       2 : point (I,J), 
+!                       3:  région [Hmin,Hmax] dans domaine (Lat,Lon)
+!
+! DATE_DEB          Annee, Mois, Jour, Heure, Min., Sec.
+!                   ex : 2011,01,1,00,01,18
+! DATE_FIN          Annee, Mois, Jour, Heure, Min., Sec.
+!                   ex : 2011,01,1,00,01,18
+!
+! DT_W              Interval temporel si choix=1 ou 4 (secondes)
+!
+! T0_W              Première sortie pour SWT_T_W=4
+! LAT_W             Latitude  : Min, Max
+! LON_W             Longitude : Min, Max
+! HH_W              Hauteur   : Min, Max
+! K_W               Plage d'indice k : k1, k2 
+!                                      -99 pour colonne entiere
+! DX_W              Résolution en X (1 point sur...
+! DY_W              Résolution en Y (1 point sur...
+! DK_W              Résolution en Z (1 point sur...)
+! PTIJ_W            I quand SWT_D_W=2                                                        
+! PTIJ_W            J quand SWT_D_W=2               
+! 
+!***********************************************************************************************
+&oa_parameters
+
+TPSI_W = 0    
+SAVE_W = 2    
+UPDV_W = 2    
+SWT_WFPF_W = 4
+FL_REC_W   = 1 
+PER_W(1)   = 0.
+PER_W(2)   = 0.
+PER_W(3)   = 1 
+DORI_W     = 1
+DELTA_T_W  = 2
+NZPT_PER_W = 1 
+CNB_W      = 0
+SWT_T_W    = 4
+SWT_D_W    = 1
+DATE_DEB   = 2011, 01, 1, 00, 01, 18
+DATE_FIN   = 2011, 01, 1, 00, 15, 15
+DT_W       = 0.1
+T0_W       = -0.01
+LAT_W      = -360, 360
+LON_W      = -360, 360
+HH_W       = 0., 1. 
+K_W        = 45, 45    
+DX_W       = 1
+DY_W       = 1
+DK_W       = 1
+PTIJ_W     = 64                                                              
+PTIJ_W     = 2
+
+/

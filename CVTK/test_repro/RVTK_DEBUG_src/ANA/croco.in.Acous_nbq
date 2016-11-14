@@ -1,0 +1,56 @@
+title:
+	Acoustic waves example
+
+time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+                5      0.0001      2      100000
+
+time_stepping_nbq: NDTNBQ    CSOUND_NBQ    VISC2_NBQ
+                     2          1500          0. 
+
+S-coord: THETA_S,   THETA_B,    Hc (m)
+          0.0d0      0.0d0      1.d16
+
+initial: NRREC  filename
+          0 
+                          gravadj_rst.nc
+
+restart:          NRST, NRPFRST / filename
+                  5      -1
+                          gravadj_rst.nc
+
+history: LDEFHIS, NWRT, NRPFHIS / filename 
+            T     5      0 
+                          acous_his.nc
+
+primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                         T   T    T     T   T   10*T
+
+auxiliary_history_fields: rho Omega  W  Akv  Akt  Aks  HBL Hbbl Bostr Wstr UWstr VWstr
+                          T   F      T  F    T    F    F   F    F     F    F     10*F
+
+rho0:
+      1000.
+
+bottom_drag:     RDRG(m/s),      RDRG2, Zob [m],  Cdb_min, Cdb_max
+                 0.              0.      0.         0.      0. 
+
+gamma2:
+                 1.
+
+lin_EOS_cff:  R0 [kg/m3], T0 [Celsius], S0 [PSU], TCOEF [1/Celsius], SCOEF [1/PSU] 
+              30.         0.            0.        0.28                0.
+
+vertical_mixing: Akv_bak, Akt_bak [m^2/sec]
+                 0.e-6    0.e-6 
+
+lateral_visc:   VISC2    [m^2/sec ]
+                0.  0.
+
+tracer_diff2: TNU2         [m^2/sec]
+              0. 0.
+
+
+
+
+
+

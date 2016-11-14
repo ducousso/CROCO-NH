@@ -1,0 +1,31 @@
+! $Id: etalon_data.h.Upwelling 784 2012-03-15 11:45:05Z gcambon $
+!======================================================================
+! ROMS_AGRIF is a branch of ROMS developped at IRD and INRIA, in France
+! The two other branches from UCLA (Shchepetkin et al) 
+! and Rutgers University (Arango et al) are under MIT/X style license.
+! ROMS_AGRIF specific routines (nesting) are under CeCILL-C license.
+! 
+! ROMS_AGRIF website : http://roms.mpl.ird.fr
+!======================================================================
+!
+
+        check_point(1)=1
+        etalon_line(1)=
+     &    '1.370390030E-08 1.7498108E+01 1.7498108E+01 1.9026412E+11'
+        check_point(2)=8
+        etalon_line(2)=
+     &    '1.514236395E-06 1.7498121E+01 1.7498123E+01 1.9026412E+11'
+        check_point(3)=16
+        etalon_line(3)=
+     &    '1.061913148E-05 1.7498145E+01 1.7498156E+01 1.9026412E+11'
+        check_point(4)=32
+        etalon_line(4)=
+     &    '6.532260895E-05 1.7498199E+01 1.7498264E+01 1.9026412E+11'
+        check_point(5)=64
+        etalon_line(5)=
+     &    '2.756463981E-04 1.7498196E+01 1.7498472E+01 1.9026412E+11'
+        check_point(6)=128
+        etalon_line(6)=
+     &    '1.890172131E-03 1.7497674E+01 1.7499565E+01 1.9026412E+11'
+
+

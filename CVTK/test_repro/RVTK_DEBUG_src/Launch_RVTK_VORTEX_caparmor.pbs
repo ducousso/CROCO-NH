@@ -1,0 +1,25 @@
+#!/bin/bash
+#PBS -S /bin/bash
+#PBS -N RVTK_VORT
+#PBS -q parallel8
+#PBS -l select=1:ncpus=8:mpiprocs=8
+#PBS -l cput=48:00:00
+#PBS -j oe 
+#PBS -M gildas.cambon@ird.fr -m abe
+
+cd $PBS_O_WORKDIR
+echo $PBS_O_LOGNAME
+
+#Chargement des modules nécessaires à l'exécution du script (et uniquement ces modules)
+#--------------------------------------------------------------------------------------
+
+source $MODULESHOME/init/bash
+module purge
+module load intel-comp/11.1.073
+module load intel-mpi/4.0.0.028
+module load netCDF/4.2.1-intel-11.1.073_mpi-4.0.0.028
+module list
+
+#==
+./test_croco.sh VORTEX
+#==

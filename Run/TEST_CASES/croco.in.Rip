@@ -1,0 +1,90 @@
+title:
+        RIP Example 
+
+time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+                1200      6        60      10
+
+S-coord: THETA_S,   THETA_B,    Hc (m)
+         0.0d0       0.0d0      1.e16
+
+grid:  filename
+                          rip_grd.nc 
+
+initial: NRREC  filename
+          0
+
+sediments: input file
+                          sediment.in
+
+sediment_history_fields: bed_thick bed_poros bed_fra(sand,silt)
+                            F         F         F  F
+
+bbl_history_fields: Abed Hripple Lripple Zbnot Zbapp Bostrw
+                     F      F       F      T     T     T
+
+wci_history_fields:  SUP UST2D VST2D UST VST WST AKB AKW KVF CALP KAPS
+                      T   T     T     T   T   T   T   T  T    T    T
+
+restart:          NRST, NRPFRST / filename
+                  1200   -1
+                          rip_rst.nc
+
+history: LDEFHIS, NWRT, NRPFHIS / filename
+            T     300        0
+                          rip_his.nc
+
+averages: NTSAVG, NAVG, NRPFAVG / filename
+            1     300         0
+                          rip_avg.nc
+
+primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                          T    T   T   T  T    30*T
+auxiliary_history_fields:   rho Omega W  Akv  Akt  Aks Visc3d Diff3d  HBL HBBL Bostr Wstr Ustr Vstr Shfl rsw rlw lat sen Hm HEL BIOL
+                             T   F    T   F    T    F   F      F       F   F    F     20*F
+
+primary_averages: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                   T    T    T    T  T   30*T
+auxiliary_averages:   rho Omega W  Akv  Akt  Aks Visc3d Diff3d  HBL HBBL Bostr Wstr Ustr Vstr Shfl rsw rlw lat sen Hm HEL BIOL
+                       T   F    T   F    T    F   F      F       F   F    F     20*F
+
+diagnosticsM:   ldefdia   nwrtdia    nrpfdia /filename
+                   T      300       -1
+                                     rip_diaM.nc
+diagM_history_fields: diag_momentum(1:2)
+                            T T
+rho0:
+      1024.4
+
+bottom_drag:     RDRG(m/s),      RDRG2,   Zob [m],  Cdb_min, Cdb_max
+                 0.0e-04         1.5e-3   0.01       1.d-4    1.d-1
+
+gamma2:
+                 1.
+
+lin_EOS_cff:  R0 [86kg/m3], T0 [Celsius], S0 [PSU], TCOEF [1/Celsius], SCOEF [1/PSU]
+               30.           0.            0.        0.28                0.
+
+vertical_mixing: Akv_bak, Akt_bak [m^2/sec]
+                  1.e-5   1.e-5
+
+sponge:          X_SPONGE [m],    V_SPONGE [m^2/sec]
+                   XXX                XXX
+
+nudg_cof:    TauT_in, TauT_out, TauM_in, TauM_out  [days for all]
+              1.       360.       1.       360.
+
+lateral_visc:   VISC2,    VISC4    [m^2/sec for all]
+                 0.        0.
+
+tracer_diff2: TNU2(1:NT)           [m^2/sec for all]
+              0.d0 0.d0 0.d0 0.d0 0.d0 0.d0 0.d0 0.d0 0.d0
+
+wkb_history_fields: swh  frq  action  k_xi  k_eta  eps_b  eps_d Erol eps_r
+                      T   T     T      T     T       T      T     T    T
+
+wkb_wwave:  amp [m], ang [deg], prd [s], tide [m], B_tg, gamma_tg
+            0.5      -1.         10.      0.0       1.3    0.38
+
+wkb_roller:  roller_sinb  roller_fraction
+                  0.1          0.5
+

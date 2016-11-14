@@ -1,0 +1,29 @@
+#!/bin/bash
+#PBS -S /bin/bash
+#PBS -N RVTK_REG
+#PBS -q parallel8
+#PBS -l select=1:ncpus=8:mpiprocs=8:mem=16gb
+#PBS -l cput=72:00:00
+#PBS -j oe 
+#PBS -M gildas.cambon@ird.fr -m abe
+cd $PBS_O_WORKDIR
+echo $PBS_O_LOGNAME
+
+#Chargement des modules nécessaire  l'exécution du script (et uniquement ces modules)
+#--------------------------------------------------------------------------------------
+
+source $MODULESHOME/init/bash
+module purge
+#source $HOME/.cshrc.caparmor
+module load intel-comp/2015.3.187
+module load intel-mpi/5.0.3.048
+module load netcdf-intel/3.6.3-11.1.073
+module list
+
+# Define $CC for AGRIF/conv compilation
+#--------------------------------------
+export CC=icc
+
+#==
+./test_croco.sh REGIONAL
+#==

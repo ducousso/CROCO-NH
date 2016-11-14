@@ -1,0 +1,37 @@
+title:
+	Equatorial Rossby Wave Example
+
+time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+               1200     0.1      1        5
+
+initial: NRREC  filename
+          0 
+                          soliton_rst.nc
+
+restart:          NRST, NRPFRST / filename
+                  1200      -1
+                          soliton_rst.nc
+
+history: LDEFHIS, NWRT, NRPFHIS / filename 
+            T      80      0 
+                          soliton_his.nc
+
+averages: NTSAVG, NAVG, NRPFAVG / filename
+            1      80      0
+                          soliton_avg.nc
+
+primary_history_fields: zeta UBAR VBAR  
+                        T    T    T   
+
+primary_averages: zeta UBAR VBAR
+                  T    T    T 
+
+rho0:
+      1025.
+
+bottom_drag:     RDRG(m/s),      RDRG2, Zob [m],  Cdb_min, Cdb_max
+                 0.              0.     0.        0.       0. 
+
+gamma2:
+                 1.
+

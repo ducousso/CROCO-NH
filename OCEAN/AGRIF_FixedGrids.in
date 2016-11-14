@@ -1,0 +1,8 @@
+    1
+    17    33     13    27   3  3  3  3
+    0
+# number of children per parent
+# imin imax jmin jmax spacerefx spacerefy timerefx timerefy
+# [all coordinates are relative to each parent grid!]
+~
+

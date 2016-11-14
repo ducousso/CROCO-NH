@@ -1,0 +1,58 @@
+# $Id$
+# [1] Machine independent rules and definitions.
+#==== ======= =========== ===== === ============
+.SUFFIXES: .o .f .i .F .F90 .f90
+
+.f.o:
+	$(CFT) -c $(FFLAGS) $*_.f -o $*.o
+#	rm -f $*.f
+.F.f:
+	@$(CPP) -P $(CPPFLAGS) $*.F | ./mpc > ROMSFILES/$*.F
+	@(cd ROMSFILES ; ./conv amr.scrum -rm \
+		-comdirin ./ -comdirout AGRIF_MODELFILES/. -convfile $*.F)
+	@$(CPP) -P $(CPPFLAGS) -IROMSFILES/AGRIF_INC ROMSFILES/AGRIF_MODELFILES/$*.F | ./mpc > $*_.f
+.F.o:
+	$(CPP) -P $(CPPFLAGS) $*.F | ./mpc > ROMSFILES/$*.F
+	(cd ROMSFILES ; ./conv amr.scrum -rm \
+		-comdirin ./ -comdirout AGRIF_MODELFILES/. -convfile $*.F)
+	$(CPP) -P $(CPPFLAGS) -IROMSFILES/AGRIF_INC ROMSFILES/AGRIF_MODELFILES/$*.F > $*_.f
+	$(CFT) -c $(FFLAGS) $*_.f -o $*.o
+#	/bin/rm $*.f
+
+.f90.o:
+	$(CFT) -c $(FFLAGS) $*_.f90 -o $*.o
+#	rm -f $*.f
+.F90.f90:
+	@$(CPP) -P $(CPPFLAGS) $*.F90 > ROMSFILES/$*.F90
+	@(cd ROMSFILES ; ./conv amr.scrum -rm \
+		-comdirin ./ -comdirout AGRIF_MODELFILES/. -convfile $*.F90)
+	@$(CPP) -P $(CPPFLAGS) -IROMSFILES/AGRIF_INC ROMSFILES/AGRIF_MODELFILES/$*.F90 > $*_.f90
+.F90.o:
+	$(CPP) -P $(CPPFLAGS) $*.F90 > ROMSFILES/$*.F90
+	(cd ROMSFILES ; ./conv amr.scrum -rm \
+		-comdirin ./ -comdirout AGRIF_MODELFILES/. -convfile $*.F90)
+	$(CPP) -P $(CPPFLAGS) -IROMSFILES/AGRIF_INC ROMSFILES/AGRIF_MODELFILES/$*.F90 > $*_.f90
+	$(CFT) -c $(FFLAGS) $*_.f90 -o $*.o
+#	/bin/rm $*.f
+
+.F:
+	$(LDR) -o $@ $(LDFLAGS) $<
+.f:
+	$(LDR) -o $@ $(LDFLAGS) $<
+
+# [2] Machine dependent definitions for SGI and SGI/CRAY Origin 
+#==== ======= ========= =========== === === === ======== ======
+# CPP           Name of the C preprocessor
+# CPPFLAGS      Flags to the C preprocessor
+# CFT           Name of the fortran compiler to use
+# FFLAGS        Flags to the fortran compiler
+# LDR           Program to load the objects into an executable
+# LDFLAGS       Flags to the loader
+#
+      CPP = $(CPP1)
+ CPPFLAGS = $(CPPFLAGS1)
+      CFT = $(CFT1)
+      LDR = $(CFT)
+   FFLAGS = $(FFLAGS1)
+  LDFLAGS =
+      LCDF = $(LDFLAGS1)	 

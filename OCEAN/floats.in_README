@@ -1,0 +1,51 @@
+! floats.in README
+!------------------------------------------------------------------------------
+! Initial float location KEYWORDS.  
+!------------------------------------------------------------------------------
+!
+!  Fgrd      Nested grid number (ng).
+!
+!  Fcoor     Initial horizontal location coordinate type:
+!
+!              Fcoor = 0,  grid units:  1 =< Fx0 =< Lm(ng)+1,
+!                                       1 =< Fy0 =< Mm(ng)+1
+!
+!              Fcoor = 1,  Fx0 is longitude (west values are negative).
+!                          Fy0 is latitude (south values are negative).
+!
+!  Ftype      Float trajectory type:
+!
+!              Ftype = 0,  neutral density 3D Lagrangian particles.
+!
+!              Ftype = 1,  isobaric (constant depth) floats.
+!
+!  Fcount     Number of floats to be released at the (Fx0,Fy0,Fz0)
+!             location.  It must be equal or greater than one. 
+!             If Fcount > 1, a cluster distribution of floats
+!             centered at (Fx0,Fy0,Fz0) is activated.
+!
+!              NOTE:  The total number of floats trajectories to compute
+!              ====   must add to NFLOATS.
+!
+!  Ft0       Time (days) of float release after model initialization .
+!
+!  Fx0       Initial float x-location (real; grid units or longitude).
+!
+!  Fy0       Initial float y-location (real; grid units or latitude).
+!
+!  Fz0       Initial float z-location (real; vertical level or depth).
+!              If Fz0 ² 0 , Fz0 is the initial depth in meters.  
+!              If Fz0 > 0 and 0 < Fz0 =< N(ng),
+!              Fz0 is the initial position relative to the W grid
+!              (0 = bottom; N = surface).
+!
+!              WARNING: If the depth in meters at particular horizontal
+!                       is not bounded, the floats are released at the
+!                       surface.
+!
+!  Fdt       Float cluster release time interval (real; days), only used
+!              if Fcount > 1:
+!
+!              Fdt = 0,  Fcount floats will be deployed simulataneously
+!                        with a distribution centered at (Fx0,Fy0,Fz0)
+!------------------------------------------------------------------------------

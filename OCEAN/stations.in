@@ -1,0 +1,39 @@
+1  STAtitle (a80)
+CROCO  - Station Location
+2  STAt0,  STAx0,  STAy0,  STAz0, STgrd, STAcoor
+    0.0    -78.    -11.    -5.0     0       1 
+    0.0    -78.5   -10.    -5.0     0       1
+99 END of station input data
+!
+!------------------------------------------------------------------------------
+! Initial station location KEYWORDS.  
+!------------------------------------------------------------------------------
+!
+! STgrd       Nested grid number.
+!
+! STAcoor     Horizontal location coordinate type:
+!
+!              STAcoor = 0,  grid units:  1 =< STAx0 =< Lm(ng)+1,
+!                                         1 =< STAy0 =< Mm(ng)+1
+!
+!              STAcoor = 1,  STAx0 is longitude (west values are negative).
+!                            STAy0 is latitude (south values are negative).
+!
+! STAt0       Time (days) of station release after model initialization .
+!
+! STAx0       Station x-location (real; grid units or longitude).
+!
+! STAy0       Station y-location (real; grid units or latitude).
+!
+! STAz0       Station z-location (real; vertical level or depth).
+!              - If STAz0 < 0 , STAz0 is the depth in meters.  
+!              - If STAz0 > 0 and 0 < STAz0 =< N,
+!              STAz0 is the position relative to the W grid
+!              (0 = bottom; N = surface).
+!              - If ALL_SIGMA is defined, all sigma levels are stored
+!
+!              WARNING: If the depth in meters at particular horizontal
+!                       is not bounded, the stations are released at the
+!                       surface.
+!
+!------------------------------------------------------------------------------

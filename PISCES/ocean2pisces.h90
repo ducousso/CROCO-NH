@@ -1,0 +1,119 @@
+
+
+/* Loop index definition */
+#define IRANGE    Istrp,Iendp
+#define JRANGE    Jstrp,Jendp
+#define KRANGE    1,N
+#define KRANGEL   2,N
+#define KSURF     N
+#define KBOTTOM   1
+#define K         N+1-jk
+#define KUP       N+2-jk
+#define KDOWN     N-jk
+#define KSED      KBOTTOM
+
+#define wp  SELECTED_REAL_KIND(12,307)
+
+/* Model grid variables*/
+# define tmask(i,j,k)          rmask(i,j)
+# define tmask_i(i,j)          rmask(i,j)
+# define fsdept(i,j,k)         ((-1)*z_r(i,j,k))
+/* # define fsdepw(i,j,k)         ((-1)*z_w(i,j,k+1)) */
+# define fse3t(i,j,k)          Hz(i,j,k)
+# define glamt(i,j)            lonr(i,j)
+# define gphit(i,j)            latr(i,j)
+# define e1t(i,j)              om_r(i,j)
+# define e2t(i,j)              on_r(i,j)
+# define cvol(i,j,k)           e1t(i,j)*e2t(i,j)*fse3t(i,j,k)*rmask(i,j)
+
+
+/* Model specific variables */
+
+# define numout   stdout
+# define lwp      mynode .eq. 0
+
+#if defined MPI
+# define lk_mpp .true.
+#else 
+# define lk_mpp .false.
+#endif 
+
+# define jp_tem           itemp
+# define jp_sal           itemp+ntrc_salt
+# define tsn(i,j,k,n)     t(i,j,k,nnew,n)
+# define trn(i,j,k,n)     t(i,j,k,nnew,itemp+ntrc_salt+n) 
+
+
+# define rhop(i,j,k) (rho0+rho1(i,j,k))
+# define wndm(i,j)  sqrt(sqrt((sustr(i,j)*rho0)**2+(svstr(i,j)*rho0)**2)/1.25e-3) 
+#
+#if defined  LMD_SKPP2005
+#   define hmld(i,j)  hbls(i,j,nstp)
+#else
+#   define hmld(i,j)  hbl(i,j)
+#endif
+#
+#if defined DIURNAL_INPUT_SRFLX
+#    define  qsr(i,j)  max(1.e-10,rho0*Cp*srflxbio(i,j))
+#else
+#    define  qsr(i,j)  max(1.e-10,rho0*Cp*srflx(i,j))
+#endif
+#
+# define nday_year     (int(tdays)+1)
+# define rday          day2sec
+# define raamo         12.
+# define ryyss         (year2day*day2sec)
+# define rmtss         (ryyss/raamo)
+# define nyear_len     year2day
+# define nit000        ntstart
+# define nitend        ntimes
+# define nwrite        nrst
+# define rdt           dt
+# define rpi           pi
+
+# define jpk   N
+# define ikt   jpk-1
+# define PRIV_3D_BIOARRAY Istrp:Iendp,Jstrp:Jendp,1:jpk
+# define PRIV_2D_BIOARRAY Istrp:Iendp,Jstrp:Jendp
+
+#if !defined AGRIF
+#  define jpi   Lm
+#  define jpj   Mm
+#endif
+
+/* PISCES additional diagnostics */
+
+# define   jp_flxco2      Nfld  
+# define   jp_flxo2       Nflu16
+# define   jp_kgco2       Nkgco2
+# define   jp_dpco2       Natcco2
+# define   jp_sinkco2     Nsinking
+# define   jp_sinkfer     Nsinkfer
+# define   jp_sinksil     Nsinksil 
+# define   jp_sinkcal     Nsinkcal
+# define   jp_heup        Nheup
+# define   jp_irondep     Nirondep
+# define   jp_nfix        Nnitrpot
+# define   jp_pisces_2d   NumVSinkTerms
+
+# define   jp_hi          Nhi
+# define   jp_co3         NCo3
+# define   jp_co3sat      Naksp 
+# define   jp_etot        Netot 
+# define   jp_pphy        Nprorca
+# define   jp_pphy2       Nprorcad
+# define   jp_pnew        Npronew
+# define   jp_pnew2       Npronewd
+# define   jp_pbsi        Nprobsi
+# define   jp_pfed        Nprofed
+# define   jp_pfen        Nprofen
+# define   jp_pnewo2      Npronewo2
+# define   jp_prego2      Nprorego2
+# define   jp_grazt       Ngraztot
+# define   jp_nitro2      Nnitrifo2
+# define   jp_remino2     Nremino2
+# define   jp_nfixo2      Nfixo2
+# define   jp_pisces_3d   NumFluxTerms
+
+# define trc2d(i,j,l)      bioVSink(i,j,l)
+# define trc3d(i,j,k,l)    bioFlux(i,j,k,l)

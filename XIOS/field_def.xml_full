@@ -1,0 +1,316 @@
+   <field_definition level="1" enabled=".TRUE.">   
+#ifdef SOLVE3D
+      <field_group id="Vertical_dimension_rho" domain_ref="1point" axis_ref="s_rho"  >
+         <field id="Cs_r" long_name="ocean s roms coordinate at rho point"  />
+         <field id="sc_r" long_name="S-coordinate stretching curves at RHO-points"  />
+      </field_group>
+      <field_group id="Vertical_dimension_w"  domain_ref="1point" axis_ref="s_w"  >
+         <field id="Cs_w" long_name="ocean s roms coordinate at w point"  />
+         <field id="sc_w" long_name="S-coordinate stretching curves at W-points"  />
+      </field_group>
+      <field_group id="scalar" domain_ref="1point"  >
+         <field id="hc" long_name="S-coordinate parameter, critical depth"  />
+         <field id="theta_s" long_name="S-coordinate surface control parameter"  />
+         <field id="theta_b" long_name="S-coordinate bottom control parameter"  />
+         <field id="Tcline" long_name="S-coordinate surface/bottom layer width"  />
+         <field id="Vtransform" long_name="vertical terrain-following transformation equation"  />
+    </field_group>
+#endif
+     <!-- T grid -->
+     <field_group id="rho" grid_ref="rho_2D">
+         <field id="h" long_name="bathymetry at RHO-points" unit="meter" />
+#ifdef WET_DRY
+         <field id="Dcrit" long_name="Critical Depth for Drying cells" unit="meter" />
+#endif
+         <field id="f" long_name="Coriolis parameter at RHO-points" unit="second-1" />
+         <field id="pm" long_name="curvilinear coordinates metric in XI" unit="meter-1" />
+         <field id="pn" long_name="curvilinear coordinates metric in ETA" unit="meter-1" />
+
+
+#ifdef SPHERICAL
+         <field id="lon_rho" long_name="longitude of RHO-points" unit="degree_east" />
+         <field id="lat_rho" long_name="latitude of RHO-points" unit="degree_north" />
+         <field id="lon_u" long_name="longitude of U-points" unit="degree_east" />
+         <field id="lat_u" long_name="latitude of U-points" unit="degree_north" />
+         <field id="lon_v" long_name="longitude of V-points" unit="degree_east" />
+         <field id="lat_v" long_name="latitude of V-points" unit="degree_north" />
+#else
+         <field id="x_rho" long_name="x-locations of RHO-points" unit="meter" />
+         <field id="y_rho" long_name="y-locations of RHO-points" unit="none" />
+#endif
+#ifdef CURVGRID
+         <field id="angle" long_name="angle between XI-axis and EAST" unit="radians" />
+#endif
+#ifdef MASKING
+         <field id="mask_rho" long_name="angle between XI-axis and EAST" unit="radians" />
+#endif
+
+         <field id="zeta" long_name="free-surface" unit="meter" />
+         <field id="bostr" long_name="Kinematic bottom stress" unit="N/m2" />
+         <field id="wstr" long_name="Kinematic wind stress" unit="N/m2" />
+         <field id="temp" long_name="potential temperature" unit="Celsius" grid_ref="rho_3D" />
+#ifdef SALINITY
+         <!-- SALINITY --> 
+         <field id="salt" long_name="salinity" unit="PSU" grid_ref="rho_3D" />
+         <field id="swflx" long_name="surface freshwater flux (E-P)" unit="centimeter day-1"  />
+         <!--  END SALINITY --> 
+#endif
+         <field id="w" long_name="vertical velocity" unit="meter second-1" grid_ref="rho_3D"/>
+#ifdef LMD_SKPP
+         <field id="hbl" long_name="depth of planetary boundary layer" unit="meter" />
+#endif
+#ifdef LMD_BKPP
+         <field id="hbbl" long_name="depth of bottom boundary layer" unit="meter" />
+#endif
+#ifdef MOVING_BATHY
+         <!-- MOVING_BATHY -->
+         <field id="hmorph" long_name="moving bathymetry" unit="meter" />
+         <!-- END MOVING_BATHY -->
+#endif
+         <field id="rho" long_name="density anomaly" unit="kilogram meter-3" grid_ref="rho_3D"/>
+#ifdef VIS_COEF_3D
+         <!-- VIS_COEF_3D -->
+         <field id="visc3d" long_name="horizontal viscosity coefficient" unit="meter2 second-1" grid_ref="rho_3D"/>
+         <!--END VIS_COEF_3D -->
+#endif
+#ifdef DIF_COEF_3D
+         <!-- DIF_COEF_3D -->
+         <field id="diff3d" long_name="horizontal diffusivity coefficient" unit="meter2 second-1" grid_ref="rho_3D"/>
+         <!-- END DIF_COEF_3D -->
+#endif
+         <field id="shflx" long_name="surface net heat flux" unit="Watts meter-2" />
+#if ! defined BULK_FLUX
+         <field id="swrad" long_name="Short-wave surface radiation" unit="Watts meter-2" />
+#else
+         <!-- BULK_FLUX -->
+         <field id="radsw" long_name="Short-wave surface radiation" unit="Watts meter-2" />
+         <field id="shflx_rlw" long_name="Long-wave surface radiation" unit="Watts meter-2" />
+         <field id="shflx_lat" long_name="Latent surface heat flux" unit="Watts meter-2" />
+         <field id="shflx_sen" long_name="Sensible surface heat flux" unit="Watts meter-2" />
+         <!-- END BULK_FLUX -->  
+#endif
+#ifdef SST_SKIN
+         <!-- SST_SKIN -->
+         <field id="sst_skin" long_name="Skin temperatury" unit="Celsius" />
+         <!-- END SST_SKIN -->
+#endif
+#ifdef BBL
+         <!-- BBL -->
+         <field id="Abed" long_name="Bed wave excursion amplitude" unit="m" />
+         <field id="Hripple" long_name="Bed ripple height" unit="m" />
+         <field id="Lripple" long_name="Bed ripple length" unit="m" />
+         <field id="Zbnot" long_name="Physical hydraulic bottom roughness" unit="m" />
+         <field id="Zbapp" long_name="Apparent hydraulic bottom roughness" unit="m" />
+         <field id="bostrw" long_name="Wave-induced kinematic bottom stress" unit="N/m2" />
+         <field id="bustrc" long_name="Courant only bottom stress in xi direction" unit="N" />
+         <field id="bustrw" long_name="Wave only bottom stress in xi direction" unit="N" />
+         <field id="bustrcwmax" long_name="Critical bottom stress in xi direction" unit="N" />
+         <field id="bvstrc" long_name="Courant only bottom stress in eta direction" unit="N" />
+         <field id="bvstrw" long_name="Wave only bottom stress in eta direction" unit="N" />
+         <field id="bvstrcwmax" long_name="Critical bottom stress in eta direction" unit="N" />
+         <!-- END BBL -->
+#endif
+#ifdef MRL_WCI         
+         <!-- MRL_WCI -->
+         <field id="sup" long_name="quasi-static sea-level response (setup)" unit="meter" />
+         <field id="wst" long_name="w vertical 3D Stokes drift velocity" unit="meter second-1" grid_ref="rho_3D"/>
+         <field id="kvf" long_name="vertical vortex force (u^st du/dz)" unit="meter second-2" grid_ref="rho_3D"/>
+         <field id="calP" long_name="surface pressure correction in prsgrd" unit="meter2 second-2" />
+         <field id="Kapsrf" long_name="surface Bernoulli head in prsgrd term" unit="meter2 second-2 " />
+         <!-- END MRL_WCI -->
+#endif
+#ifdef WKB_WWAVE
+         <!-- WKB_WWAVE -->
+         <field id="hrm" long_name="RMS wave height" unit="meter" />
+         <field id="frq" long_name="wave frequency" unit="rad/second" />
+         <field id="wac" long_name="wave action" unit="meter^3 second^-1" />
+         <field id="wkx" long_name="xi-dir wavenumber vector" unit="radian/meter" />
+         <field id="wke" long_name="eta-dir wavenumber vector" unit="radian/meter" />
+         <field id="epb" long_name="breaking dissipation, epsilon_b" unit="m" />
+         <field id="epd" long_name="frictional dissipation, epsilon_d" unit="m" />
+# ifdef WAVE_ROLLER
+         <!--  WKB_WWAVE && WAVE_ROLLER -->
+         <field id="war" long_name="wave action of roller component" unit="meter^3/second^3" />
+         <field id="epr" long_name="roller dissipation, epsilon_r" unit="meter^3/second^3" />
+# endif
+         <!-- END WKB_WWAVE -->
+#endif
+#if defined BIOLOGY 
+         <!-- BIOLOGY  -->
+# if defined PISCES
+         <field id="DIC"      long_name="Dissolved inorganic Concentration"        unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="Alkalini" long_name="Total Alkalinity Concentration"           unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="O2"       long_name="Oxygen Concentration"                     unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="CaCO3"    long_name="Calcite Concentration"                    unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="PO4"      long_name="Phosphate Concentration"                  unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="POC"      long_name="Small organic carbon Concentration"       unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="Si"       long_name="Silicate Concentration"                   unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="PHY"      long_name="(Nano)Phytoplankton Concentration"        unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="ZOO"      long_name="(Micro)Zooplankton Concentration"         unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="DOC"      long_name="Dissolved organic Concentration"          unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="PHY2"     long_name="Diatoms Concentration"                    unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="ZOO2"     long_name="Mesozooplankton Concentration"            unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="BSi"      long_name="Diatoms Silicate Concentration"           unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="Fer"      long_name="Dissolved Iron Concentration"             unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="BFe"      long_name="Big iron particles Concentration"         unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="GOC"      long_name="Big organic carbon Concentration"         unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="SFe"      long_name="Small iron particles Concentration"       unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="DFe"      long_name="Diatoms iron  Concentration"              unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="DSi"      long_name="Sinking biogenic Silicate Concentration"  unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="NFe"      long_name="Nano iron Concentration"                  unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="NCHL"     long_name="Nano chlorophyl Concentration"            unit="mg/m3"   grid_ref="rho_3D" />
+         <field id="DCHL"     long_name="Diatoms chlorophyl Concentration"         unit="mg/m3"   grid_ref="rho_3D" />
+         <field id="NO3"      long_name="Nitrate Concentration"                    unit="mmol/m3" grid_ref="rho_3D" />
+         <field id="NH4"      long_name="Ammonium Concentration"                   unit="mmol/m3" grid_ref="rho_3D" />
+# if defined key_trc_diaadd
+         <field id="PH"       long_name="PH"                                       unit="-"           grid_ref="rho_3D" />
+         <field id="CO3"      long_name="Bicarbonates"                             unit="mol/L"       grid_ref="rho_3D" />
+         <field id="CO3sat"   long_name="CO3 saturation"                           unit="mol/L"       grid_ref="rho_3D" />
+         <field id="PAR"      long_name="Photosynthetically Available Radiation"   unit="W/m2"        grid_ref="rho_3D" />
+         <field id="PPPHY"    long_name="Primary production of nanophyto"          unit="molC/m3/s"   grid_ref="rho_3D" />
+         <field id="PPPHY2"   long_name="Primary production of diatoms"            unit="molC/m3/s"   grid_ref="rho_3D" />
+         <field id="PPNEWN"   long_name="New Primary production of nanophyto"      unit="molC/m3/s"   grid_ref="rho_3D" />
+         <field id="PPNEWD"   long_name="New Primary production of diatoms"        unit="molC/m3/s"   grid_ref="rho_3D" />
+         <field id="PBSi"     long_name="Primary production of Si diatoms"         unit="molSi/m3/s"  grid_ref="rho_3D" />
+         <field id="PFeN"     long_name="Primary production of nano iron"          unit="molFe/m3/s"  grid_ref="rho_3D" />
+         <field id="PFeD"     long_name="Primary production of diatoms iron"       unit="molFe/m3/s"  grid_ref="rho_3D" />
+         <field id="PPNEWo2"  long_name="Oxygen production by the New Produc."     unit="molC/m3/s"  grid_ref="rho_3D" />
+         <field id="PPRego2"  long_name="Oxygen production by the Regen Produc."   unit="molC/m3/s"  grid_ref="rho_3D" />
+         <field id="GRAZ"     long_name="Total Grazing by zooplankton"             unit="molC/m3/s"   grid_ref="rho_3D" />
+         <field id="Nito2"    long_name="O2 consumption by nitrification"          unit="molC/m2/s"  grid_ref="rho_3D" />
+         <field id="Nremino2" long_name="O2 consumption by remineralisation"       unit="molC/m2/s"  grid_ref="rho_3D" />
+         <field id="Nfixo2"   long_name="O2 production by Nfix"                    unit="molN/m2/s"  grid_ref="rho_3D"     />
+         <field id="Cflx"     long_name="DIC flux"                                 unit="molC/m2/s"      />
+         <field id="Oflx"     long_name="Oxygen flux"                              unit="molC/m2/s"      />
+         <field id="Kg"       long_name="Gas transfer"                             unit="molC/m2/s/uatm" />
+         <field id="Dpco2"    long_name="Delta CO2"                                unit="uatm"            />
+         <field id="EPC100"   long_name="Export of carbon particles at 100 m"      unit="molC/m2/s"      />
+         <field id="EPFE100"  long_name="Export of biogenic iron at 100 m"         unit="molFe/m2/s"     />
+         <field id="EPSI100"  long_name="Export of Silicate at 100 m"              unit="molSi/m2/s"     />
+         <field id="EPCAL100" long_name="Export of Calcite at 100 m"               unit="molC/m2/s"      />
+         <field id="Heup"     long_name="Euphotic layer depth"                     unit="m"               />
+         <field id="Nfix"     long_name="Nitrogen fixation at surface"             unit="molN/m2/s"      />
+         <field id="Irondep"  long_name="Iron deposition"                          unit="molFe/m2/s"     />
+# endif
+
+# elif defined IO_NChlPZD || defined BIO_N2ChlPZD2
+         <!--BIO_NChlPZD || BIO_N2ChlPZD2 --> 
+         <field id="theta" long_name="Chlorophyll to Carbon ratio" unit="mgChl/mgC" />
+#  if defined OXYGEN
+         <!--OXYGEN --> 
+         <field id="U10" long_name="surface wind speed 10 m " unit="meter second-1" />
+         <field id="KvO2" long_name="gas transfer coef for O2" unit="meter second-1" />
+         <field id="O2sat" long_name="saturation oxygen" unit="mMol O2 m-3" />
+#  endif
+# elif defined BIOEBUS
+         <!-- BIOEBUS --> 
+         <field id="AOU" long_name="Apparent Oxygen Utilization" unit="mmol O2 m-3" />
+         <field id="wind10" long_name="surface wind speed (10 m)" unit="meter second-1" />
+# else
+         <!-- tracer to add manually -->
+         <field id="hel" long_name="depth of euphotic layer" unit="meter" />
+# endif
+         <!--  END BIOLOGY -->      
+#endif
+#ifdef SEDIMENT
+         <!-- SEDIMENT --> 
+         <field id="sand_1" long_name="Sand No 1 sediment" unit="mg/l" grid_ref="rho_3D" />
+         <field id="sand_2" long_name="Sand No 2 sediment" unit="mg/l" grid_ref="rho_3D"/>
+         <field id="dflux_sand_1" long_name="depostion flux of Sand No 1" unit="kg/m2"  />
+         <field id="dflux_sand_2" long_name="depostion flux of Sand No 2" unit="kg/m2"  />
+         <field id="eflux_sand_1" long_name="erosion flux of Sand No 1" unit="kg/m2"  />
+         <field id="eflux_sand_2" long_name="erosion flux of Sand No 2" unit="kg/m2"  />
+         <!-- END SEDIMENT --> 
+#endif
+#ifdef WET_DRY
+         <field id="rmask_wet" long_name="" unit=""  />
+#endif
+     </field_group>
+        
+#ifdef SEDIMENT
+     <!-- SEDIMENT -->        
+     <field_group id="b" grid_ref="b_2D">
+         <field id="bed_thick" long_name="Thickness of sediment bed layer" unit="m" grid_ref="grid_b_3D" />
+         <field id="bed_poros" long_name="Porosity of sediment bed layer" unit="no units" grid_ref="grid_b_3D" />
+         <field id="bed_frac_sand_1" long_name="volume fraction of sand No 1 in bed layer" unit="no units" grid_ref="grid_b_3D" />
+         <field id="bed_frac_sand_2" long_name="volume fraction of sand No 2 in bed layer" unit="no units" grid_ref="grid_b_3D" />
+         <field id="bed_mass_sand_1" long_name="bed mass of sand No 1" unit="kg/m2" grid_ref="grid_b_3D" />
+         <field id="bed_mass_sand_2" long_name="bed mass of sand No 2" unit="kg/m2" grid_ref="grid_b_3D" />
+     </field_group>
+     <!-- END SEDIMENT -->  
+#endif
+        
+     <!-- U grid -->
+     <field_group id="u" grid_ref="u_2D">
+         <field id="ubar" long_name="vertically integrated u-momentum component" unit="meter second-1"/>
+         <field id="sustr" long_name="surface u-momentum stress" unit="N/m2" />
+         <field id="bustr" long_name="bottom  u-momentum stress" unit="N/m2" />
+         <field id="u" long_name="v-momentum component" unit="meter second-1" grid_ref="u_3D"/>
+#ifdef MRL_WCI
+         <!-- MRL_WCI -->
+         <field id="ust2d" long_name="u depth-averaged Stokes drift velocity" unit="meter second-1" />
+         <field id="ust" long_name="u Stokes drift velocity" unit="meter second-1" grid_ref="u_3D"/>
+         <!-- END MRL_WCI -->
+#endif
+#ifdef SEDIMENT
+         <!-- SEDIMENT -->
+         <field id="bdlu_sand_1" long_name="Bedload flux in x direction for Sand No 1" unit="kg/m/s"  />
+         <field id="bdlu_sand_2" long_name="Bedload flux in x direction for Sand No 2" unit="kg/m/s"  />
+         <!-- END SEDIMENT -->
+#endif
+#ifdef WET_DRY
+         <field id="umask_wet" long_name="" unit=""  />
+#endif
+     </field_group>
+
+     <!-- V grid -->
+     <field_group id="v" grid_ref="v_2D">
+         <field id="vbar" long_name="vertically integrated v-momentum component" unit="meter second-1"/>
+         <field id="svstr" long_name="surface v-momentum stress" unit="N/m2" />
+         <field id="bvstr" long_name="bottom  v-momentum stress" unit="N/m2" />
+         <field id="v" long_name="v-momentum component" unit="meter second-1" grid_ref="v_3D"/>
+#ifdef MRL_WCI
+         <!-- MRL_WCI -->
+         <field id="vst2d" long_name="v depth-averaged Stokes drift velocity" unit="meter second-1" />
+         <field id="vst" long_name="v Stokes drift velocity" unit="meter second-1" grid_ref="v_3D"/>
+         <!-- MRL_WCI END -->
+#endif
+#ifdef SEDIMENT
+         <!-- SEDIMENT -->
+         <field id="bdlv_sand_1" long_name="Bedload flux in y direction for Sand No 1" unit="kg/m/s" />
+         <field id="bdlv_sand_2" long_name="Bedload flux in y direction for Sand No 2" unit="kg/m/s" />
+         <!-- END SEDIMENT -->
+#endif
+#ifdef WET_DRY
+         <field id="vmask_wet" long_name="" unit=""  />
+#endif
+     </field_group>
+    
+     <!-- W grid -->
+     <field_group id="w" grid_ref="w_2D">
+         <field id="omega" long_name="S-coordinate vertical momentum component" unit="meter second-1" grid_ref="w_3D"/>
+#ifdef MRL_WCI
+          <!-- MRL_WCI -->
+         <field id="Akb" long_name="eddy viscosity due to wave breaking" unit="meter2 second-1" grid_ref="w_3D"/>
+         <field id="Akw" long_name="eddy diffusivity due to primary waves" unit="meter2 second-1" grid_ref="w_3D"/>
+         <!-- END MRL_WCI -->
+#endif
+         <field id="AKv" long_name="vertical viscosity coefficient" unit="meter2 second-1" grid_ref="w_3D"/>
+         <field id="AKt" long_name="temperature vertical diffusion coefficient" unit="meter2 second-1" grid_ref="w_3D"/>
+#ifdef SALINITY
+         <!-- SALINITY --> 
+         <field id="AKs" long_name="salinity vertical diffusion coefficient" unit="meter2 second-1" grid_ref="w_3D"/>
+         <!-- END SALINITY --> 
+#endif
+#ifdef GLS_MIXING
+         <!-- GLS_MIXING -->
+         <field id="tke" long_name="turbulent kinetic energy" unit="meter2 second-2" grid_ref="w_3D"/>
+         <field id="gls" long_name="turbulent generic length scale" unit="meter3 second-2" grid_ref="w_3D"/>
+         <field id="Lscale" long_name="ertical mixing turbulent length scale" unit="meter" grid_ref="w_3D"/>
+         <field id="AKk" long_name="TKE vertical diffusion coefficient" unit="meter2 second-1  " grid_ref="w_3D"/>
+         <field id="AKp" long_name="GLS vertical diffusion coefficient " unit="meter2 second-1  " grid_ref="w_3D"/>
+         <!-- END GLS_MIXING -->
+#endif
+     </field_group>
+
+   </field_definition>

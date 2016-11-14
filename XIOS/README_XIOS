@@ -1,0 +1,53 @@
+=======================================================================
+              RUNNING ROMS WITH XIOS (XML-IO-SERVER)
+=======================================================================
+
+Istructions are in: 
+http://forge.ipsl.jussieu.fr/ioserver/wiki/documentation
+
+or follow these few steps ...
+
+Install XIOS
+============
+
+svn co -r 7012 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0 XIOS
+
+1- Install NECTD4 (including netcdf-c and netcdf-fortran) if not done before 
+
+2- in XIOS/arch make new architecture files (follow examples): 
+	arch-CONFIG.path
+	arch-CONFIG.fcm
+	arch-CONFIG.env
+
+3- Compile XIOS: 
+	./make_xios --arch CONFIG
+	--> the executable xios_server.exe is created in XIOS/bin
+
+Compile ROMS
+============
+
+Go to Run directory
+
+Define CPP key XIOS in cppdefs.h
+
+run jobcomp script
+	--> jobcomp compiles ROMS linked with XIOS libraries 
+				(if XIOS defined in cppdefs.h)
+		    compiles ROMS-XIOS interface 
+				(routines in Roms_Agrif/XIOS)
+		    copies XIOS executable in Run directory 
+
+Run ROMS and XIOS
+==================
+
+in iodef.xml: 
+	set I/O choices
+
+in xios_launch.file: 
+	set number of processors desired for running ROMS and XIOS
+
+Run ROMS and XIOS:
+	mpirun --app xios_launch.file
+
+With AGRIF
+        define a section in iodef.xml file for each child grid (roms.1, roms.2 ...)

@@ -1,0 +1,31 @@
+! $Id$
+!======================================================================
+! CROCO is a branch of ROMS developped at IRD and INRIA, in France
+! The two other branches from UCLA (Shchepetkin et al) 
+! and Rutgers University (Arango et al) are under MIT/X style license.
+! CROCO specific routines (nesting) are under CeCILL-C license.
+! 
+! CROCO website : http://www.croco-ocean.org
+!======================================================================
+!
+
+        check_point(1)=1
+        etalon_line(1)=
+     &    '6.413754631E-07 5.8526777E+02 5.8526777E+02 1.1584422E+15'
+        check_point(2)=22
+        etalon_line(2)=
+     &    '2.169527240E-05 5.8527500E+02 5.8527502E+02 1.1584422E+15'
+        check_point(3)=45
+        etalon_line(3)=
+     &    '9.674900404E-06 5.8527166E+02 5.8527167E+02 1.1584422E+15'
+        check_point(4)=90
+        etalon_line(4)=
+     &    '1.177313217E-05 5.8527208E+02 5.8527209E+02 1.1584422E+15'
+        check_point(5)=180
+        etalon_line(5)=
+     &    '1.323104804E-05 5.8527213E+02 5.8527215E+02 1.1584422E+15'
+        check_point(6)=360
+        etalon_line(6)=
+     &    '1.255521217E-05 5.8527225E+02 5.8527226E+02 1.1584422E+15'
+
+

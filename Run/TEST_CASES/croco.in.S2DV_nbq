@@ -1,0 +1,65 @@
+title:
+        S2DV TEST MODEL
+time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+                99999     50.     80      9999
+time_stepping_nbq: NDTNBQ    CSOUND_NBQ    VISC2_NBQ
+                    4         600          1.e0
+S-coord: THETA_S,   THETA_B,    Hc (m)
+           0.0         0.0      1.e16
+grid:  filename
+     S2DV_grd.nc
+forcing: filename
+     S2DV_frc.nc
+climatology: filename
+     S2DV_clm.nc
+initial: NRREC  filename
+          0
+     S2DV_ini.nc
+restart:          NRST, NRPFRST / filename
+                  26784    -1
+     S2DV_rst.nc
+                   72000    -1
+     S2DV_rst.nc
+history: LDEFHIS, NWRT, NRPFHIS / filename 
+                  T     465     0
+     S2DV_his.nc
+primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                          T    T   T   T  T    30*T
+auxiliary_history_fields:   rho Omega  W  Akv  Akt  Aks  HBL HBBL Bostr Wstr Ustr Vstr Shfl Swfl rsw rlw lat sen HEL
+                             T   T     T   F    F    F    F   F    F     F    F    F    F    F    F  10*F             
+
+primary_averages: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                   F    F    F    F  F   30*F
+auxiliary_averages: rho Omega  W  Akv  Akt  Aks  HBL HBBL Bostr Wstr Ustr Vstr Shfl Swfl rsw rlw lat sen HEL
+                     F   T     F   F    F    F    F   F    F     F   F    F     F    F    F  10*F
+
+rho0:
+      1027.d0
+
+lin_EOS_cff:  R0 [86kg/m3], T0 [Celsius], S0 [PSU], TCOEF [1/Celsius], SCOEF [1/PSU]
+              30.         20.      35.       0.28d0            0.78d0
+
+lateral_visc:   VISC2,    VISC4    [m^2/sec for all]
+                 0.1         0.
+
+tracer_diff2: TNU2(1:NT)           [m^2/sec for all]
+                30*0.d0 
+
+tracer_diff4: TNU4(1:NT)           [m^4/sec for all]
+                30*0.d11
+
+
+vertical_mixing: Akv_bak, Akt_bak [m^2/sec]
+                    1.d-05   1.d-05 1.d-05
+
+bottom_drag:     RDRG [m/s],  RDRG2,  Zob [m],  Cdb_min, Cdb_max
+                  0.            0.    1.e-3     1.e-4   1.e-1
+
+gamma2:
+                 1.d0
+
+nudg_cof:    TauT_in, TauT_out, TauM_in, TauM_out  [days for all]
+              0.1        100         0.1           100
+
+sponge:          X_SPONGE [m],    V_SPONGE [m^2/sec]
+                    20.e+3          1.  

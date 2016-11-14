@@ -1,0 +1,174 @@
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!! PISCES  :    1  - air-sea exchange                         (nampisext)
+!! namelists    2  - biological parameters                    (nampisbio)
+!!              3  - parameters for nutrient limitations      (nampislim)    
+!!              4  - parameters for phytoplankton             (nampisprod,nampismort)
+!!              5  - parameters for zooplankton               (nampismes,nampiszoo)
+!!              6  - parameters for remineralization          (nampisrem)
+!!              7  - parameters for calcite chemistry         (nampiscal)
+!!              8  - parameters for inputs deposition         (nampissed)
+!!              9  - parameters for Kriest parameterization   (nampiskrp, nampiskrs)
+!!              10 - additional 2D/3D  diagnostics            (nampisdia)
+!!              11 - Damping                                  (nampisdmp)
+!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampistrc     !   tracers definition
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+!
+!              !    name   !           title of the field              !   units    
+!              !           !                                           !            
+!              !           !                                           !            
+   tracer(1)   = 'DIC     ' , 'Dissolved inorganic Concentration      ',  'mol-C/L' 
+   tracer(2)   = 'Alkalini' , 'Total Alkalinity Concentration         ',  'eq/L '   
+   tracer(3)   = 'O2      ' , 'Dissolved Oxygen Concentration         ',  'mol-C/L' 
+   tracer(4)   = 'CaCO3   ' , 'Calcite Concentration                  ',  'mol-C/L' 
+   tracer(5)   = 'PO4     ' , 'Phosphate Concentration                ',  'mol-C/L' 
+   tracer(6)   = 'POC     ' , 'Small organic carbon Concentration     ',  'mol-C/L' 
+   tracer(7)   = 'Si      ' , 'Silicate Concentration                 ',  'mol-C/L' 
+   tracer(8)   = 'PHY     ' , 'Nanophytoplankton Concentration        ',  'mol-C/L' 
+   tracer(9)   = 'ZOO     ' , 'Microzooplankton Concentration         ',  'mol-C/L' 
+   tracer(10)  = 'DOC     ' , 'Dissolved organic Concentration        ',  'mol-C/L' 
+   tracer(11)  = 'PHY2    ' , 'Diatoms Concentration                  ',  'mol-C/L' 
+   tracer(12)  = 'ZOO2    ' , 'Mesozooplankton Concentration          ',  'mol-C/L' 
+   tracer(13)  = 'BSi     ' , 'Diatoms Silicate Concentration         ',  'mol-C/L' 
+   tracer(14)  = 'Fer     ' , 'Dissolved Iron Concentration           ',  'mol-C/L' 
+   tracer(15)  = 'BFe     ' , 'Big iron particles Concentration       ',  'mol-C/L' 
+   tracer(16)  = 'GOC     ' , 'Big organic carbon Concentration       ',  'mol-C/L' 
+   tracer(17)  = 'SFe     ' , 'Small iron particles Concentration     ',  'mol-C/L' 
+   tracer(18)  = 'DFe     ' , 'Diatoms iron  Concentration            ',  'mol-C/L' 
+   tracer(19)  = 'DSi     ' , 'Sinking biogenic Silicate Concentration',  'mol-C/L' 
+   tracer(20)  = 'NFe     ' , 'Nano iron Concentration                ',  'mol-C/L' 
+   tracer(21)  = 'NCHL    ' , 'Nano chlorophyl Concentration          ',  'mol-C/L' 
+   tracer(22)  = 'DCHL    ' , 'Diatoms chlorophyl Concentration       ',  'mol-C/L' 
+   tracer(23)  = 'NO3     ' , 'Nitrates Concentration                 ',  'mol-C/L' 
+   tracer(24)  = 'NH4     ' , 'Ammonium Concentration                 ',  'mol-C/L' 
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampisext     !   air-sea exchange
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   atcco2     = 287.    ! atmospheric pCO2
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampisbio     !   biological parameters
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   part       =  0.85    ! part of calcite not dissolved in guts
+   nrdttrc    =  1       ! time step frequency for biology
+   wsbio      =  5.      ! POC sinking speed
+   xkmort     =  1.E-7   ! half saturation constant for mortality
+   ferat3     =  3.E-6   ! Fe/C in zooplankton 
+   wsbio2     =  30.     ! Big particles sinking speed
+   niter1max  =  10
+   niter2max  =  15
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampislim     !   parameters for nutrient limitations
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   conc0      =  2.e-6    ! Phosphate half saturation
+   conc1      =  10E-6    ! Phosphate half saturation for diatoms
+   conc2      =  0.01E-9  ! Iron half saturation for phyto
+   conc2m     =  0.08E-9  ! Max iron half saturation for phyto
+   conc3      =  0.1E-9   ! Iron half saturation for diatoms
+   conc3m     =  0.4E-9   ! Maxi iron half saturation for diatoms
+   concnnh4   =  1.E-7    ! NH4 half saturation for phyto
+   concdnh4   =  5.E-7    ! NH4 half saturation for diatoms
+   xksi1      =  2.E-6    ! half saturation constant for Si uptake
+   xksi2      =  3.33E-6  ! half saturation constant for Si/C
+   xkdoc      =  417.E-6  ! half-saturation constant of DOC remineralization
+   caco3r     =  0.3      ! mean rain ratio
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampisprod     !   parameters for phytoplankton growth
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   pislope    =  3.       ! P-I slope  
+   pislope2   =  3.       ! P-I slope  for diatoms
+   excret     =  0.05     ! excretion ratio of phytoplankton
+   excret2    =  0.05     ! excretion ratio of diatoms
+   chlcnm     =  0.033    ! Minimum Chl/C in nanophytoplankton
+   chlcdm     =  0.05     ! Minimum Chl/C in diatoms
+   fecnm      =  10E-6    ! Maximum Fe/C in nanophytoplankton
+   fecdm      =  15E-6    ! Minimum Fe/C in diatoms
+   grosip     =  0.151    ! mean Si/C ratio
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampismort     !   parameters for phytoplankton sinks
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   wchl       =  0.001    ! quadratic mortality of phytoplankton
+   wchld      =  0.02     ! maximum quadratic mortality of diatoms
+   mprat      =  0.01     ! phytoplankton mortality rate
+   mprat2     =  0.01     ! Diatoms mortality rate
+   mpratm     =  0.01     ! Phytoplankton minimum mortality rate
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampismes     !   parameters for mesozooplankton
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   grazrat2   =  0.7      ! maximal mesozoo grazing rate
+   resrat2    =  0.005    ! exsudation rate of mesozooplankton
+   mzrat2     =  0.03     ! mesozooplankton mortality rate
+   xprefc     =  1.       ! zoo preference for phyto
+   xprefp     =  0.2      ! zoo preference for POC
+   xprefz     =  1.       ! zoo preference for zoo
+   xprefpoc   =  0.2      ! zoo preference for poc
+   xkgraz2    =  20.E-6   ! half sturation constant for meso grazing
+   epsher2    =  0.33     ! Efficicency of Mesozoo growth 
+   sigma2     =  0.6      ! Fraction of mesozoo excretion as DOM
+   unass2     =  0.3      ! non assimilated fraction of P by mesozoo
+   grazflux   =  5.e3     ! flux-feeding rate
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampiszoo     !   parameters for microzooplankton
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   grazrat    =  4.0      ! maximal zoo grazing rate   
+   resrat     =  0.03     ! exsudation rate of zooplankton
+   mzrat      =  0.0      ! zooplankton mortality rate
+   xpref2c    =  0.1      ! Microzoo preference for POM 
+   xpref2p    =  0.45     ! Microzoo preference for Nanophyto
+   xpref2d    =  0.45     ! Microzoo preference for Diatoms
+   xkgraz     =  20.E-6   ! half sturation constant for grazing 
+   epsher     =  0.33     ! Efficiency of microzoo growth
+   sigma1     =  0.6      ! Fraction of microzoo excretion as DOM
+   unass      =  0.3      ! non assimilated fraction of phyto by zoo
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampisrem     !   parameters for remineralization
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   xremik    =  0.3       ! remineralization rate of DOC
+   xremip    =  0.025     ! remineralisation rate of POC
+   nitrif    =  0.05      ! NH4 nitrification rate
+   xsirem    =  0.015     ! remineralization rate of Si
+   xlam1     =  0.005     ! scavenging rate of Iron
+   oxymin    =  1.E-6     ! Half-saturation constant for anoxia 
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampiscal     !   parameters for Calcite chemistry
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   kdca       =  0.327e3  ! calcite dissolution rate constant (1/time)
+   nca        =  1.       ! order of dissolution reaction (dimensionless)
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampissed     !   parameters for inputs deposition
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   ln_dustfer  =  .true.   ! boolean for dust input from the atmosphere
+   ln_river    =  .false.   ! boolean for river input of nutrients
+   ln_ndepo    =  .false.   ! boolean for atmospheric deposition of N
+   ln_sedinput =  .true.   ! boolean for Fe input from sediments
+   sedfeinput  =  1E-9     ! Coastal release of Iron
+   dustsolub   =  0.014    ! Solubility of the dust
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampiskrp     !   Kriest parameterization : parameters     "key_kriest"
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   xkr_eta      = 1.17    ! Sinking  exponent
+   xkr_zeta     = 2.28    ! N content exponent
+   xkr_mass_min = 0.0002  ! Minimum mass for Aggregates
+   xkr_mass_max = 1.      ! Maximum mass for Aggregates
+/
+!'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+&nampiskrs     !   Kriest parameterization : size classes  "key_kriest"
+!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+   xkr_sfact    = 942.    ! Sinking factor
+   xkr_stick    = 0.5     ! Stickiness
+   xkr_nnano    = 2.337   ! Nbr of cell in nano size class
+   xkr_ndiat    = 3.718   ! Nbr of cell in diatoms size class
+   xkr_nmeso    = 7.147   ! Nbr of cell in mesozoo size class
+   xkr_naggr    = 9.877   ! Nbr of cell in aggregates  size class
+/
