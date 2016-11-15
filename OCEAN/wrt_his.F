@@ -628,21 +628,36 @@ CR      write(*,*) 'wrt_his:  wrtO  ' MYID
 !     Write out true vertical velocity (m/s).
 !     
       if (wrthis(indxW)) then
-#ifdef NBQ
-         do k=1,N
+#if defined NBQ || defined NHMG
+!         do k=1,N
+!            do j=0,Mm+1
+!               do i=0,Lm+1
+!                  workr(i,j,k)=0.5*(wz(i,j,k,nstp)+wz(i,j,k-1,nstp))
+!               enddo
+!            enddo
+!         enddo
+!         call fillvalue3d(workr,ncidhis,hisW,indxW,
+!     &        record,r3dvar,type)
+!!!!!!!!!!!
+         do k=0,N
             do j=0,Mm+1
                do i=0,Lm+1
-                  workr(i,j,k)=0.5*(wz(i,j,k,nstp)+wz(i,j,k-1,nstp))
+                  work(i,j,k)=wz(i,j,k,nstp)
                enddo
             enddo
          enddo
+!         work=wz(:,:,:,nstp)
+         call fillvalue3d_w(work,ncidhis,hisW,indxW,
+     &        record,w3dvar,type)
+!	/* Start+count exceeds dimension bound */
+!!!!!!!!!!!
 #else
          do tile=0,NSUB_X*NSUB_E-1
             call Wvlcty (tile, workr) 
          enddo
-#endif
-         call fillvalue3d(workr,ncidhis,hisW,indxW,record,r3dvar,type)
-         
+         call fillvalue3d(workr,ncidhis,hisW,indxW,
+     &        record,r3dvar,type)
+#endif      
 CR      write(*,*) 'wrt_his:  wrtW  ' MYID
       endif
 !     

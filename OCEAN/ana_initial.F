@@ -163,13 +163,19 @@ C$    integer omp_get_thread_num
         enddo
 
 # elif defined TANK
-        ETA0=0.001
+!        ETA0=0.001
+        ETA0=0.15
+!        ETA0=0.5
         Lt=10.
         do j=JR_RANGE
           do i=IR_RANGE
 #  ifndef MOVING_BATHY       
 #   ifndef TANKY
-            zeta(i,j,1)=ETA0*cos(pi*xr(i,j)/Lt)
+!            zeta(i,j,1)=ETA0*cos(pi*xr(i,j)/Lt)
+!            zeta(i,j,1)=ETA0*cos(pi*yr(i,j)/Lt)
+            zeta(i,j,1)=ETA0*cos(2.*pi*xr(i,j)/Lt)
+!            zeta(i,j,1)=ETA0*cos(2.*pi*yr(i,j)/Lt)
+!            zeta(i,j,1)=ETA0*cos(4.*pi*xr(i,j)/Lt)
 #   else
             zeta(i,j,1)=ETA0*cos(pi*yr(i,j)/Lt)
 #   endif

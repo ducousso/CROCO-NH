@@ -35,6 +35,11 @@
           USE pisces_ini     ! PISCES modules
           USE trcini_pisces 
 #endif
+#ifdef NHMG
+          USE nhmg_interface, only : nhmg_init
+          USE nhmg_interface, only : nhmg_matrices
+          USE nhmg_interface, only : nhmg_clean
+#endif
 !     implicit none
       integer tile, subs, trd, ierr
 #include "param.h"
@@ -277,6 +282,18 @@ C$OMP PARALLEL DO PRIVATE(tile)
       do tile=0,NSUB_X*NSUB_E-1
         call grid_stiffness (tile)
       enddo
+#endif
+!
+!----------------------------------------------------------------------
+!  Setup of the NHMG grids
+!----------------------------------------------------------------------
+!
+#ifdef NHMG
+      call nhmg_init(
+     & Lm,Mm,N,
+     & NP_XI,NP_ETA,
+     & 1._8/pm(0:Lm+1,0:Mm+1),
+     & 1._8/pn(0:Lm+1,0:Mm+1))
 #endif
 !
 !----------------------------------------------------------------------
@@ -772,6 +789,15 @@ C$OMP PARALLEL DO PRIVATE(tile)            ! Stop timers and
 #endif
 
  100  continue
+
+!
+!----------------------------------------------------------------------
+!  Clean NHMG memory
+!----------------------------------------------------------------------
+!
+#ifdef NHMG
+      call nhmg_clean()
+#endif
 
 #ifdef MPI
       call MPI_Barrier(MPI_COMM_WORLD, ierr)  ! XIOS

@@ -112,7 +112,7 @@ C$    integer omp_get_thread_num
 #endif
 #ifdef SOLVE3D
           rufrc(i,j)=init
-          rufrc(i,j)=init
+          rvfrc(i,j)=init
 !
           Zt_avg1(i,j)=0. !init
           DU_avg1(i,j,1)=0. !init
@@ -1112,6 +1112,23 @@ C$    integer omp_get_thread_num
           enddo
         enddo
       enddo
+# endif
+
+# ifdef NHMG
+      do k=0,N
+        do j=JstrR,JendR
+          do i=IstrR,IendR
+            wz(i,j,k,1)=init
+            wz(i,j,k,2)=init
+          enddo
+        enddo
+      enddo
+        do j=JstrR,JendR
+          do i=IstrR,IendR
+            rufrc_nhmg(i,j)=init
+            rvfrc_nhmg(i,j)=init
+          enddo
+        enddo
 # endif
 
 #endif /* SOLVE3D */

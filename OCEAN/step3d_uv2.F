@@ -58,6 +58,11 @@
 ! using implicit backward time step.
 !-------------------------------------------------------------------- 
 !
+#ifdef NHMG
+          USE nhmg_interface, only : nhmg_matrices
+          USE nhmg_interface, only : nhmg_solve
+          USE nhmg_interface, only : nhmg_coupling
+#endif
       implicit none
 # include "param.h"
 # include "grid.h"
@@ -216,14 +221,14 @@
 # endif
           DC(i,N)=(DC(i,N)-aa*DC(i,N-1))
      &           /(BC(i,N)-aa*CF(i,N-1))
-
+!-
           CF(i,0)=0.5*(Hz(i,j,N)+Hz(i-1,j,N))
           DC(i,0)=CF(i,0)*DC(i,N)
         enddo
         do k=N-1,1,-1
           do i=IstrU,Iend
               DC(i,k)=DC(i,k)-CF(i,k)*DC(i,k+1)
-
+!-
             cff=0.5*(Hz(i,j,k)+Hz(i-1,j,k))
             CF(i,0)=CF(i,0)+cff
             DC(i,0)=DC(i,0)+cff*DC(i,k)
@@ -236,7 +241,9 @@
         enddo
         do k=1,N
           do i=IstrU,Iend
-            u(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH umask(i,j)
+!            u(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH umask(i,j)
+            u(i,j,k,nnew)=DC(i,k)
+!
 # ifdef DIAGNOSTICS_UV
             MVmix(i,j,k,1)=-( MVmix(i,j,k,1) - u(i,j,k,nnew)*
      &                           0.5*(Hz(i,j,k)+Hz(i-1,j,k)) )
@@ -346,14 +353,14 @@
 # endif
             DC(i,N)=(DC(i,N)-aa*DC(i,N-1))
      &             /(BC(i,N)-aa*CF(i,N-1))
-
+!-
             CF(i,0)=0.5*(Hz(i,j,N)+Hz(i,j-1,N))
             DC(i,0)=CF(i,0)*DC(i,N)
           enddo
           do k=N-1,1,-1
             do i=Istr,Iend
               DC(i,k)=DC(i,k)-CF(i,k)*DC(i,k+1)
-
+!-
               cff=0.5*(Hz(i,j,k)+Hz(i,j-1,k))
               CF(i,0)=CF(i,0)+cff
               DC(i,0)=DC(i,0)+cff*DC(i,k)
@@ -366,7 +373,8 @@
           enddo
           do k=1,N
             do i=Istr,Iend
-              v(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH vmask(i,j)
+!              v(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH vmask(i,j)
+              v(i,j,k,nnew)=DC(i,k)
 !
 # ifdef DIAGNOSTICS_UV
               MVmix(i,j,k,2)=-( MVmix(i,j,k,2) - v(i,j,k,nnew)*
@@ -456,6 +464,34 @@
 !
       call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
       call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+
+!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# ifdef NHMG
+
+      call nhmg_matrices(
+     & Lm,Mm,N,
+     & z_w(0:Lm+1,0:Mm+1,N),
+     & h(0:Lm+1,0:Mm+1),
+     & hc,theta_b,theta_s)
+
+      call nhmg_solve(
+     & Lm, Mm, N,
+     & z_r(0:Lm+1,0:Mm+1,1:N),
+     & z_w(0:Lm+1,0:Mm+1,0:N),
+     & u(1:Lm+1,0:Mm+1,1:N,nnew),
+     & v(0:Lm+1,1:Mm+1,1:N,nnew),
+     & wz(0:Lm+1,0:Mm+1,0:N,nnew),
+     & dt,
+     & rufrc_nhmg(1:Lm+1,0:Mm+1),
+     & rvfrc_nhmg(0:Lm+1,1:Mm+1) )
+
+      call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
+      call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+      call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
+
+# endif
+!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
 !
 !
 !--------------------------------------------------------------------
@@ -506,6 +542,21 @@
 #  define JU_RANGE JstrR,JendR
 #  define JV_RANGE Jstr,JendR
 # endif
+
+# ifdef NHMG
+
+      call nhmg_coupling(
+     & Lm, Mm, N,
+     & z_r(0:Lm+1,0:Mm+1,1:N),
+     & z_w(0:Lm+1,0:Mm+1,0:N),
+     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
+     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
+     & u(1:Lm+1,0:Mm+1,1:N,nnew),
+     & v(0:Lm+1,1:Mm+1,1:N,nnew),
+     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+
+# endif
+
 !
 !--------------------------------------------------
 !  Couple XI-component of velocity
@@ -544,7 +595,11 @@
         enddo
         do k=N,1,-1
           do i=IU_RANGE
+# ifdef NHMG
+            u(i,j,k,nnew)=u(i,j,k,nnew)
+# else
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
+# endif
 # ifdef MASKING
      &                                *umask(i,j)
 #  ifdef MRL_WCI
@@ -679,7 +734,11 @@
           enddo
           do k=N,1,-1
             do i=IV_RANGE
+# ifdef NHMG
+              v(i,j,k,nnew)=v(i,j,k,nnew)
+# else
               v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
+# endif
 # ifdef MASKING
      &                                  *vmask(i,j)
 #  ifdef MRL_WCI
@@ -906,6 +965,10 @@
 
       call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
      &                                   vbar(START_2D_ARRAY,knew))
+#   if defined NHMG
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                                 wz(START_2D_ARRAY,0,nnew)) 
+#  endif
 #   if defined TS_MIX_ISO || defined TS_MIX_GEO
       call exchange_u3d_tile (istr,iend,jstr,jend, dRdx  )
       call exchange_v3d_tile (istr,iend,jstr,jend, dRde  )

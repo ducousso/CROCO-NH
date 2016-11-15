@@ -61,6 +61,11 @@
       common /h2d/ h2d
 # endif
 
+# ifdef NHMG
+      real wz(GLOBAL_2D_ARRAY,0:N,3)
+      common /ocean_wz/wz
+# endif
+
 # if defined UV_VIS4 && defined UV_MIX_GEO
       real z_u(GLOBAL_2D_ARRAY,N)
       real z_v(GLOBAL_2D_ARRAY,N)

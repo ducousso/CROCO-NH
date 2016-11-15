@@ -208,18 +208,18 @@
             UFe(i,j)=cff*(vst(i,j,k)+vst(i,j+1,k))
             VFe(i,j)=(cff+cff1)*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
             VFx(i,j)=cff*(ust(i,j,k)+ust(i+1,j,k))
-# else
+#  else
             UFx(i,j)=cff*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs))
             VFe(i,j)=cff*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
-# endif
-# ifdef NBQ
+#  endif
+#  if defined NBQ || defined NHMG
             UFx(i,j)=UFx(i,j)
      &      +0.5*Hz(i,j,k)*eomn(i,j)*cosa(i,j)
      &                            *(wz(i,j,k-1,nrhs)+wz(i,j,k,nrhs)) 
             VFe(i,j)=VFe(i,j)   
      &      -0.5*Hz(i,j,k)*eomn(i,j)*sina(i,j)
      &                            *(wz(i,j,k-1,nrhs)+wz(i,j,k,nrhs))
-# endif
+#  endif
           enddo
         enddo
 
@@ -1041,15 +1041,22 @@ ccc            dvde =0.5*( v(i,j-1,k,nrhs) -v(i,j+1,k,nrhs) )
 # ifndef BODYFORCE
      &        +(sustr(i,j)-bustr(i,j))*om_u(i,j)*on_u(i,j)
 # endif
-#  if defined MRL_WCI && defined WAVE_SFC_BREAK
+# if defined MRL_WCI && defined WAVE_SFC_BREAK
      &                    +brk2dx(i,j)*om_u(i,j)*on_u(i,j)
-#  endif
+# endif
         enddo
         do k=2,N
           do i=IstrU,Iend
             rufrc(i,j)=rufrc(i,j)+ru(i,j,k)
           enddo
         enddo
+# ifdef NHMG
+        do i=IstrU,Iend
+          rufrc(i,j)=rufrc(i,j)
+!     &              +rufrc_nhmg(i,j)*om_u(i,j)*on_u(i,j)
+     &              +rufrc_nhmg(i,j)
+        enddo
+# endif
         if (j.ge.JstrV) then
           do i=Istr,Iend
             rvfrc(i,j)=rv(i,j,1)
@@ -1065,6 +1072,13 @@ ccc            dvde =0.5*( v(i,j-1,k,nrhs) -v(i,j+1,k,nrhs) )
               rvfrc(i,j)=rvfrc(i,j)+rv(i,j,k)
             enddo
           enddo
+# ifdef NHMG
+          do i=Istr,Iend
+            rvfrc(i,j)=rvfrc(i,j)
+!     &                +rvfrc_nhmg(i,j)*om_v(i,j)*on_v(i,j)
+     &                +rvfrc_nhmg(i,j)
+          enddo
+# endif
         endif
       enddo      !<-- j
 

@@ -12,7 +12,7 @@
 #ifndef CHILD
 !
 # include "cppdefs.h"
-# ifdef NBQ
+# if defined NBQ || defined NHMG
       subroutine w3dbc_tile(Istr,Iend,Jstr,Jend,grad)
 #  ifdef AGRIF      
       use Agrif_Util
@@ -36,7 +36,7 @@
 !
 # endif /* NBQ */
 #else
-# ifdef NBQ
+# if defined NBQ || defined NHMG
 !
 ! CHILD
 !
@@ -47,7 +47,10 @@
 !
 # endif /* NBQ */
 #endif /* CHILD */
-#ifdef NBQ
+#ifdef NHMG
+          USE nhmg, only : nhmg_bbc
+#endif
+#if defined NBQ || defined NHMG
 !
 ! Common Code
 !
@@ -591,6 +594,18 @@
         enddo
       endif
 # endif
+
+!bottom boundary condition
+# ifdef NHMG
+      call nhmg_bbc(
+     & Lm, Mm, N,
+     & z_r(0:Lm+1,0:Mm+1,1:N),
+     & z_w(0:Lm+1,0:Mm+1,0:N),
+     & u(1:Lm+1,0:Mm+1,1:N,nnew),
+     & v(0:Lm+1,1:Mm+1,1:N,nnew),
+     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+# endif
+
       return
       end
 #else

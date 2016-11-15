@@ -35,9 +35,9 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#undef  TANK            /* Tank Example */
+#define  TANK            /* Tank Example */
 #undef  S2DV            /* 2D Vertical Section Application */
-#define REGIONAL        /* REGIONAL Applications */
+#undef REGIONAL        /* REGIONAL Applications */
 
 
 #if defined REGIONAL
@@ -1077,11 +1077,12 @@
 ! free-surface flows. 
 ! Int. J. Numer. Methods Fluids 42, 929–952.
 */
-# undef  MPI
-# define NBQ
+# define  MPI
+# undef NBQ
 # ifdef NBQ
 #  undef  NBQ_IMP
 # endif
+# define NHMG
 # define SOLVE3D
 # undef  MASKING
 # undef  UV_ADV

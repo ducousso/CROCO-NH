@@ -1,5 +1,5 @@
 #include "cppdefs.h"
-#if defined SOLVE3D && defined NBQ
+#if defined SOLVE3D && (defined NBQ || defined NHMG)
 
       subroutine rhs3d_w_nh(tile)
 !====================================================================
@@ -63,6 +63,16 @@
           rw(i,j,0)=0.
         enddo
       enddo
+
+!ND
+      do k=1,N
+        do j=JstrV-1,jend
+          do i=IstrU-1,iend
+            rw(i,j,k)=0.
+          enddo
+        enddo
+      enddo
+!ND
 
 # if defined UV_COR
 !====================================================================
@@ -190,13 +200,15 @@
           do j=Jstr,Jend
             do i=Istr,Iend+1
               HUon_w = cff1*(Huon(i,j,k)+Huon(i,j,kp))         
-              if (Huon_w .gt. 0.) then
-                cff=curv(i-1,j)
-              else
-                cff=curv(i,j)
-              endif
+!              if (Huon_w .gt. 0.) then
+!                cff=curv(i-1,j)
+!              else
+!                cff=curv(i,j)
+!              endif
+!              WFx(i,j)=0.5*( Wz(i,j,k,nrhs)+Wz(i-1,j,k,nrhs)
+!     &                           -0.333333333333*cff )*Huon_w
               WFx(i,j)=0.5*( Wz(i,j,k,nrhs)+Wz(i-1,j,k,nrhs)
-     &                           -0.333333333333*cff )*Huon_w
+     &                       )*Huon_w
             enddo         
           enddo
 
@@ -244,13 +256,15 @@
           do j=Jstr,Jend+1
             do i=Istr,Iend
               HVom_w = cff1*(Hvom(i,j,k)+Hvom(i,j,kp))  !<-- Hvom on w-levels
-              if (Hvom_w .gt. 0.) then
-                cff=curv(i,j-1)
-              else
-                cff=curv(i,j)
-              endif
+!              if (Hvom_w .gt. 0.) then
+!                cff=curv(i,j-1)
+!              else
+!                cff=curv(i,j)
+!              endif
+!              WFe(i,j)=0.5*( Wz(i,j,k,nrhs)+Wz(i,j-1,k,nrhs)
+!     &                          -0.333333333333*cff )*Hvom_w
               WFe(i,j)=0.5*( Wz(i,j,k,nrhs)+Wz(i,j-1,k,nrhs)
-     &                          -0.333333333333*cff )*Hvom_w
+     &                         )*Hvom_w
             enddo
           enddo 
                     
@@ -265,7 +279,8 @@
 !--  be divided by 0.5*(Hz(i,j,k)+Hz(i,j,k+1)) in pre_step3d and step3d_w2 
 !================
        enddo          !<-- outer loop k
-# endif /* W_ADV */
+# endif /* W_HADV */
+
 
 !====================================================================     
 !== Vertical advection
@@ -346,7 +361,10 @@
         enddo
 
         do i=Istr,Iend
-          FC(i,0)=0.     
+!          FC(i,0)=0.     
+           Omeg_r  = 0.5*(We(i,j,0     ) + We(i,j,1     ))
+           FC(i,0) = 0.5*(wz(i,j,0,nrhs) + wz(i,j,1,nrhs))*Omeg_r
+
           FC(i,N)=0.    
         enddo
 #  endif

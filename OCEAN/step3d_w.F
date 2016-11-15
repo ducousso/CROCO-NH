@@ -10,7 +10,7 @@
 !======================================================================
 !
 #include "cppdefs.h"
-#if defined SOLVE3D && defined NBQ
+#if defined SOLVE3D && (defined NBQ || defined NHMG)
 
       subroutine step3d_w (tile)
       implicit none
@@ -78,12 +78,17 @@
         do k=1,N
           do i=Istr,Iend
             wz(i,j,k,nnew)=wz(i,j,k,nnew)
-     &            +dt*pn(i,j)*pm(i,j)*(rw(i,j,k)+rw_nbq_avg2(i,j,k))
+     &            +dt*pn(i,j)*pm(i,j)*(rw(i,j,k)
+# ifdef NBQ
+     &                                          +rw_nbq_avg2(i,j,k)
+# endif
+     &                                                             )
           enddo
         enddo
       enddo
 
-# define NBQ_WDIF
+!# define NBQ_WDIF
+# undef NBQ_WDIF
 # ifdef NBQ_WDIF
 !
 !====================================================================     
