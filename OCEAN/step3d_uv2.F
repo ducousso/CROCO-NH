@@ -59,9 +59,9 @@
 !-------------------------------------------------------------------- 
 !
 #ifdef NHMG
-          USE nhmg_interface, only : nhmg_matrices
-          USE nhmg_interface, only : nhmg_solve
-          USE nhmg_interface, only : nhmg_coupling
+          USE nhmg, only : nhmg_matrices
+          USE nhmg, only : nhmg_solve
+          USE nhmg, only : nhmg_coupling
 #endif
       implicit none
 # include "param.h"

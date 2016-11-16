@@ -36,9 +36,9 @@
           USE trcini_pisces 
 #endif
 #ifdef NHMG
-          USE nhmg_interface, only : nhmg_init
-          USE nhmg_interface, only : nhmg_matrices
-          USE nhmg_interface, only : nhmg_clean
+          USE nhmg, only : nhmg_init
+          USE nhmg, only : nhmg_matrices
+          USE nhmg, only : nhmg_clean
 #endif
 !     implicit none
       integer tile, subs, trd, ierr

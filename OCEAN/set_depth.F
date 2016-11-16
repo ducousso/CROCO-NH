@@ -246,7 +246,7 @@ C$    integer omp_get_thread_num
 
       subroutine set_HUV_tile (Istr,Iend,Jstr,Jend)
 #ifdef NHMG
-          USE nhmg_interface, only : nhmg_fluxes
+          USE nhmg, only : nhmg_fluxes
 #endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
@@ -468,8 +468,8 @@ C$    integer omp_get_thread_num
 
       subroutine set_HUV2_tile (Istr,Iend,Jstr,Jend,DC,FC)
 #ifdef NHMG
-          USE nhmg_interface, only : nhmg_coupling
-!          USE nhmg_interface, only : nhmg_fluxes
+          USE nhmg, only : nhmg_coupling
+!          USE nhmg, only : nhmg_fluxes
 #endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k

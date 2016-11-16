@@ -133,9 +133,10 @@ include Makedefs
 	module_oa_time.F90	module_oa_space.F90	module_oa_periode.F90\
 	module_oa_variables.F90	module_oa_type.F90	module_oa_stock.F90\
 	module_oa_level.F90	module_oa_interface.F90\
-	module_oa_upd.F90	croco_oa.F90		var_oa.F90 \
-\
-	nhmg_interface.F90
+	module_oa_upd.F90	croco_oa.F90		var_oa.F90
+# \
+#\
+#	nhmg_interface.F90
 
 AMRDIR = AGRIF/AGRIF_YOURFILES
 
