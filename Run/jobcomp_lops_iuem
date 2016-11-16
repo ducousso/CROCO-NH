@@ -11,7 +11,7 @@ module list
 #
 # set source, compilation and run directories
 #
-SOURCE=../../CROCO-NH/OCEAN
+SOURCE=../OCEAN
 SCRDIR=./Compile
 #SCRDIR=/local/tmp/1/${LOGNAME}/CROCO-NH/Compile
 RUNDIR=`pwd`
@@ -56,8 +56,8 @@ XIOS_ROOT_DIR=$HOME/xios-1.0
 #
 # set NHMG directory if needed
 #
-NHMGLIB="-L/home/ducousso/lib -lnhmg"
-NHMGINC="-I/home/ducousso/include"
+NHMGLIB="-L${HOME}/CROCO-NH/lib -lnhmg"
+NHMGINC="-I${HOME}/CROCO-NH/include"
 
 # END OF USER'S MODIFICATIONS
 ####################################################
