@@ -729,7 +729,10 @@
         if (wrt(indxW)) then
           lvar=lenstr(vname(1,indxW))
           ierr=nf_def_var (ncid, vname(1,indxW)(1:lvar),
-     &                               NF_FOUT, 4, r3dgrd, vidW)
+!modif for NHMG
+!     &                               NF_FOUT, 4, r3dgrd, vidW)
+     &                             NF_FOUT, 4, w3dgrd, vidW)
+!
 # ifndef AVRH
           lvar=lenstr(vname(2,indxW))
           ierr=nf_put_att_text (ncid, vidW, 'long_name', lvar,
