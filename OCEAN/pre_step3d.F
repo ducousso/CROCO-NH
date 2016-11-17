@@ -73,7 +73,7 @@
 #ifdef NHMG
       USE nhmg, only : nhmg_matrices
       USE nhmg, only : nhmg_solve
-      USE nhmg, only : nhmg_coupling
+c$$$      USE nhmg, only : nhmg_coupling
 #endif
       implicit none
 # include "param.h"

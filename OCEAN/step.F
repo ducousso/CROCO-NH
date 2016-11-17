@@ -664,6 +664,9 @@ C$OMP END MASTER
 #ifdef AGRIF
       use Agrif_Util
 #endif
+#ifdef NHMG
+      USE nhmg, only : nhmg_set_vert_grids
+#endif
       implicit none
 #include "param.h"
 #include "scalars.h"
@@ -715,6 +718,13 @@ C$OMP BARRIER
       do tile=my_first,my_last
         call set_depth (tile)
       enddo
+
+# ifdef NHMG
+      call nhmg_set_vert_grids(
+     & Lm,Mm,N,
+     & z_r(0:Lm+1,0:Mm+1,1:N),
+     & z_w(0:Lm+1,0:Mm+1,0:N))
+# endif
 
 C$OMP BARRIER
 

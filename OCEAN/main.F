@@ -37,7 +37,8 @@
 #endif
 #ifdef NHMG
           USE nhmg, only : nhmg_init
-          USE nhmg, only : nhmg_matrices
+          USE nhmg, only : nhmg_set_horiz_grids
+          USE nhmg, only : nhmg_set_vert_grids
           USE nhmg, only : nhmg_clean
 #endif
 !     implicit none
@@ -48,6 +49,9 @@
 #include "ncscrum.h"
 #include "grid.h"
 #include "mpi_roms.h"
+#ifdef NHMG
+# include "ocean3d.h"
+#endif
 #ifdef FLOATS
 # include "floats.h"
 # include "ncscrum_floats.h"
@@ -210,6 +214,16 @@ C$OMP PARALLEL DO PRIVATE(tile)
 CR      write(*,*) '-11' MYID
 !
 !----------------------------------------------------------------------
+!  Allocate NHMG grids
+!----------------------------------------------------------------------
+!
+#ifdef NHMG
+      call nhmg_init(
+     & Lm,Mm,N,
+     & NP_XI,NP_ETA)
+#endif
+!
+!----------------------------------------------------------------------
 !  Set horizontal grid, model bathymetry and Land/Sea mask
 !----------------------------------------------------------------------
 !
@@ -250,6 +264,17 @@ C$OMP PARALLEL DO PRIVATE(tile)
 CR      write(*,*) ' -9' MYID
 !
 !----------------------------------------------------------------------
+!  Set NHMG horizontal grids
+!----------------------------------------------------------------------
+!
+#ifdef NHMG
+      call nhmg_set_horiz_grids(
+     & Lm,Mm,
+     & 1._8/pm(0:Lm+1,0:Mm+1), !only 1 extra point
+     & 1._8/pn(0:Lm+1,0:Mm+1)) !only 1 extra point
+#endif
+!
+!----------------------------------------------------------------------
 !  Setup vertical grid variables setup vertical S-coordinates 
 !  and fast-time averaging for coupling of 
 !  split-explicit baroropic mode.
@@ -282,18 +307,6 @@ C$OMP PARALLEL DO PRIVATE(tile)
       do tile=0,NSUB_X*NSUB_E-1
         call grid_stiffness (tile)
       enddo
-#endif
-!
-!----------------------------------------------------------------------
-!  Setup of the NHMG grids
-!----------------------------------------------------------------------
-!
-#ifdef NHMG
-      call nhmg_init(
-     & Lm,Mm,N,
-     & NP_XI,NP_ETA,
-     & 1._8/pm(0:Lm+1,0:Mm+1),
-     & 1._8/pn(0:Lm+1,0:Mm+1))
 #endif
 !
 !----------------------------------------------------------------------
@@ -345,6 +358,17 @@ C$OMP PARALLEL DO PRIVATE(tile)
         call set_depth (tile)
       enddo
 CR      write(*,*)  ' -5' MYID
+#endif
+!
+!----------------------------------------------------------------------
+!  Set NHMG vertical grids
+!----------------------------------------------------------------------
+!
+#ifdef NHMG
+      call nhmg_set_vert_grids(
+     & Lm,Mm,N,
+     & z_r(0:Lm+1,0:Mm+1,1:N), !only 1 extra point ??????????
+     & z_w(0:Lm+1,0:Mm+1,0:N)) !only 1 extra point ??????????
 #endif
 !
 !----------------------------------------------------------------------
