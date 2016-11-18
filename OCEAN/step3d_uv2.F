@@ -476,8 +476,6 @@
 
       call nhmg_solve(
      & Lm, Mm, N,
-     & z_r(0:Lm+1,0:Mm+1,1:N),
-     & z_w(0:Lm+1,0:Mm+1,0:N),
      & u(1:Lm+1,0:Mm+1,1:N,nnew),
      & v(0:Lm+1,1:Mm+1,1:N,nnew),
      & wz(0:Lm+1,0:Mm+1,0:N,nnew),
@@ -547,8 +545,6 @@
 
       call nhmg_coupling(
      & Lm, Mm, N,
-     & z_r(0:Lm+1,0:Mm+1,1:N),
-     & z_w(0:Lm+1,0:Mm+1,0:N),
      & DU_avg1(1:Lm+1,0:Mm+1,nnew),
      & DV_avg1(0:Lm+1,1:Mm+1,nnew),
      & u(1:Lm+1,0:Mm+1,1:N,nnew),

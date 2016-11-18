@@ -320,8 +320,6 @@ C$    integer omp_get_thread_num
 
       call nhmg_fluxes(
      & Lm, Mm, N,
-     & z_r(0:Lm+1,0:Mm+1,1:N),
-     & z_w(0:Lm+1,0:Mm+1,0:N),
      & u(1:Lm+1,0:Mm+1,1:N,nrhs),
      & v(0:Lm+1,1:Mm+1,1:N,nrhs),
      & wz(0:Lm+1,0:Mm+1,0:N,nrhs),
@@ -580,8 +578,6 @@ C$    integer omp_get_thread_num
 
       call nhmg_coupling(
      & Lm, Mm, N,
-     & z_r(0:Lm+1,0:Mm+1,1:N),
-     & z_w(0:Lm+1,0:Mm+1,0:N),
      & DU_avg2(1:Lm+1,0:Mm+1),
      & DV_avg2(0:Lm+1,1:Mm+1),
      & u(1:Lm+1,0:Mm+1,1:N,nrhs),
@@ -592,8 +588,6 @@ C$    integer omp_get_thread_num
 
 !      call nhmg_fluxes(
 !     & Lm, Mm, N,
-!     & z_r(0:Lm+1,0:Mm+1,1:N),
-!     & z_w(0:Lm+1,0:Mm+1,0:N),
 !     & u(1:Lm+1,0:Mm+1,1:N,nrhs),
 !     & v(0:Lm+1,1:Mm+1,1:N,nrhs),
 !     & wz(0:Lm+1,0:Mm+1,0:N,nrhs),

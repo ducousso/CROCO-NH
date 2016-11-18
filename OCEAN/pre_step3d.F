@@ -609,8 +609,6 @@ c$$$      USE nhmg, only : nhmg_coupling
 
       call nhmg_solve(
      & Lm, Mm, N,
-     & z_r(0:Lm+1,0:Mm+1,1:N),
-     & z_w(0:Lm+1,0:Mm+1,0:N),
      & ru(1:Lm+1,0:Mm+1,1:N),
      & rv(0:Lm+1,1:Mm+1,1:N),
      & rw(0:Lm+1,0:Mm+1,0:N) )
@@ -1066,8 +1064,6 @@ c$$$      USE nhmg, only : nhmg_coupling
 
       call nhmg_solve(
      & Lm, Mm, N,
-     & z_r(0:Lm+1,0:Mm+1,1:N),
-     & z_w(0:Lm+1,0:Mm+1,0:N),
      & u(1:Lm+1,0:Mm+1,1:N,nnew),
      & v(0:Lm+1,1:Mm+1,1:N,nnew),
      & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
