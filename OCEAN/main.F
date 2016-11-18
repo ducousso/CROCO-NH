@@ -270,8 +270,10 @@ CR      write(*,*) ' -9' MYID
 #ifdef NHMG
       call nhmg_set_horiz_grids(
      & Lm,Mm,
-     & 1._8/pm(0:Lm+1,0:Mm+1), !only 1 extra point
-     & 1._8/pn(0:Lm+1,0:Mm+1)) !only 1 extra point
+     & om_r(0:Lm+1,0:Mm+1),
+     & on_r(0:Lm+1,0:Mm+1),
+     & om_u(0:Lm+1,0:Mm+1), 
+     & on_v(0:Lm+1,0:Mm+1) )
 #endif
 !
 !----------------------------------------------------------------------
