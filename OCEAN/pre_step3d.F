@@ -71,7 +71,6 @@
       use module_nbq
 #endif
 #ifdef NHMG
-      USE nhmg, only : nhmg_matrices
       USE nhmg, only : nhmg_solve
 c$$$      USE nhmg, only : nhmg_coupling
 #endif
@@ -572,12 +571,6 @@ c$$$      USE nhmg, only : nhmg_coupling
 # ifdef NHMG
       if (FIRST_TIME_STEP) then
 
-      call nhmg_matrices(
-     & Lm,Mm,N,
-     & z_w(0:Lm+1,0:Mm+1,N),
-     & h(0:Lm+1,0:Mm+1),
-     & hc,theta_b,theta_s)
-
       do j=Jstr,Jend
         do k=1,N
           do i=IstrU,Iend
@@ -1055,12 +1048,6 @@ c$$$      USE nhmg, only : nhmg_coupling
 
 !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ifdef NHMG
-
-      call nhmg_matrices(
-     & Lm,Mm,N,
-     & z_w(0:Lm+1,0:Mm+1,N),
-     & h(0:Lm+1,0:Mm+1),
-     & hc,theta_b,theta_s)
 
       call nhmg_solve(
      & Lm, Mm, N,

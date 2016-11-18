@@ -59,7 +59,6 @@
 !-------------------------------------------------------------------- 
 !
 #ifdef NHMG
-          USE nhmg, only : nhmg_matrices
           USE nhmg, only : nhmg_solve
           USE nhmg, only : nhmg_coupling
 #endif
@@ -467,12 +466,6 @@
 
 !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ifdef NHMG
-
-      call nhmg_matrices(
-     & Lm,Mm,N,
-     & z_w(0:Lm+1,0:Mm+1,N),
-     & h(0:Lm+1,0:Mm+1),
-     & hc,theta_b,theta_s)
 
       call nhmg_solve(
      & Lm, Mm, N,
