@@ -37,8 +37,7 @@
 #endif
 #ifdef NHMG
           USE nhmg, only : nhmg_init
-          USE nhmg, only : nhmg_set_horiz_grids
-          USE nhmg, only : nhmg_set_vert_grids
+          USE nhmg, only : nhmg_matrices
           USE nhmg, only : nhmg_clean
 #endif
 !     implicit none
@@ -214,16 +213,6 @@ C$OMP PARALLEL DO PRIVATE(tile)
 CR      write(*,*) '-11' MYID
 !
 !----------------------------------------------------------------------
-!  Allocate NHMG grids
-!----------------------------------------------------------------------
-!
-#ifdef NHMG
-      call nhmg_init(
-     & Lm,Mm,N,
-     & NP_XI,NP_ETA)
-#endif
-!
-!----------------------------------------------------------------------
 !  Set horizontal grid, model bathymetry and Land/Sea mask
 !----------------------------------------------------------------------
 !
@@ -264,12 +253,13 @@ C$OMP PARALLEL DO PRIVATE(tile)
 CR      write(*,*) ' -9' MYID
 !
 !----------------------------------------------------------------------
-!  Set NHMG horizontal grids
+!  Allocate NHMG grids and set NHMG horizontal grids
 !----------------------------------------------------------------------
 !
 #ifdef NHMG
-      call nhmg_set_horiz_grids(
-     & Lm,Mm,
+      call nhmg_init(
+     & Lm,Mm,N,
+     & NP_XI,NP_ETA,
      & om_r(0:Lm+1,0:Mm+1),
      & on_r(0:Lm+1,0:Mm+1),
      & om_u(0:Lm+1,0:Mm+1), 
@@ -363,11 +353,11 @@ CR      write(*,*)  ' -5' MYID
 #endif
 !
 !----------------------------------------------------------------------
-!  Set NHMG vertical grids
+!  Set NHMG vertical grids and matrices
 !----------------------------------------------------------------------
 !
 #ifdef NHMG
-      call nhmg_set_vert_grids(
+      call nhmg_matrices(
      & Lm,Mm,N,
      & z_r(0:Lm+1,0:Mm+1,1:N), !only 1 extra point ??????????
      & z_w(0:Lm+1,0:Mm+1,0:N)) !only 1 extra point ??????????

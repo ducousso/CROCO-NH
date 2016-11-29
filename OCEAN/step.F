@@ -665,7 +665,7 @@ C$OMP END MASTER
       use Agrif_Util
 #endif
 #ifdef NHMG
-      USE nhmg, only : nhmg_set_vert_grids
+      USE nhmg, only : nhmg_matrices
 #endif
       implicit none
 #include "param.h"
@@ -720,7 +720,7 @@ C$OMP BARRIER
       enddo
 
 # ifdef NHMG
-      call nhmg_set_vert_grids(
+      call nhmg_matrices(
      & Lm,Mm,N,
      & z_r(0:Lm+1,0:Mm+1,1:N),
      & z_w(0:Lm+1,0:Mm+1,0:N))
