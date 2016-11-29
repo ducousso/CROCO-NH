@@ -569,7 +569,6 @@ c$$$      USE nhmg, only : nhmg_coupling
 
 !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ifdef NHMG
-      if (FIRST_TIME_STEP) then
 
       do j=Jstr,Jend
         do k=1,N
@@ -657,14 +656,8 @@ c$$$      USE nhmg, only : nhmg_coupling
         endif
       enddo
 
-!      call v3dbc_tile (Istr,Iend,Jstr,Jend, WORK)   
-!      call u3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
-!      call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK) 
-
-      endif
 # endif
 !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
 
 !
 !======================================================================
@@ -1044,25 +1037,6 @@ c$$$      USE nhmg, only : nhmg_coupling
 # if defined NBQ || defined NHMG
       call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK)      
 # endif
-
-
-!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-# ifdef NHMG
-
-      call nhmg_solve(
-     & Lm, Mm, N,
-     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
-      call u3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
-      call v3dbc_tile (Istr,Iend,Jstr,Jend, WORK)   
-      call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK) 
-
-# endif
-!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-
 !
 !======================================================================
 ! Coupling, include ghost points associated with PHYSICAL
