@@ -50,8 +50,10 @@
 #  endif
 # else
 !     parameter (LLm0=32,   MMm0=4,    N=10)   !   2 km resolution
-      parameter (LLm0=128,  MMm0=4,    N=40)   ! 500  m resolution
+!     parameter (LLm0=128,  MMm0=4,    N=40)   ! 500  m resolution
 !     parameter (LLm0=512,  MMm0=4,   N=160)   ! 125  m resolution
+!      parameter (LLm0=64,   MMm0=64,    N=64) ! NHMG test
+      parameter (LLm0=128,   MMm0=128,    N=128) ! NHMG test
 # endif
 #elif defined INNERSHELF
       parameter (LLm0=200,  MMm0=3,    N=60)
@@ -115,7 +117,7 @@
 # ifndef MOVING_BATHY
 #  ifndef TANKY
 !      parameter (LLm0=50,   MMm0=1,    N=50)   ! 20 cm resolution
-      parameter (LLm0=64,   MMm0=64,    N=64)  
+      parameter (LLm0=64,   MMm0=64,    N=64) ! NHMG test
 #  else
       parameter (LLm0=1,    MMm0=50,   N=50)   ! 20 cm resolution
 #  endif
@@ -185,7 +187,7 @@
       integer NSUB_X, NSUB_E, NPP
 #ifdef MPI
       integer NP_XI, NP_ETA, NNODES     
-      parameter (NP_XI=1,  NP_ETA=1,  NNODES=NP_XI*NP_ETA)
+      parameter (NP_XI=2,  NP_ETA=2,  NNODES=NP_XI*NP_ETA)
       parameter (NPP=1)
       parameter (NSUB_X=1, NSUB_E=1)
 #elif defined OPENMP

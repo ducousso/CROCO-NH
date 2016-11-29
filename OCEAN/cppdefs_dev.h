@@ -184,9 +184,9 @@
 #elif defined UV_HADV_C4
 #elif defined UV_HADV_C2
 #else
-# undef UV_HADV_UP3       /* 3rd-order upstream lateral advection */
+# define UV_HADV_UP3       /* 3rd-order upstream lateral advection */
 # undef UV_HADV_C4        /* 4th-order centered lateral advection */
-# define UV_HADV_C2        /* 2nd-order centered lateral advection */
+# undef UV_HADV_C2        /* 2nd-order centered lateral advection */
 #endif
 /* 
    UV DIFFUSION: set default orientation

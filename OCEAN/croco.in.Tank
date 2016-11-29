@@ -1,14 +1,14 @@
 title:
 	Tank Example
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                250      0.040    10       10
+                250      0.040    10       1
 S-coord: THETA_S,   THETA_B,    Hc (m)
-         0.0d0      0.0d0       10.d0
+         0.0d0      0.0d0       10.d15
 initial: NRREC  filename
           0 
                           tank_rst.nc         
 restart:          NRST, NRPFRST / filename
-                  1000     0
+                  5000    -1
                           tank_rst.nc
 history: LDEFHIS, NWRT, NRPFHIS / filename 
             T      2      0 

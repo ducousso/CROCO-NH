@@ -197,8 +197,10 @@ C$    integer omp_get_thread_num
 #   endif
                      Length_ETA=0.1
 #  else
-                     Length_XI =64.0E+3
-                     Length_ETA=2.0E+3
+!                     Length_XI =64.0E+3
+!                     Length_ETA=2.0E+3
+                     Length_XI =128.0
+                     Length_ETA=128.0
 #  endif
 # elif defined ACOUSTIC
                      Length_XI =128.0
@@ -349,9 +351,16 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
 # if defined BASIN || defined EQUATOR || defined GRAV_ADJ \
                    || defined SOLITON || defined JET \
                    || defined ACOUSTIC
+!      do j=JstrR,JendR
+!        do i=IstrR,IendR
+!          h(i,j)=depth
+!        enddo
+!      enddo
+      cff=1./(2*(25)**2)
       do j=JstrR,JendR
         do i=IstrR,IendR
-          h(i,j)=depth
+!          h(i,j)=depth*(1-0.3*exp(-cff*((xr(i,j)-0.5*xl)**2))) 
+          h(i,j)=depth*(1-0.6*exp(-cff*((xr(i,j)-0.5*xl)**2)))
         enddo
       enddo
 # elif defined CANYON_A || defined CANYON_B
@@ -570,9 +579,15 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
       enddo
 # elif defined TANK
 #  ifndef MOVING_BATHY
+!      do j=JstrR,JendR
+!        do i=IstrR,IendR
+!          h(i,j)=depth
+!        enddo
+!      enddo
+      cff=1./(2*2**2)
       do j=JstrR,JendR
         do i=IstrR,IendR
-          h(i,j)=depth
+          h(i,j)=depth*( 1-0.5*exp(-cff*((xr(i,j)-5.)**2)) )
         enddo
       enddo
 #  else

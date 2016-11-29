@@ -163,9 +163,10 @@ C$    integer omp_get_thread_num
         enddo
 
 # elif defined TANK
-!        ETA0=0.001
+!        ETA0=0.0015
+!        ETA0=0.015
         ETA0=0.15
-!        ETA0=0.5
+!        ETA0=1.5
         Lt=10.
         do j=JR_RANGE
           do i=IR_RANGE
