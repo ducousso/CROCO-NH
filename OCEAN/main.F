@@ -213,6 +213,16 @@ C$OMP PARALLEL DO PRIVATE(tile)
 CR      write(*,*) '-11' MYID
 !
 !----------------------------------------------------------------------
+!  Allocate NHMG grids
+!----------------------------------------------------------------------
+!
+#ifdef NHMG
+      call nhmg_init(
+     & Lm,Mm,N,
+     & NP_XI,NP_ETA )
+#endif
+!
+!----------------------------------------------------------------------
 !  Set horizontal grid, model bathymetry and Land/Sea mask
 !----------------------------------------------------------------------
 !
@@ -251,20 +261,6 @@ C$OMP PARALLEL DO PRIVATE(tile)
         call setup_grid2 (tile)
       enddo
 CR      write(*,*) ' -9' MYID
-!
-!----------------------------------------------------------------------
-!  Allocate NHMG grids and set NHMG horizontal grids
-!----------------------------------------------------------------------
-!
-#ifdef NHMG
-      call nhmg_init(
-     & Lm,Mm,N,
-     & NP_XI,NP_ETA,
-     & om_r(0:Lm+1,0:Mm+1),
-     & on_r(0:Lm+1,0:Mm+1),
-     & om_u(0:Lm+1,0:Mm+1), 
-     & on_v(0:Lm+1,0:Mm+1) )
-#endif
 !
 !----------------------------------------------------------------------
 !  Setup vertical grid variables setup vertical S-coordinates 
@@ -359,8 +355,10 @@ CR      write(*,*)  ' -5' MYID
 #ifdef NHMG
       call nhmg_matrices(
      & Lm,Mm,N,
-     & z_r(0:Lm+1,0:Mm+1,1:N), !only 1 extra point ??????????
-     & z_w(0:Lm+1,0:Mm+1,0:N)) !only 1 extra point ??????????
+     & z_r(0:Lm+1,0:Mm+1,1:N), 
+     & z_w(0:Lm+1,0:Mm+1,0:N),
+     & om_r(0:Lm+1,0:Mm+1),
+     & on_r(0:Lm+1,0:Mm+1) )
 #endif
 !
 !----------------------------------------------------------------------
