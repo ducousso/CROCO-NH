@@ -1,7 +1,7 @@
 title:
 	Gravitational Adjustment Example
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               3000      0.2       10       90
+               3000      0.1       10       90
 S-coord: THETA_S,   THETA_B,    Hc (m)
          0.0d0      0.0d0       10.d15
 initial: NRREC  filename
@@ -11,7 +11,7 @@ restart:          NRST, NRPFRST / filename
                   6120      -1
                           gravadj_rst.nc
 history: LDEFHIS, NWRT, NRPFHIS / filename 
-            T      4      0 
+            T      8      0 
                           gravadj_his.nc
 primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
                          T   T    T     T   T   T 
