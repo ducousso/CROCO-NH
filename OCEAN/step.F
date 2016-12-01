@@ -723,7 +723,7 @@ C$OMP BARRIER
       call nhmg_matrices(
      & Lm,Mm,N,
      & z_r(0:Lm+1,0:Mm+1,1:N),
-     & z_w(0:Lm+1,0:Mm+1,0:N))
+     &  Hz(0:Lm+1,0:Mm+1,1:N))
 # endif
 
 C$OMP BARRIER
