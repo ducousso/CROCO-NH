@@ -240,9 +240,11 @@
         enddo
         do k=1,N
           do i=IstrU,Iend
-!            u(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH umask(i,j)
-            u(i,j,k,nnew)=DC(i,k)
-!
+# ifndef NHMG
+            u(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH umask(i,j)
+# else
+            u(i,j,k,nnew)=DC(i,k) SWITCH umask(i,j)
+# endif
 # ifdef DIAGNOSTICS_UV
             MVmix(i,j,k,1)=-( MVmix(i,j,k,1) - u(i,j,k,nnew)*
      &                           0.5*(Hz(i,j,k)+Hz(i-1,j,k)) )
@@ -372,9 +374,11 @@
           enddo
           do k=1,N
             do i=Istr,Iend
-!              v(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH vmask(i,j)
-              v(i,j,k,nnew)=DC(i,k)
-!
+# ifndef NHMG
+              v(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH vmask(i,j)
+# else
+              v(i,j,k,nnew)=DC(i,k) SWITCH vmask(i,j)
+# endif
 # ifdef DIAGNOSTICS_UV
               MVmix(i,j,k,2)=-( MVmix(i,j,k,2) - v(i,j,k,nnew)*
      &                             0.5*(Hz(i,j,k)+Hz(i,j-1,k)) )
@@ -476,9 +480,11 @@
      & rufrc_nhmg(1:Lm+1,0:Mm+1),
      & rvfrc_nhmg(0:Lm+1,1:Mm+1) )
 
+!?????? needed ????????
       call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
       call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
       call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
+!????????
 
 # endif
 !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -584,10 +590,9 @@
         enddo
         do k=N,1,-1
           do i=IU_RANGE
-# ifdef NHMG
-            u(i,j,k,nnew)=u(i,j,k,nnew)
-# else
+# ifndef NHMG
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
+# else
 # endif
 # ifdef MASKING
      &                                *umask(i,j)
@@ -723,10 +728,9 @@
           enddo
           do k=N,1,-1
             do i=IV_RANGE
-# ifdef NHMG
-              v(i,j,k,nnew)=v(i,j,k,nnew)
-# else
+# ifndef NHMG
               v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
+# else
 # endif
 # ifdef MASKING
      &                                  *vmask(i,j)
