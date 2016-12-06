@@ -1123,12 +1123,6 @@ C$    integer omp_get_thread_num
           enddo
         enddo
       enddo
-        do j=JstrR,JendR
-          do i=IstrR,IendR
-            rufrc_nhmg(i,j)=init
-            rvfrc_nhmg(i,j)=init
-          enddo
-        enddo
 # endif
 
 #endif /* SOLVE3D */

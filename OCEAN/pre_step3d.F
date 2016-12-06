@@ -72,7 +72,6 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
-c$$$      USE nhmg, only : nhmg_coupling
 #endif
       implicit none
 # include "param.h"
@@ -566,8 +565,11 @@ c$$$      USE nhmg, only : nhmg_coupling
 !
         enddo   !<-- itrc  !--> discard DC
       enddo     !<-- j
-
-!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+!
+!----------------------------------------------------------------------
+!  Non-hydro projection of momentum trend
+!----------------------------------------------------------------------
+!
 # ifdef NHMG
 
       do j=Jstr,Jend
@@ -603,7 +605,9 @@ c$$$      USE nhmg, only : nhmg_coupling
      & Lm, Mm, N,
      & ru(1:Lm+1,0:Mm+1,1:N),
      & rv(0:Lm+1,1:Mm+1,1:N),
-     & rw(0:Lm+1,0:Mm+1,0:N) )
+     & rw(0:Lm+1,0:Mm+1,0:N),
+     & rufrc(1:Lm+1,0:Mm+1),
+     & rvfrc(0:Lm+1,1:Mm+1) )
 
       do j=Jstr,Jend
         do k=1,N
@@ -621,7 +625,6 @@ c$$$      USE nhmg, only : nhmg_coupling
           enddo
         endif
       enddo
-
       do j=Jstr,Jend
         do k=1,N-1
           do i=Istr,Iend
@@ -635,30 +638,7 @@ c$$$      USE nhmg, only : nhmg_coupling
         enddo
       enddo
 
-      do j=Jstr,Jend
-        do i=IstrU,Iend
-          rufrc(i,j)=ru(i,j,1)
-        enddo
-        do k=2,N
-          do i=IstrU,Iend
-            rufrc(i,j)=rufrc(i,j)+ru(i,j,k)
-          enddo
-        enddo
-        if (j.ge.JstrV) then
-          do i=Istr,Iend
-            rvfrc(i,j)=rv(i,j,1)
-          enddo
-          do k=2,N
-            do i=Istr,Iend
-              rvfrc(i,j)=rvfrc(i,j)+rv(i,j,k)
-            enddo
-          enddo
-        endif
-      enddo
-
 # endif
-!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
 !
 !======================================================================
 !

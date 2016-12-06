@@ -1036,6 +1036,7 @@ ccc            dvde =0.5*( v(i,j-1,k,nrhs) -v(i,j+1,k,nrhs) )
 !
 !======================================================================
 !
+# ifndef NHMG
         do i=IstrU,Iend
           rufrc(i,j)=ru(i,j,1)
 # ifndef BODYFORCE
@@ -1050,13 +1051,7 @@ ccc            dvde =0.5*( v(i,j-1,k,nrhs) -v(i,j+1,k,nrhs) )
             rufrc(i,j)=rufrc(i,j)+ru(i,j,k)
           enddo
         enddo
-# ifdef NHMG
-        do i=IstrU,Iend
-          rufrc(i,j)=rufrc(i,j)
-!     &              +rufrc_nhmg(i,j)*om_u(i,j)*on_u(i,j)
-     &              +rufrc_nhmg(i,j)
-        enddo
-# endif
+
         if (j.ge.JstrV) then
           do i=Istr,Iend
             rvfrc(i,j)=rv(i,j,1)
@@ -1072,14 +1067,8 @@ ccc            dvde =0.5*( v(i,j-1,k,nrhs) -v(i,j+1,k,nrhs) )
               rvfrc(i,j)=rvfrc(i,j)+rv(i,j,k)
             enddo
           enddo
-# ifdef NHMG
-          do i=Istr,Iend
-            rvfrc(i,j)=rvfrc(i,j)
-!     &                +rvfrc_nhmg(i,j)*om_v(i,j)*on_v(i,j)
-     &                +rvfrc_nhmg(i,j)
-          enddo
-# endif
         endif
+# endif
       enddo      !<-- j
 
       return
