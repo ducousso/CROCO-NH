@@ -97,13 +97,6 @@ else
 	echo "  file namelist_pisces copied from source directory"
 fi
 
-if [[ -e "nhmg_namelist" ]] ; then
-	echo "  file nhmg_namelist exists in Run directory"
-else
-	/bin/cp -f ${SOURCE}/nhmg_namelist $RUNDIR
-	echo "  file nhmg_namelist copied from source directory"
-fi
-
 #
 # overwrite with local files
 #
