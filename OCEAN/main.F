@@ -349,7 +349,8 @@ CR      write(*,*)  ' -5' MYID
 #endif
 !
 !----------------------------------------------------------------------
-!  Set NHMG vertical grids and matrices
+!  Set NHMG horizontal and vertical grids 
+!  then set matrices coefficients for the elliptic problem
 !----------------------------------------------------------------------
 !
 #ifdef NHMG

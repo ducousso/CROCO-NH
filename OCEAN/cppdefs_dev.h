@@ -185,8 +185,8 @@
 #elif defined UV_HADV_C2
 #else
 # define UV_HADV_UP3       /* 3rd-order upstream lateral advection */
-# undef UV_HADV_C4        /* 4th-order centered lateral advection */
-# undef UV_HADV_C2        /* 2nd-order centered lateral advection */
+# undef  UV_HADV_C4        /* 4th-order centered lateral advection */
+# undef  UV_HADV_C2        /* 2nd-order centered lateral advection */
 #endif
 /* 
    UV DIFFUSION: set default orientation
@@ -224,8 +224,8 @@
 #ifdef UV_VADV_SPLINES  /* Check if options are defined in cppdefs.h */
 #elif defined UV_VADV_C2
 #else
-# undef UV_VADV_SPLINES   /* Splines vertical advection             */
-# define  UV_VADV_C2        /* 2nd-order centered vertical advection  */
+# define UV_VADV_SPLINES   /* Splines vertical advection             */
+# undef  UV_VADV_C2        /* 2nd-order centered vertical advection  */
 #endif
 
 #ifdef VADV_ADAPT_IMP      /* Semi-implicit vertical advection       */

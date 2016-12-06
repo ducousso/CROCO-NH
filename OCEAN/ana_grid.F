@@ -584,12 +584,6 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
           h(i,j)=depth
         enddo
       enddo
-!      cff=1./(2*2**2)
-!      do j=JstrR,JendR
-!        do i=IstrR,IendR
-!          h(i,j)=depth*( 1-0.5*exp(-cff*((xr(i,j)-5.)**2)) )
-!        enddo
-!      enddo
 #  else
       cff=1./(0.03686)**2
       do j=JstrR,JendR
