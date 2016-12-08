@@ -46,6 +46,10 @@
       integer ubry_west_id, vbry_west_id
       common /u_west_id/ ubry_west_id, vbry_west_id
 #   endif
+#   ifdef W_FRC_BRY
+      integer wbry_west_id
+      common /w_west_id/ wbry_west_id
+#   endif
 #   ifdef T_FRC_BRY
       integer tbry_west_id(NT)
       common /t_west_id/ tbry_west_id
@@ -66,6 +70,10 @@
 #   ifdef M3_FRC_BRY
       integer ubry_east_id, vbry_east_id
       common /u_east_id/ ubry_east_id, vbry_east_id
+#   endif
+#   ifdef W_FRC_BRY
+      integer wbry_east_id
+      common /w_east_id/ wbry_east_id
 #   endif
 #   ifdef T_FRC_BRY
       integer tbry_east_id(NT)
@@ -88,6 +96,10 @@
       integer ubry_south_id, vbry_south_id
       common /u_south_id/ ubry_south_id, vbry_south_id
 #   endif
+#   ifdef W_FRC_BRY
+      integer wbry_south_id
+      common /w_south_id/ wbry_south_id
+#   endif
 #   ifdef T_FRC_BRY
       integer tbry_south_id(NT)
       common /t_south_id/ tbry_south_id
@@ -108,6 +120,10 @@
 #   ifdef M3_FRC_BRY
       integer ubry_north_id, vbry_north_id
       common /u_north_id/ ubry_north_id, vbry_north_id
+#   endif
+#   ifdef W_FRC_BRY
+      integer wbry_north_id
+      common /w_north_id/ wbry_north_id
 #   endif
 #   ifdef T_FRC_BRY
       integer tbry_north_id(NT)
@@ -140,6 +156,11 @@
       common /bry_u_west/ ubry_west, ubry_west_dt,
      &                    vbry_west, vbry_west_dt
 #  endif
+#  ifdef W_FRC_BRY
+      real wbry_west(GLOBAL_1D_ARRAYETA,N),
+     &    wbry_west_dt(GLOBAL_1D_ARRAYETA,N,2)
+      common /bry_w_west/ wbry_west, wbry_west_dt
+#  endif
 #  ifdef T_FRC_BRY
       real tbry_west(GLOBAL_1D_ARRAYETA,N,NT),
      &    tbry_west_dt(GLOBAL_1D_ARRAYETA,N,2,NT)
@@ -170,6 +191,11 @@
      &    vbry_east_dt(GLOBAL_1D_ARRAYETA,N,2)
       common /bry_u_east/ ubry_east, ubry_east_dt,
      &                    vbry_east, vbry_east_dt
+#  endif
+#  ifdef W_FRC_BRY
+      real wbry_east(GLOBAL_1D_ARRAYETA,N),
+     &    wbry_east_dt(GLOBAL_1D_ARRAYETA,N,2)
+      common /bry_w_east/ wbry_east, wbry_east_dt
 #  endif
 #  ifdef T_FRC_BRY
       real tbry_east(GLOBAL_1D_ARRAYETA,N,NT),
@@ -202,6 +228,11 @@
       common /bry_u_south/ ubry_south, ubry_south_dt,
      &                     vbry_south, vbry_south_dt
 #  endif
+#  ifdef W_FRC_BRY
+      real wbry_south(GLOBAL_1D_ARRAYXI,N),
+     &    wbry_south_dt(GLOBAL_1D_ARRAYXI,N,2)
+      common /bry_w_south/ wbry_south, wbry_south_dt
+#  endif
 #  ifdef T_FRC_BRY
       real tbry_south(GLOBAL_1D_ARRAYXI,N,NT),
      &    tbry_south_dt(GLOBAL_1D_ARRAYXI,N,2,NT)
@@ -232,6 +263,11 @@
      &    vbry_north_dt(GLOBAL_1D_ARRAYXI,N,2)
       common /bry_u_north/ ubry_north, ubry_north_dt,
      &                     vbry_north, vbry_north_dt
+#  endif
+#  ifdef W_FRC_BRY
+      real wbry_north(GLOBAL_1D_ARRAYXI,N),
+     &    wbry_north_dt(GLOBAL_1D_ARRAYXI,N,2)
+      common /bry_w_north/ wbry_north, wbry_north_dt
 #  endif
 #  ifdef T_FRC_BRY
       real tbry_north(GLOBAL_1D_ARRAYXI,N,NT),
@@ -389,7 +425,6 @@
 # endif
 # if defined OBC_NORTH || defined AGRIF_OBC_NORTH
       real wbry_north(GLOBAL_1D_ARRAYETA,N)
-      common /bry_w_west/ wbry_north
+      common /bry_w_north/ wbry_north
 # endif
 #endif /* NBQ */
-

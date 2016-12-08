@@ -724,12 +724,16 @@ C$    integer omp_get_thread_num
           vbarbry_west(j)=init
         enddo
 #  endif
-#  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
+#  if defined SOLVE3D && (defined M3_FRC_BRY || \
+      defined W_FRC_BRY || defined T_FRC_BRY)
         do k=1,N
           do j=JstrR,JendR
 #   ifdef M3_FRC_BRY
             ubry_west(j,k)=init
             vbry_west(j,k)=init
+#   endif
+#   ifdef W_FRC_BRY
+            Wbry_west(j,k)=init
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
@@ -755,12 +759,16 @@ C$    integer omp_get_thread_num
           vbarbry_east(j)=init
         enddo
 #  endif
-#  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
+#  if defined SOLVE3D && (defined M3_FRC_BRY || \
+      defined W_FRC_BRY || defined T_FRC_BRY)
         do k=1,N
           do j=JstrR,JendR
 #   ifdef M3_FRC_BRY
             ubry_east(j,k)=init
             vbry_east(j,k)=init
+#   endif
+#   ifdef W_FRC_BRY
+            wbry_east(j,k)=init
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
@@ -786,12 +794,16 @@ C$    integer omp_get_thread_num
           vbarbry_south(i)=init
         enddo
 #  endif
-#  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
+#  if defined SOLVE3D && (defined M3_FRC_BRY || \
+      defined W_FRC_BRY || defined T_FRC_BRY)
         do k=1,N
           do i=IstrR,IendR
 #   ifdef M3_FRC_BRY
             ubry_south(i,k)=init
             vbry_south(i,k)=init
+#   endif
+#   ifdef W_FRC_BRY
+            Wbry_south(i,k)=init
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
@@ -817,12 +829,16 @@ C$    integer omp_get_thread_num
           vbarbry_north(i)=init
         enddo
 #  endif
-#  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
+#  if defined SOLVE3D && (defined M3_FRC_BRY || \
+      defined W_FRC_BRY ||defined T_FRC_BRY)
         do k=1,N
           do i=IstrR,IendR
 #   ifdef M3_FRC_BRY
             ubry_north(i,k)=init
             vbry_north(i,k)=init
+#   endif
+#   ifdef W_FRC_BRY
+            wbry_north(i,k)=init
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT

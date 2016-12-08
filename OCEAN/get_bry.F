@@ -11,7 +11,8 @@
 !
 #include "cppdefs.h"
 #if !defined ANA_BRY && (defined T_FRC_BRY || defined M2_FRC_BRY || \
-                         defined M3_FRC_BRY || defined Z_FRC_BRY )
+                         defined M3_FRC_BRY || defined Z_FRC_BRY || \
+                         defined W_FRC_BRY)
 
       subroutine get_bry            ! Read side boundary forcing 
       implicit none                 ! fields from boundary file
@@ -71,6 +72,11 @@
           if (ierr.ne.nf_noerr)  write(stdout,1) 'v_west'
           ierr_all=ierr_all+ierr
 #   endif
+#   ifdef W_FRC_BRY
+          ierr=nf_inq_varid (bry_id,    'w_west', wbry_west_id)
+          if (ierr.ne.nf_noerr)  write(stdout,1) 'w_west'
+          ierr_all=ierr_all+ierr
+#   endif
 #   ifdef T_FRC_BRY
           ierr=nf_inq_varid (bry_id, 'temp_west', 
      &         tbry_west_id(itemp))
@@ -107,6 +113,11 @@
           ierr_all=ierr_all+ierr
           ierr=nf_inq_varid (bry_id,    'v_east',   vbry_east_id)
           if (ierr.ne.nf_noerr)  write(stdout,1)   'v_east'
+          ierr_all=ierr_all+ierr
+#   endif
+#   ifdef W_FRC_BRY
+          ierr=nf_inq_varid (bry_id,    'w_east',   wbry_east_id)
+          if (ierr.ne.nf_noerr)  write(stdout,1)   'w_east'
           ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
@@ -147,6 +158,11 @@
           if (ierr.ne.nf_noerr) write(stdout,1)    'v_south'
           ierr_all=ierr_all+ierr
 #   endif
+#   ifdef W_FRC_BRY
+          ierr=nf_inq_varid (bry_id,    'w_south',  wbry_south_id)
+          if (ierr.ne.nf_noerr) write(stdout,1)    'w_south'
+          ierr_all=ierr_all+ierr
+#   endif
 #   ifdef T_FRC_BRY
           ierr=nf_inq_varid (bry_id, 'temp_south', 
      &         tbry_south_id(itemp))
@@ -183,6 +199,11 @@
           ierr_all=ierr_all+ierr
           ierr=nf_inq_varid (bry_id,    'v_north',  vbry_north_id)
           if (ierr.ne.nf_noerr)   write(stdout,1)  'v_north'
+          ierr_all=ierr_all+ierr
+#   endif
+#   ifdef W_FRC_BRY
+          ierr=nf_inq_varid (bry_id,    'w_north',  wbry_north_id)
+          if (ierr.ne.nf_noerr)   write(stdout,1)  'w_north'
           ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
@@ -255,6 +276,12 @@
             if (ierr.ne.nf_noerr)  write(stdout,2)  'v_west'
             ierr_all=ierr_all+ierr
 #   endif
+#   ifdef W_FRC_BRY
+            ierr=nf_read_bry_EW (wbry_west_dt(START_1D_ARRAYETA,1,itbry)
+     &          , bry_id,wbry_west_id,  bry_rec,  w3dvar)
+            if (ierr.ne.nf_noerr)  write(stdout,2)  'w_west'
+            ierr_all=ierr_all+ierr
+#   endif
 #   ifdef T_FRC_BRY
             do itrc=1,isalt
               ierr=nf_read_bry_EW (tbry_west_dt(START_1D_ARRAYETA,1
@@ -295,6 +322,12 @@
             if (ierr.ne.nf_noerr)  write(stdout,2)  'v_east'
             ierr_all=ierr_all+ierr
 #   endif
+#   ifdef W_FRC_BRY
+            ierr=nf_read_bry_EW (wbry_east_dt(START_1D_ARRAYETA,1,itbry)
+     &          , bry_id,wbry_east_id,  bry_rec,  w3dvar)
+            if (ierr.ne.nf_noerr)  write(stdout,2)  'w_east'
+            ierr_all=ierr_all+ierr
+#   endif
 #   ifdef T_FRC_BRY
             do itrc=1,isalt
               ierr=nf_read_bry_EW (tbry_east_dt(START_1D_ARRAYETA,1
@@ -330,10 +363,15 @@
      &          , bry_id,ubry_south_id,  bry_rec,  u3dvar)
             if (ierr.ne.nf_noerr)  write(stdout,2)  'u_south'
             ierr_all=ierr_all+ierr
-
             ierr=nf_read_bry_NS (vbry_south_dt(START_1D_ARRAYXI,1,itbry)
      &          , bry_id,vbry_south_id,  bry_rec,  v3dvar)
             if (ierr.ne.nf_noerr)  write(stdout,2)  'v_south'
+            ierr_all=ierr_all+ierr
+#   endif
+#   ifdef W_FRC_BRY
+            ierr=nf_read_bry_NS (wbry_south_dt(START_1D_ARRAYXI,1,itbry)
+     &          , bry_id,wbry_south_id,  bry_rec,  w3dvar)
+            if (ierr.ne.nf_noerr)  write(stdout,2)  'w_south'
             ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
@@ -374,6 +412,12 @@
             ierr=nf_read_bry_NS (vbry_north_dt(START_1D_ARRAYXI,1,itbry)
      &          , bry_id,vbry_north_id,  bry_rec,  v3dvar)
             if (ierr.ne.nf_noerr)  write(stdout,2)  'v_north'
+            ierr_all=ierr_all+ierr
+#   endif
+#   ifdef W_FRC_BRY
+            ierr=nf_read_bry_NS (wbry_north_dt(START_1D_ARRAYXI,1,itbry)
+     &          , bry_id,wbry_north_id,  bry_rec,  w3dvar)
+            if (ierr.ne.nf_noerr)  write(stdout,2)  'w_north'
             ierr_all=ierr_all+ierr
 #   endif
 #   ifdef T_FRC_BRY
@@ -486,6 +530,14 @@
             enddo
           enddo
 #   endif
+#   ifdef W_FRC_BRY
+          do k=1,N
+            do j=JstrR,JendR
+              wbry_west(j,k)=cff1*wbry_west_dt(j,k,it1)
+     &                      +cff2*wbry_west_dt(j,k,it2)
+            enddo
+          enddo
+#   endif
 #   ifdef T_FRC_BRY
           do itrc=1,isalt
             do k=1,N
@@ -527,6 +579,14 @@
      &                      +cff2*ubry_east_dt(j,k,it2)
               vbry_east(j,k)=cff1*vbry_east_dt(j,k,it1)
      &                      +cff2*vbry_east_dt(j,k,it2)
+            enddo
+          enddo
+#   endif
+#   ifdef W_FRC_BRY
+          do k=1,N
+            do j=JstrR,JendR
+              wbry_east(j,k)=cff1*wbry_east_dt(j,k,it1)
+     &                      +cff2*wbry_east_dt(j,k,it2)
             enddo
           enddo
 #   endif
@@ -574,6 +634,14 @@
             enddo
           enddo
 #   endif
+#   ifdef W_FRC_BRY
+          do k=1,N
+            do i=IstrR,IendR
+              wbry_south(i,k)=cff1*wbry_south_dt(i,k,it1)
+     &                       +cff2*wbry_south_dt(i,k,it2)
+            enddo
+          enddo
+#   endif
 #   ifdef T_FRC_BRY
           do itrc=1,isalt
             do k=1,N
@@ -615,6 +683,14 @@
      &                       +cff2*ubry_north_dt(i,k,it2)
               vbry_north(i,k)=cff1*vbry_north_dt(i,k,it1)
      &                       +cff2*vbry_north_dt(i,k,it2)
+            enddo
+          enddo
+#   endif
+#   ifdef W_FRC_BRY
+          do k=1,N
+            do i=IstrR,IendR
+              wbry_north(i,k)=cff1*wbry_north_dt(i,k,it1)
+     &                       +cff2*wbry_north_dt(i,k,it2)
             enddo
           enddo
 #   endif
