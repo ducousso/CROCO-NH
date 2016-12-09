@@ -1,7 +1,7 @@
 #!/bin/csh
-#PBS -N CROCO-Seamount
-#PBS -q parallel32
-#PBS -l select=2:ncpus=8:mpiprocs=8
+#PBS -N CROCO-Bimin
+#PBS -q parallel64
+#PBS -l select=8:ncpus=8:mpiprocs=8
 
 set echo
 
@@ -33,7 +33,7 @@ setenv MKL_SERIAL YES
 ## HAVE TO BE EQUAL TO -PBS -l select- ##
 ##   at the begining of this script    ##
 #########################################
-set NB_PROC=16
+set NB_PROC=64
 
 #################################
 #  Define environment variables #
@@ -50,15 +50,22 @@ setenv LD_LIBRARY_PATH $HOME/CROCO-NH/NHMG/lib:$LD_LIBRARY_PATH
 #  Define files and run parameters #
 ####################################
 set SRC_DIR=/home2/caparmor/grima/CROCO-NH/Run
-set CODFILE=./croco_grad_adj_nhmg
-set MODEL=croco.in.Grav_adj
-set RUNEXP=Grav_adj_nhmg
-set EXEC_DIR=/work/grima/CROCO-NH
+set CODFILE=./croco_bimin_8x8
+set MODEL=croco.in.bimin
+set RUNEXP=REF
+set EXEC_DIR=/work/grima/BIMIN
+set INPUT_DATA=/work/grima/BIMIN_ref
 
 ##########################
 # Move to the Scratchdir #
 ##########################
 cd $EXEC_DIR/$RUNEXP
+
+##########################
+# Link to the input data #
+##########################
+ln -s ${INPUT_DATA}/INIT_8x8 INIT
+#ln -s ${INPUT_DATA}/HIS      HIS
 
 ##################################
 # Get the executable code (roms) #

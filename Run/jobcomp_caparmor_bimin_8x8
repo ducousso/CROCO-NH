@@ -3,12 +3,15 @@
 #               COMPILATION JOB                    #
 ####################################################
 
+# module load intel-comp intel-mpi netcdf-intel/3.6.3-11.1.073
+#Currently Loaded Modulefiles:
+# 1) intel-comp/2015.3.187 2) intel-mpi/5.0.3.048 3) netcdf-intel/3.6.3-11.1.073
+
 #
 # set source, compilation and run directories
 #
 SOURCE=../OCEAN
-#SCRDIR=./Compile
-SCRDIR=/work/$LOGNAME/CROCO-NH/Compile
+SCRDIR=/work/$LOGNAME/BIMIN/Compile
 RUNDIR=`pwd`
 ROOT_DIR=$SOURCE/..
 
@@ -94,6 +97,18 @@ AGRIF_SRC=${ROOT_DIR}/AGRIF
 /bin/cp -f *.h $SCRDIR
 /bin/cp -f Make* $SCRDIR
 /bin/cp -f jobcomp $SCRDIR
+
+#
+# BIMIN special copy
+#
+/bin/cp -f ${ROOT_DIR}/Run/cppdefs_bimin.h $SCRDIR/cppdefs.h
+/bin/cp -f ${ROOT_DIR}/Run/param_bimin_8x8.h   $SCRDIR/param.h
+/bin/cp -f ${ROOT_DIR}/Run/lmd_skpp2005_bimin.F $SCRDIR/lmd_skpp2005.F
+/bin/cp -f ${ROOT_DIR}/Run/lmd_bkpp2005_bimin.F $SCRDIR/lmd_bkpp2005.F
+/bin/cp -f ${ROOT_DIR}/Run/put_global_atts_opt.F $SCRDIR/put_global_atts.F
+/bin/cp -f ${ROOT_DIR}/Run/partit_opt.F $SCRDIR/partit.F
+/bin/cp -f ${ROOT_DIR}/Run/ncjoin_opt.F $SCRDIR/ncjoin.F
+
 #
 # Change directory
 #
@@ -370,5 +385,12 @@ rm -f flags.tmp
 # compile croco
 #
 $MAKE 
-mv croco $RUNDIR
+mv croco $RUNDIR/croco_bimin_8x8
+#
+#
+# Make tools
+#
+$MAKE tools
+mv partit $RUNDIR/partit_opt
+mv ncjoin $RUNDIR/ncjoin_opt
 #
