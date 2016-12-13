@@ -72,6 +72,7 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
+!      USE nhmg, only : nhmg_write
 #endif
       implicit none
 # include "param.h"
@@ -572,9 +573,16 @@
 !
 # ifdef NHMG
 
+
       if (mynode==32) write(*,*) ru(0,32,128)
       if (mynode==32) write(*,*) ru(1,32,128)
       if (mynode==32) write(*,*) ru(2,32,128)
+
+!      call nhmg_write(
+!     & Lm, Mm, N,
+!     & ru(-1:Lm+2,-1:Mm+2,1:N),
+!     & rv(-1:Lm+2,-1:Mm+2,1:N),
+!     & rw(-1:Lm+2,-1:Mm+2,0:N) )
 
       do j=Jstr,Jend
         do k=1,N
