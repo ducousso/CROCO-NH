@@ -471,6 +471,12 @@ c********************************************************************
 #  endif
 !
 #  include "compute_auxiliary_bounds.h"
+
+!ND
+      ru(:,:,:)=0.
+      rv(:,:,:)=0.
+!ND
+
 !
 ! Compute XI-component of pressure gradient term:
 !-------- ------------ -- -------- -------- -----
