@@ -212,14 +212,14 @@
             UFx(i,j)=cff*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs))
             VFe(i,j)=cff*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
 #  endif
-#  if defined NBQ || defined NHMG
-            UFx(i,j)=UFx(i,j)
-     &      +0.5*Hz(i,j,k)*eomn(i,j)*cosa(i,j)
-     &                            *(wz(i,j,k-1,nrhs)+wz(i,j,k,nrhs)) 
-            VFe(i,j)=VFe(i,j)   
-     &      -0.5*Hz(i,j,k)*eomn(i,j)*sina(i,j)
-     &                            *(wz(i,j,k-1,nrhs)+wz(i,j,k,nrhs))
-#  endif
+!#  if defined NBQ || defined NHMG
+!            UFx(i,j)=UFx(i,j)
+!     &      +0.5*Hz(i,j,k)*eomn(i,j)*cosa(i,j)
+!     &                            *(wz(i,j,k-1,nrhs)+wz(i,j,k,nrhs)) 
+!            VFe(i,j)=VFe(i,j)   
+!     &      -0.5*Hz(i,j,k)*eomn(i,j)*sina(i,j)
+!     &                            *(wz(i,j,k-1,nrhs)+wz(i,j,k,nrhs))
+!#  endif
           enddo
         enddo
 

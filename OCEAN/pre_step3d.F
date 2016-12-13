@@ -572,6 +572,10 @@
 !
 # ifdef NHMG
 
+      if (mynode==32) write(*,*) ru(0,32,128)
+      if (mynode==32) write(*,*) ru(1,32,128)
+      if (mynode==32) write(*,*) ru(2,32,128)
+
       do j=Jstr,Jend
         do k=1,N
           do i=IstrU,Iend
@@ -1012,11 +1016,11 @@
 ! Set PHYSICAL lateral boundary conditions for momentum.
 !======================================================================
 !
-      call u3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
-      call v3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
-# if defined NBQ || defined NHMG
-      call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK)      
-# endif
+!      call u3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
+!      call v3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
+!# if defined NBQ || defined NHMG
+!      call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK)      
+!# endif
 !
 !======================================================================
 ! Coupling, include ghost points associated with PHYSICAL
