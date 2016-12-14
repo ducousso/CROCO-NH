@@ -44,7 +44,7 @@ set CP=/bin/cp
 ##################################
 # get the path for library NHMG ##
 ##################################
-setenv LD_LIBRARY_PATH $HOME/CROCO-NH/NHMG-0.1.4/lib:$LD_LIBRARY_PATH
+setenv LD_LIBRARY_PATH $HOME/CROCO-NH/NHMG/lib:$LD_LIBRARY_PATH
 
 ####################################
 #  Define files and run parameters #

@@ -573,11 +573,11 @@
 !
 # ifdef NHMG
 
-!      call nhmg_write(
-!     & Lm, Mm, N,
-!     & ru(-1:Lm+2,-1:Mm+2,1:N),
-!     & rv(-1:Lm+2,-1:Mm+2,1:N),
-!     & rw(-1:Lm+2,-1:Mm+2,0:N) )
+      call nhmg_write(
+     & Lm, Mm, N,
+     & ru(-1:Lm+2,-1:Mm+2,1:N),
+     & rv(-1:Lm+2,-1:Mm+2,1:N),
+     & rw(-1:Lm+2,-1:Mm+2,0:N) )
 
       do j=Jstr,Jend
         do k=1,N

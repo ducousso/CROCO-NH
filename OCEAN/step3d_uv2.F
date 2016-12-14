@@ -481,9 +481,9 @@
      & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
 
 !?????? needed ????????
-      call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
-      call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
-      call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
+!      call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
+!      call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+!      call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
 !????????
 
 # endif
