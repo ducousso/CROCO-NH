@@ -6,7 +6,7 @@
 # module load intel-comp intel-mpi netcdf-intel/3.6.3-11.1.073
 #Currently Loaded Modulefiles:
 # 1) intel-comp/2015.3.187 2) intel-mpi/5.0.3.048 3) netcdf-intel/3.6.3-11.1.073
-
+# netCDF/4.2.1-intel-12.1.5
 #
 # set source, compilation and run directories
 #
@@ -29,7 +29,7 @@ LINUX_FC=mpiifort
 #
 # If needed set your own NETCDF directories
 #
-NETCDFLIB="-L$NETCDF/lib -lnetcdf"
+NETCDFLIB="-L$NETCDF/lib -lnetcdf -lnetcdff"
 NETCDFINC=-I$NETCDF/include
 
 #
