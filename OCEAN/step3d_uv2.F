@@ -61,6 +61,7 @@
 #ifdef NHMG
           USE nhmg, only : nhmg_solve
           USE nhmg, only : nhmg_coupling
+          USE nhmg, only : nhmg_write
 #endif
       implicit none
 # include "param.h"
@@ -473,6 +474,12 @@
 !--------------------------------------------------------------------
 !
 # ifdef NHMG
+
+      call nhmg_write(
+     & Lm, Mm, N,
+     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     & wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
 
       call nhmg_solve(
      & Lm, Mm, N,
