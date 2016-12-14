@@ -53,7 +53,9 @@
 !     parameter (LLm0=128,  MMm0=4,    N=40)   ! 500  m resolution
 !     parameter (LLm0=512,  MMm0=4,   N=160)   ! 125  m resolution
 !      parameter (LLm0=64,   MMm0=64,    N=64) ! NHMG test
-      parameter (LLm0=128,   MMm0=128,    N=128) ! NHMG test
+!      parameter (LLm0=128,   MMm0=128,    N=128) ! NHMG test
+!      parameter (LLm0=256,   MMm0=256,    N=128) ! NHMG test
+      parameter (LLm0=512,   MMm0=512,    N=128) ! NHMG test
 # endif
 #elif defined INNERSHELF
       parameter (LLm0=200,  MMm0=3,    N=60)
@@ -70,7 +72,8 @@
 #elif defined RIVER
       parameter (LLm0=40,   MMm0=80,   N=20)
 #elif defined SEAMOUNT
-      parameter (LLm0=64,   MMm0=64,   N=20)
+!      parameter (LLm0=64,   MMm0=64,   N=20)
+      parameter (LLm0=64,   MMm0=64,   N=32)
 #elif defined SHELFRONT
       parameter (LLm0=4,    MMm0=40,   N=10)
 #elif defined SOLITON

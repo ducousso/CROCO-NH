@@ -190,6 +190,19 @@ C$    integer omp_get_thread_num
             vbar(i,j,2)=vbar(i,j,1)
           enddo
         enddo
+
+# elif defined SEAMOUNT
+        do j=JR_RANGE
+          do i=IR_RANGE
+            zeta(i,j,1)=0.
+            zeta(i,j,2)=0.
+            ubar(i,j,1)=1.
+            vbar(i,j,1)=0.
+            ubar(i,j,2)=1.
+            vbar(i,j,2)=0.
+          enddo
+        enddo
+
 # else
         do j=JR_RANGE
           do i=IR_RANGE
@@ -266,6 +279,18 @@ C$    integer omp_get_thread_num
               v(i,j,k,1)=-ETA0*omega*Lt
               u(i,j,k,2)=0.
               v(i,j,k,2)=v(i,j,k,1)
+            enddo
+          enddo
+        enddo
+
+#  elif defined SEAMOUNT
+        do k=1,N
+          do j=JR_RANGE
+            do i=IR_RANGE
+              u(i,j,k,1)=1.
+              v(i,j,k,1)=0.
+              u(i,j,k,2)=1.
+              v(i,j,k,2)=0.
             enddo
           enddo
         enddo
@@ -606,7 +631,8 @@ C$    integer omp_get_thread_num
         do k=1,N
           do j=JR_RANGE
             do i=IR_RANGE
-              t(i,j,k,1,itemp)=5.*15.*exp(z_r(i,j,k)/100.)
+!              t(i,j,k,1,itemp)=5.*15.*exp(z_r(i,j,k)/100.)
+              t(i,j,k,1,itemp)=15. + 10./4500.*z_r(i,j,k)
               t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
 #   ifdef SALINITY
               t(i,j,k,1,isalt)=35.

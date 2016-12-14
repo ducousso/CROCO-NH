@@ -23,7 +23,7 @@
 #undef  INNERSHELF      /* Inner Shelf Example */
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
-#undef  SEAMOUNT        /* Seamount Example */
+#define  SEAMOUNT        /* Seamount Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -35,7 +35,7 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#define  TANK            /* Tank Example */
+#undef  TANK            /* Tank Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -690,13 +690,15 @@
 !                       ======== =======
 */
 # undef OPENMP
-# undef MPI
+# define MPI
 # define UV_ADV
-# define UV_COR
+# undef UV_COR
 # define SOLVE3D
-# define SALINITY
-# define NONLIN_EOS
-# define SPLIT_EOS
+# define NEW_S_COORD
+# define NHMG
+# undef SALINITY
+# undef NONLIN_EOS
+# undef SPLIT_EOS
 # define ANA_GRID
 # define ANA_INITIAL
 # define ANA_SMFLUX
@@ -705,6 +707,15 @@
 # define ANA_SRFLUX
 # define ANA_BTFLUX
 # define ANA_BSFLUX
+# define OBC_EAST
+# define OBC_WEST
+# define FRC_BRY
+# define ANA_BRY
+# define Z_FRC_BRY
+# define M2_FRC_BRY
+# define M3_FRC_BRY
+# define W_FRC_BRY
+# define T_FRC_BRY
 
 # elif defined SHELFRONT
 /*
@@ -1085,7 +1096,7 @@
 # endif
 # define NHMG
 # define SOLVE3D
-# undef UV_ADV
+# define UV_ADV
 # define NEW_S_COORD
 # define ANA_GRID
 # define ANA_INITIAL
@@ -1093,7 +1104,6 @@
 # define ANA_SMFLUX
 # define ANA_SRFLUX
 # define ANA_STFLUX
-
 
 #endif /* END OF CONFIGURATION CHOICE */
 

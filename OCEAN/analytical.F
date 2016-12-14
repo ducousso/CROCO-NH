@@ -2035,6 +2035,7 @@ C$    integer  trd, omp_get_thread_num
 # include "param.h"
 # include "grid.h"
 # include "scalars.h"
+# include "ocean3d.h"
 # include "boundary.h"
 !
 # include "compute_auxiliary_bounds.h"
@@ -2056,22 +2057,38 @@ C$    integer  trd, omp_get_thread_num
         enddo
 #  endif
 #  ifdef M2_FRC_BRY
+#   ifdef SEAMOUNT
+        do j=JstrR,JendR
+          ubarbry_west(j)=1.
+          vbarbry_west(j)=0.
+        enddo
+#   else
         do j=JstrR,JendR
           ubarbry_west(j)=0.
           vbarbry_west(j)=0.
         enddo
+#   endif
 #  endif
 #  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
         do k=1,N
           do j=JstrR,JendR
 #   ifdef M3_FRC_BRY
+#    ifdef SEAMOUNT
+            ubry_west(j,k)=1.
+            vbry_west(j,k)=0.
+#    else
             ubry_west(j,k)=0.
             vbry_west(j,k)=0.
+#    endif
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
               tbry_west(j,k,itrc)=0.
             enddo
+#    ifdef SEAMOUNT
+!              tbry_west(j,k,itemp)=15.
+              tbry_west(j,k,itemp) =15. + 10./4500.*z_r(1,j,k)
+#    endif
 #   endif
           enddo
         enddo
@@ -2090,22 +2107,38 @@ C$    integer  trd, omp_get_thread_num
         enddo
 #  endif
 #  ifdef M2_FRC_BRY
+#   ifdef SEAMOUNT
+        do j=JstrR,JendR
+          ubarbry_east(j)=1.
+          vbarbry_east(j)=0.
+        enddo
+#   else
         do j=JstrR,JendR
           ubarbry_east(j)=0.
           vbarbry_east(j)=0.
         enddo
+#   endif
 #  endif
 #  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
         do k=1,N
           do j=JstrR,JendR
 #   ifdef M3_FRC_BRY
+#    ifdef SEAMOUNT
+            ubry_east(j,k)=1.
+            vbry_east(j,k)=0.
+#    else
             ubry_east(j,k)=0.
             vbry_east(j,k)=0.
+#    endif
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
               tbry_east(j,k,itrc)=0.
             enddo
+#    ifdef SEAMOUNT
+!              tbry_east(j,k,itemp)=15.
+              tbry_east(j,k,itemp)=15. + 10./4500.*z_r(1,j,k)
+#    endif
 #   endif
           enddo
         enddo
