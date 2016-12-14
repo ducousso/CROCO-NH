@@ -76,6 +76,7 @@
 # define  NEW_S_COORD
                       /* Model dynamics */
 # define SOLVE3D
+# define NHMG
 # define UV_COR
 # define UV_ADV
                       /* Equation of State */
@@ -149,7 +150,6 @@
 #  define M2CLIMATOLOGY
 #  define M3CLIMATOLOGY
 #  define TCLIMATOLOGY
-
 #  define ZNUDGING
 #  define M2NUDGING
 #  define M3NUDGING
@@ -162,6 +162,9 @@
 #  define Z_FRC_BRY
 #  define M2_FRC_BRY
 #  define M3_FRC_BRY
+#  ifdef NHMG
+#   define W_FRC_BRY
+#  endif
 #  define T_FRC_BRY
 # endif
                       /* Bottom Forcing */

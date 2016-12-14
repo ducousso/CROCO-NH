@@ -16,9 +16,9 @@ uname -n
 # get the path for mpirun ##
 ############################
 source /usr/share/modules/init/csh
-module load intel-comp
-module load intel-mpi
-module load netcdf-intel/3.6.3-11.1.073
+module load intel-comp/2015.3.187 
+module load intel-mpi/5.0.3.048  
+module load netCDF/4.2.1-intel-12.1.5
 
 module list
 
@@ -49,12 +49,12 @@ setenv LD_LIBRARY_PATH $HOME/CROCO-NH/NHMG/lib:$LD_LIBRARY_PATH
 ####################################
 #  Define files and run parameters #
 ####################################
-set SRC_DIR=/home2/caparmor/grima/CROCO-NH/Run
+set SRC_DIR=/home2/caparmor/nducouss/CROCO-NH/Run
 set CODFILE=./croco_bimin_8x8
 set MODEL=croco.in.bimin
-set RUNEXP=REF
-set EXEC_DIR=/work/grima/BIMIN
-set INPUT_DATA=/work/grima/BIMIN_ref
+set RUNEXP=EXP_NHMG_4
+set EXEC_DIR=/work/nducouss/BIMIN
+set INPUT_DATA=/work/nducouss/BIMIN/INPUT/INPUT_8x8
 
 ##########################
 # Move to the Scratchdir #
@@ -64,8 +64,7 @@ cd $EXEC_DIR/$RUNEXP
 ##########################
 # Link to the input data #
 ##########################
-ln -s ${INPUT_DATA}/INIT_8x8 INIT
-#ln -s ${INPUT_DATA}/HIS      HIS
+ln -s ${INPUT_DATA} INPUT
 
 ##################################
 # Get the executable code (roms) #
@@ -76,10 +75,16 @@ $CP -f $SRC_DIR/$CODFILE $EXEC_DIR/$RUNEXP/.
 chmod u+x $CODFILE
 
 #####################################
-# Get the input arguments (roms.in) #
+# Get the input arguments (croco.in) #
 #####################################
 echo "Getting $MODEL from $SRC_DIR"
 $CP -f $SRC_DIR/$MODEL $EXEC_DIR/$RUNEXP/.
+
+#####################################
+# Get the nhmg namelist             #
+#####################################
+echo "Getting nhmg namelist from $SRC_DIR"
+$CP -f $SRC_DIR/nhmg_namelist $EXEC_DIR/$RUNEXP/.
 
 ######################################################
 ###########  HERE CROCO IS STARTING TO RUN ###########

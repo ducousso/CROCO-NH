@@ -64,43 +64,42 @@
         enddo
       enddo
 
-!ND
+# ifdef NHMG
       rw(:,:,:)=0.
-
-!ND
-
-# if defined UV_COR
-!====================================================================
-!  Add in Coriolis  FWcor = +e (U cos(angle) - V sin(angle) ) 
-!  with e = 2 Omega cos Phi, an interpolation at W points is necessary
-!  rw(:,:,0) is no longer 0 for convenience but never used
-!====================================================================
-      do k=1,N-1
-        do j=JstrV-1,jend
-          do i=IstrU-1,iend
-            cff = 0.25*(Hz(i,j,k)+Hz(i,j,k+1))*eomn(i,j)*  ( !<-- e is 2 Omega cos(lat)
-     &          - cosa(i,j)*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
-     &          + sina(i,j)*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs)) 
-     &                                                     ) !<-- Hz contains rho Hz 
-                                                             !<-- units of cff : kg.m.s-2       
-            rw(i,j,k  ) =               0.5*cff
-            rw(i,j,k-1) = rw(i,j,k-1) + 0.5*cff
-          enddo
-        enddo
-      enddo     
-      
-        do j=JstrV-1,jend
-          do i=IstrU-1,iend
-            cff = 0.25*Hz(i,j,N)*eomn(i,j)*(                  !<-- e is 2 Omega cos(lat)
-     &          - cosa(i,j)*(u(i,j,N,nrhs)+u(i+1,j,N,nrhs))
-     &          + sina(i,j)*(v(i,j,N,nrhs)+v(i,j+1,N,nrhs)) 
-     &                                                     ) !<-- Hz contains rho Hz 
-                                                             !<-- units of cff : kg.m.s-2       
-            rw(i,j,N  ) = cff
-          enddo
-        enddo      
-!====================================================================         
 # endif
+
+!# if defined UV_COR
+!!====================================================================
+!!  Add in Coriolis  FWcor = +e (U cos(angle) - V sin(angle) ) 
+!!  with e = 2 Omega cos Phi, an interpolation at W points is necessary
+!!  rw(:,:,0) is no longer 0 for convenience but never used
+!!====================================================================
+!      do k=1,N-1
+!        do j=JstrV-1,jend
+!          do i=IstrU-1,iend
+!            cff = 0.25*(Hz(i,j,k)+Hz(i,j,k+1))*eomn(i,j)*  ( !<-- e is 2 Omega cos(lat)
+!     &          - cosa(i,j)*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
+!     &          + sina(i,j)*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs)) 
+!     &                                                     ) !<-- Hz contains rho Hz 
+!                                                             !<-- units of cff : kg.m.s-2       
+!            rw(i,j,k  ) =               0.5*cff
+!            rw(i,j,k-1) = rw(i,j,k-1) + 0.5*cff
+!          enddo
+!        enddo
+!      enddo     
+!      
+!        do j=JstrV-1,jend
+!          do i=IstrU-1,iend
+!            cff = 0.25*Hz(i,j,N)*eomn(i,j)*(                  !<-- e is 2 Omega cos(lat)
+!     &          - cosa(i,j)*(u(i,j,N,nrhs)+u(i+1,j,N,nrhs))
+!     &          + sina(i,j)*(v(i,j,N,nrhs)+v(i,j+1,N,nrhs)) 
+!     &                                                     ) !<-- Hz contains rho Hz 
+!                                                             !<-- units of cff : kg.m.s-2       
+!            rw(i,j,N  ) = cff
+!          enddo
+!        enddo      
+!!====================================================================         
+!# endif
 
 
 !====================================================================      

@@ -72,7 +72,7 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
-      USE nhmg, only : nhmg_write
+!      USE nhmg, only : nhmg_write
 #endif
       implicit none
 # include "param.h"
