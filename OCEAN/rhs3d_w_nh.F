@@ -64,7 +64,8 @@
         enddo
       enddo
 
-# ifdef NHMG
+!important! otherwise blow up of the tank
+# ifdef NHMG 
       rw(:,:,:)=0.
 # endif
 

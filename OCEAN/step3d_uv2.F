@@ -475,23 +475,17 @@
 !
 # ifdef NHMG
 
-      call nhmg_write(
-     & Lm, Mm, N,
-     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+!      call nhmg_write(
+!     & Lm, Mm, N,
+!     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+!     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+!     & wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
 
       call nhmg_solve(
      & Lm, Mm, N,
      & u(1:Lm+1,0:Mm+1,1:N,nnew),
      & v(0:Lm+1,1:Mm+1,1:N,nnew),
      & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
-!?????? needed ????????
-!      call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
-!      call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
-!      call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
-!????????
 
 # endif
 !
