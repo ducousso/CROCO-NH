@@ -72,7 +72,7 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
-      USE nhmg, only : nhmg_matrices
+c$$$      USE nhmg, only : nhmg_matrices
       USE nhmg, only : nhmg_write
 #endif
       implicit none
@@ -1125,10 +1125,10 @@ c$$$     &         (Hz_half(i,j,N))/(Hz(i,j,N))
 c$$$        enddo
 c$$$      enddo
 
-      call nhmg_matrices(
-     & Lm,Mm,N,
-     & z_r(0:Lm+1,0:Mm+1,1:N),
-     & Hz_half(0:Lm+1,0:Mm+1,1:N))
+c$$$      call nhmg_matrices(
+c$$$     & Lm,Mm,N,
+c$$$     & z_r(0:Lm+1,0:Mm+1,1:N),
+c$$$     & Hz_half(0:Lm+1,0:Mm+1,1:N))
 
       call nhmg_solve(
      & Lm, Mm, N,
