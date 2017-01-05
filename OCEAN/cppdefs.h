@@ -23,7 +23,7 @@
 #undef  INNERSHELF      /* Inner Shelf Example */
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
-#define  SEAMOUNT        /* Seamount Example */
+#undef  SEAMOUNT        /* Seamount Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -35,7 +35,7 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#undef  TANK            /* Tank Example */
+#define  TANK            /* Tank Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -1096,7 +1096,7 @@
 # endif
 # define NHMG
 # define SOLVE3D
-# define UV_ADV
+# undef UV_ADV
 # define NEW_S_COORD
 # define ANA_GRID
 # define ANA_INITIAL
