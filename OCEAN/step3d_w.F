@@ -87,7 +87,7 @@
         enddo
       enddo
 
-!# define NBQ_WDIF
+# define NBQ_WDIF
 # undef NBQ_WDIF
 # ifdef NBQ_WDIF
 !
