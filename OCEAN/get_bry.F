@@ -24,6 +24,9 @@
       real cff
       integer  lstr,lvar,lenstr, ierr, ierr_all, itrc
       integer  nf_read_bry_EW, nf_read_bry_NS 
+# ifdef W_FRC_BRY
+      integer  nf_read_bry_EW_W, nf_read_bry_NS_W
+# endif
 !
 ! Initialization: Check, whether boundary forcing file is already
 !================ opened, and if not, open it.  Find and save netCDF
@@ -277,7 +280,8 @@
             ierr_all=ierr_all+ierr
 #   endif
 #   ifdef W_FRC_BRY
-            ierr=nf_read_bry_EW (wbry_west_dt(START_1D_ARRAYETA,1,itbry)
+            ierr=nf_read_bry_EW_W (
+     &            wbry_west_dt(START_1D_ARRAYETA,1,itbry)
      &          , bry_id,wbry_west_id,  bry_rec,  w3dvar)
             if (ierr.ne.nf_noerr)  write(stdout,2)  'w_west'
             ierr_all=ierr_all+ierr
@@ -323,7 +327,8 @@
             ierr_all=ierr_all+ierr
 #   endif
 #   ifdef W_FRC_BRY
-            ierr=nf_read_bry_EW (wbry_east_dt(START_1D_ARRAYETA,1,itbry)
+            ierr=nf_read_bry_EW_W (
+     &            wbry_east_dt(START_1D_ARRAYETA,1,itbry)
      &          , bry_id,wbry_east_id,  bry_rec,  w3dvar)
             if (ierr.ne.nf_noerr)  write(stdout,2)  'w_east'
             ierr_all=ierr_all+ierr
@@ -369,7 +374,8 @@
             ierr_all=ierr_all+ierr
 #   endif
 #   ifdef W_FRC_BRY
-            ierr=nf_read_bry_NS (wbry_south_dt(START_1D_ARRAYXI,1,itbry)
+            ierr=nf_read_bry_NS_W (
+     &            wbry_south_dt(START_1D_ARRAYXI,1,itbry)
      &          , bry_id,wbry_south_id,  bry_rec,  w3dvar)
             if (ierr.ne.nf_noerr)  write(stdout,2)  'w_south'
             ierr_all=ierr_all+ierr
@@ -415,7 +421,8 @@
             ierr_all=ierr_all+ierr
 #   endif
 #   ifdef W_FRC_BRY
-            ierr=nf_read_bry_NS (wbry_north_dt(START_1D_ARRAYXI,1,itbry)
+            ierr=nf_read_bry_NS_W(
+     &            wbry_north_dt(START_1D_ARRAYXI,1,itbry)
      &          , bry_id,wbry_north_id,  bry_rec,  w3dvar)
             if (ierr.ne.nf_noerr)  write(stdout,2)  'w_north'
             ierr_all=ierr_all+ierr

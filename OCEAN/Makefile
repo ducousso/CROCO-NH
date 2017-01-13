@@ -61,7 +61,8 @@ include Makedefs
 	debug.F\
 \
 	output.F	put_global_atts.F\
-	nf_fread.F	nf_fread_x.F	nf_fread_y.F	nf_read_bry.F\
+	nf_fread.F	nf_fread_x.F	nf_fread_y.F	nf_read_bry.F \
+        nf_read_bry_w.F\
 	get_date.F	lenstr.F	closecdf.F	insert_node.F\
 	fillvalue.F	nf_add_attribute.F		set_cycle.F\
 	def_grid_2d.F   def_grid_3d.F   def_his.F       def_rst.F\
