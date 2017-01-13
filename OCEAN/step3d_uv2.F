@@ -60,6 +60,7 @@
 !
 #ifdef NHMG
           USE nhmg, only : nhmg_solve
+          USE nhmg, only : nhmg_bbc
           USE nhmg, only : nhmg_coupling
           USE nhmg, only : nhmg_write
 #endif
@@ -481,6 +482,15 @@
 !     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
 !     & wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
 
+#  if defined MPI
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+     &                        u(START_2D_ARRAY,1,nnew))
+      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+     &                        v(START_2D_ARRAY,1,nnew))
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                        wz(START_2D_ARRAY,0,nnew))
+#  endif
+
       call nhmg_solve(
      & Lm, Mm, N,
      & u(1:Lm+1,0:Mm+1,1:N,nnew),
@@ -523,6 +533,34 @@
 ! (that is including boundary points).
 !--------------------------------------------------------------------
 !
+
+# ifdef NHMG
+
+#  if defined MPI
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+     &                        u(START_2D_ARRAY,1,nnew))
+      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+     &                        v(START_2D_ARRAY,1,nnew))
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                        wz(START_2D_ARRAY,0,nnew))
+#  endif
+
+      call nhmg_bbc(
+     & Lm, Mm, N,
+     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+
+      call nhmg_coupling(
+     & Lm, Mm, N,
+     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
+     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
+     & u(1:Lm+1,0:Mm+1,1:N,nnew),
+     & v(0:Lm+1,1:Mm+1,1:N,nnew),
+     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+
+# endif
+
 # ifdef EW_PERIODIC
 #  define IU_RANGE Istr,Iend
 #  define IV_RANGE Istr,Iend
@@ -538,19 +576,6 @@
 #  define JU_RANGE JstrR,JendR
 #  define JV_RANGE Jstr,JendR
 # endif
-
-# ifdef NHMG
-
-      call nhmg_coupling(
-     & Lm, Mm, N,
-     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
-     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
-     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
-# endif
-
 !
 !--------------------------------------------------
 !  Couple XI-component of velocity
@@ -946,6 +971,10 @@
      &                                 u(START_2D_ARRAY,1,nnew))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                                 v(START_2D_ARRAY,1,nnew))
+#  if defined NHMG
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                                 wz(START_2D_ARRAY,0,nnew)) 
+#  endif
 
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend, 
      &                                   Huon(START_2D_ARRAY,1))
@@ -954,13 +983,8 @@
 
       call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
      &                                   ubar(START_2D_ARRAY,knew))
-
       call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
      &                                   vbar(START_2D_ARRAY,knew))
-#   if defined NHMG
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                                 wz(START_2D_ARRAY,0,nnew)) 
-#  endif
 #   if defined TS_MIX_ISO || defined TS_MIX_GEO
       call exchange_u3d_tile (istr,iend,jstr,jend, dRdx  )
       call exchange_v3d_tile (istr,iend,jstr,jend, dRde  )

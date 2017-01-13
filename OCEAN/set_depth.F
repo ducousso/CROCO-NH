@@ -320,9 +320,12 @@ C$    integer omp_get_thread_num
 
       call nhmg_fluxes(
      & Lm, Mm, N,
-     & u(1:Lm+1,0:Mm+1,1:N,nrhs),
-     & v(0:Lm+1,1:Mm+1,1:N,nrhs),
-     & wz(0:Lm+1,0:Mm+1,0:N,nrhs),
+!     & u(1:Lm+1,0:Mm+1,1:N,nrhs),
+!     & v(0:Lm+1,1:Mm+1,1:N,nrhs),
+!     & wz(0:Lm+1,0:Mm+1,0:N,nrhs),
+     & u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+     & v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+     & wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
      & Huon(1:Lm+1,0:Mm+1,1:N),
      & Hvom(0:Lm+1,1:Mm+1,1:N) )
 
@@ -466,8 +469,8 @@ C$    integer omp_get_thread_num
 
       subroutine set_HUV2_tile (Istr,Iend,Jstr,Jend,DC,FC)
 #ifdef NHMG
+          USE nhmg, only : nhmg_bbc
           USE nhmg, only : nhmg_coupling
-!          USE nhmg, only : nhmg_fluxes
 #endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
@@ -576,6 +579,12 @@ C$    integer omp_get_thread_num
 
 #  else
 
+      call nhmg_bbc(
+     & Lm, Mm, N,
+     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+
       call nhmg_coupling(
      & Lm, Mm, N,
      & DU_avg2(1:Lm+1,0:Mm+1),
@@ -586,16 +595,8 @@ C$    integer omp_get_thread_num
      & Huon(1:Lm+1,0:Mm+1,1:N),
      & Hvom(0:Lm+1,1:Mm+1,1:N) )
 
-!      call nhmg_fluxes(
-!     & Lm, Mm, N,
-!     & u(1:Lm+1,0:Mm+1,1:N,nrhs),
-!     & v(0:Lm+1,1:Mm+1,1:N,nrhs),
-!     & wz(0:Lm+1,0:Mm+1,0:N,nrhs),
-!     & Huon(1:Lm+1,0:Mm+1,1:N),
-!     & Hvom(0:Lm+1,1:Mm+1,1:N) )
-
 #  endif
-!
+
 #  undef IU_RANGE
 #  undef JU_RANGE
 #  undef IV_RANGE

@@ -72,7 +72,6 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
-c$$$      USE nhmg, only : nhmg_matrices
       USE nhmg, only : nhmg_write
 #endif
       implicit none
@@ -947,6 +946,48 @@ c$$$      USE nhmg, only : nhmg_matrices
 # endif
 !
 !======================================================================
+! Non-hydro projection of momentum
+!======================================================================
+!
+# ifdef NHMG
+
+!      call nhmg_write(
+!     & Lm, Mm, N,
+!     & ru(-1:Lm+2,-1:Mm+2,1:N),
+!     & rv(-1:Lm+2,-1:Mm+2,1:N),
+!     & rw(-1:Lm+2,-1:Mm+2,0:N) )
+
+# if defined MPI
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+     &                        u(START_2D_ARRAY,1,nnew))
+      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+     &                        v(START_2D_ARRAY,1,nnew))
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                        wz(START_2D_ARRAY,0,nnew))     
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+     &                        ru(START_2D_ARRAY,1))
+      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+     &                        rv(START_2D_ARRAY,1))
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                        rw(START_2D_ARRAY,0))     
+# endif
+
+      call nhmg_solve(
+     & Lm, Mm, N,
+     & u(1:Lm+1,0:Mm+1,1:N,nnew),
+     & v(0:Lm+1,1:Mm+1,1:N,nnew),
+     & wz(0:Lm+1,0:Mm+1,0:N,nnew),
+     &
+     & ru(1:Lm+1,0:Mm+1,1:N),
+     & rv(0:Lm+1,1:Mm+1,1:N),
+     & rw(0:Lm+1,0:Mm+1,0:N),
+     & cdt,
+     & rufrc(1:Lm+1,0:Mm+1),
+     & rvfrc(0:Lm+1,1:Mm+1) )
+
+# endif
+!
+!======================================================================
 ! Coupling, include ghost points associated with PHYSICAL
 ! boundaries ONLY. Do not touch periodic ghost points or
 ! internal computational margins (MPI code). 
@@ -1079,105 +1120,6 @@ c$$$      enddo
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                        wz(START_2D_ARRAY,0,nnew))     
 #  endif
-# endif
-!
-!======================================================================
-! Non-hydro projection of momentum
-!======================================================================
-!
-# ifdef NHMG
-
-!      call nhmg_write(
-!     & Lm, Mm, N,
-!     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-!     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-!     & wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-
-c$$$      do j=Jstr,Jend
-c$$$        do k=1,N
-c$$$          do i=IstrU,Iend
-c$$$           u(i,j,k,nnew) = u(i,j,k,nnew) * 
-c$$$     &         (Hz_half(i,j,k)+Hz_half(i-1,j,k)) /
-c$$$     &         (Hz(i,j,k)+Hz(i-1,j,k))
-c$$$          enddo
-c$$$        enddo
-c$$$        if (j.ge.JstrV) then
-c$$$          do k=1,N
-c$$$            do i=Istr,Iend
-c$$$              v(i,j,k,nnew) = v(i,j,k,nnew) * 
-c$$$     &         (Hz_half(i,j,k)+Hz_half(i,j-1,k)) / 
-c$$$     &         (Hz(i,j,k)+Hz(i,j-1,k))
-c$$$            enddo
-c$$$          enddo
-c$$$        endif
-c$$$      enddo
-c$$$      do j=Jstr,Jend
-c$$$        do k=1,N-1
-c$$$          do i=Istr,Iend
-c$$$            wz(i,j,k,nnew) = wz(i,j,k,nnew) * 
-c$$$     &         (Hz_half(i,j,k)+Hz_half(i,j,k+1)) / 
-c$$$     &         (Hz(i,j,k)+Hz(i,j,k+1))
-c$$$          enddo
-c$$$        enddo
-c$$$        do i=Istr,Iend
-c$$$          wz(i,j,N,nnew) = wz(i,j,N,nnew) * 
-c$$$     &         (Hz_half(i,j,N))/(Hz(i,j,N))
-c$$$        enddo
-c$$$      enddo
-
-c$$$      call nhmg_matrices(
-c$$$     & Lm,Mm,N,
-c$$$     & z_r(0:Lm+1,0:Mm+1,1:N),
-c$$$     & Hz_half(0:Lm+1,0:Mm+1,1:N))
-
-      call nhmg_solve(
-     & Lm, Mm, N,
-     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew),
-     &
-     & ru(1:Lm+1,0:Mm+1,1:N),
-     & rv(0:Lm+1,1:Mm+1,1:N),
-     & rw(0:Lm+1,0:Mm+1,0:N),
-     & cdt,
-     & rufrc(1:Lm+1,0:Mm+1),
-     & rvfrc(0:Lm+1,1:Mm+1) )
-
-c$$$      do j=Jstr,Jend
-c$$$        do k=1,N
-c$$$          do i=IstrU,Iend
-c$$$           u(i,j,k,nnew) = u(i,j,k,nnew) * 
-c$$$     &                (Hz(i,j,k)+Hz(i-1,j,k)) /
-c$$$     &                (Hz_half(i,j,k)+Hz_half(i-1,j,k))
-c$$$          enddo
-c$$$        enddo
-c$$$        if (j.ge.JstrV) then
-c$$$          do k=1,N
-c$$$            do i=Istr,Iend
-c$$$              v(i,j,k,nnew) = v(i,j,k,nnew) * 
-c$$$     &                (Hz(i,j,k)+Hz(i,j-1,k)) /
-c$$$     &                (Hz_half(i,j,k)+Hz_half(i,j-1,k))
-c$$$            enddo
-c$$$          enddo
-c$$$        endif
-c$$$      enddo
-c$$$      do j=Jstr,Jend
-c$$$        do k=1,N-1
-c$$$          do i=Istr,Iend
-c$$$            wz(i,j,k,nnew) = wz(i,j,k,nnew) * 
-c$$$     &                (Hz(i,j,k)+Hz(i,j,k+1)) /
-c$$$     &                (Hz_half(i,j,k)+Hz_half(i,j,k+1))
-c$$$          enddo
-c$$$        enddo
-c$$$        do i=Istr,Iend
-c$$$            wz(i,j,N,nnew) = wz(i,j,N,nnew) * (Hz(i,j,N)) /
-c$$$     &                (Hz_half(i,j,N))
-c$$$        enddo
-c$$$      enddo
-
-    ! ordre relatif de projection % échange mpi?
-    ! en multi proc, besoin d'un exchange?
-
 # endif
 !
 !======================================================================
