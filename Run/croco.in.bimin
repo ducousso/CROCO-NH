@@ -1,7 +1,7 @@
 title:
         BIMIN 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                10     4     20      10
+               870000     4     20      10
 S-coord: THETA_S,   THETA_B,    Hc (m)
            6.0d0      6.0d0     300.0d0
 grid:  filename
@@ -21,10 +21,10 @@ restart:          NRST, NRPFRST / filename
                    10000    -1
                           bimin_rst.nc
 history: LDEFHIS, NWRT, NRPFHIS / filename 
-            T      1     0
+            T     900     0
                           HIS/bimin_his.nc
 averages: NTSAVG, NAVG, NRPFAVG / filename
-            1      720    -1
+            1     900000    -1
                           AVG/bimin_avg.nc
 
 primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)

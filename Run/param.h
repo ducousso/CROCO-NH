@@ -1,1 +1,1 @@
-../OCEAN/param.h
+param_bimin_8x8.h
