@@ -260,6 +260,8 @@ C$    integer omp_get_thread_num
 #  endif
 #  include "compute_auxiliary_bounds.h"
 !
+#  ifndef NHMG
+!
 #  ifdef EW_PERIODIC 
 #   define IU_RANGE Istr,Iend
 #   define IV_RANGE Istr,Iend
@@ -275,8 +277,6 @@ C$    integer omp_get_thread_num
 #   define JU_RANGE JstrR,JendR
 #   define JV_RANGE Jstr,JendR
 #  endif
-
-#  ifndef NHMG
 
       do k=1,N
         do j=JU_RANGE
@@ -316,13 +316,15 @@ C$    integer omp_get_thread_num
         enddo
       enddo
 
+#  undef IU_RANGE
+#  undef JU_RANGE
+#  undef IV_RANGE
+#  undef JV_RANGE
+
 #  else
 
       call nhmg_fluxes(
      & Lm, Mm, N,
-!     & u(1:Lm+1,0:Mm+1,1:N,nrhs),
-!     & v(0:Lm+1,1:Mm+1,1:N,nrhs),
-!     & wz(0:Lm+1,0:Mm+1,0:N,nrhs),
      & u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
      & v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
      & wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
@@ -330,11 +332,6 @@ C$    integer omp_get_thread_num
      & Hvom(0:Lm+1,1:Mm+1,1:N) )
 
 #  endif
-
-#  undef IU_RANGE
-#  undef JU_RANGE
-#  undef IV_RANGE
-#  undef JV_RANGE
 !
 ! Exchange periodic boundaries, if so prescribed.
 !
@@ -487,6 +484,8 @@ C$    integer omp_get_thread_num
 !
 #  include "compute_auxiliary_bounds.h"
 !
+#  ifndef NHMG
+!
 #  ifdef EW_PERIODIC
 #   define IU_RANGE Istr,Iend
 #   define IV_RANGE Istr,Iend
@@ -502,8 +501,6 @@ C$    integer omp_get_thread_num
 #   define JU_RANGE JstrR,JendR
 #   define JV_RANGE Jstr,JendR
 #  endif
-
-#  ifndef NHMG
 
       do j=JU_RANGE
         do i=IU_RANGE
@@ -577,13 +574,25 @@ C$    integer omp_get_thread_num
         enddo
       enddo
 
+#  undef IU_RANGE
+#  undef JU_RANGE
+#  undef IV_RANGE
+#  undef JV_RANGE
+
 #  else
+
+#   if defined MPI
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
+     &                        DU_avg2(START_2D_ARRAY))
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
+     &                        DV_avg2(START_2D_ARRAY))
+#   endif
 
       call nhmg_bbc(
      & Lm, Mm, N,
-     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+     & u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+     & v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+     & wz(0:Lm+1,0:Mm+1,0:N,nrhs) )
 
       call nhmg_coupling(
      & Lm, Mm, N,
@@ -596,11 +605,6 @@ C$    integer omp_get_thread_num
      & Hvom(0:Lm+1,1:Mm+1,1:N) )
 
 #  endif
-
-#  undef IU_RANGE
-#  undef JU_RANGE
-#  undef IV_RANGE
-#  undef JV_RANGE
 !
 ! Exchange periodic boundaries, if so prescribed.
 !
@@ -613,7 +617,7 @@ C$    integer omp_get_thread_num
      &                                    Hvom(START_2D_ARRAY,1))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                                  v(START_2D_ARRAY,1,nrhs))
-#  if defined NBQ || defined NHMG
+#  if defined NHMG
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                  wz(START_2D_ARRAY,0,nrhs))     
 #  endif

@@ -964,12 +964,6 @@
      &                        v(START_2D_ARRAY,1,nnew))
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                        wz(START_2D_ARRAY,0,nnew))     
-      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
-     &                        ru(START_2D_ARRAY,1))
-      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
-     &                        rv(START_2D_ARRAY,1))
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        rw(START_2D_ARRAY,0))     
 # endif
 
       call nhmg_solve(

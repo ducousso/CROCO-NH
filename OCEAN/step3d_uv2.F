@@ -537,12 +537,17 @@
 # ifdef NHMG
 
 #  if defined MPI
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
+     &                        DU_avg1(START_2D_ARRAY,nnew))
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
+     &                        DV_avg1(START_2D_ARRAY,nnew))
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
      &                        u(START_2D_ARRAY,1,nnew))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                        v(START_2D_ARRAY,1,nnew))
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                        wz(START_2D_ARRAY,0,nnew))
+
 #  endif
 
       call nhmg_bbc(
@@ -617,6 +622,7 @@
 # ifndef NHMG
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
 # else
+            u(i,j,k,nnew)=u(i,j,k,nnew)
 # endif
 # ifdef MASKING
      &                                *umask(i,j)
@@ -755,6 +761,7 @@
 # ifndef NHMG
               v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
 # else
+              v(i,j,k,nnew)=v(i,j,k,nnew)
 # endif
 # ifdef MASKING
      &                                  *vmask(i,j)
