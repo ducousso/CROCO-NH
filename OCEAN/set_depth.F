@@ -308,6 +308,7 @@ C$    integer omp_get_thread_num
 #  if defined MRL_WCI && defined MASKING
             Hvom(i,j,k)=Hvom(i,j,k)*vmask(i,j)
 #  endif
+
 #  if defined UV_VIS4 && defined UV_MIX_GEO
             z_v(i,j,k)=0.5*(z_r(i,j,k)+z_r(i,j-1,k))
             dz_v(i,j,k)=z_r(i,j,k)-z_r(i,j-1,k)
