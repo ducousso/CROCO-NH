@@ -62,7 +62,6 @@
           USE nhmg, only : nhmg_solve
           USE nhmg, only : nhmg_bbc
           USE nhmg, only : nhmg_coupling
-          USE nhmg, only : nhmg_write
 #endif
       implicit none
 # include "param.h"
@@ -228,7 +227,7 @@
         enddo
         do k=N-1,1,-1
           do i=IstrU,Iend
-              DC(i,k)=DC(i,k)-CF(i,k)*DC(i,k+1)
+            DC(i,k)=DC(i,k)-CF(i,k)*DC(i,k+1)
 !-
             cff=0.5*(Hz(i,j,k)+Hz(i-1,j,k))
             CF(i,0)=CF(i,0)+cff
@@ -475,12 +474,6 @@
 !--------------------------------------------------------------------
 !
 # ifdef NHMG
-
-!      call nhmg_write(
-!     & Lm, Mm, N,
-!     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-!     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-!     & wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
 
 #  if defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,

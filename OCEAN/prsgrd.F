@@ -471,12 +471,6 @@ c********************************************************************
 #  endif
 !
 #  include "compute_auxiliary_bounds.h"
-
-!#  ifdef NHMG
-!      ru(:,:,:)=0.
-!      rv(:,:,:)=0.
-!#  endif
-
 !
 ! Compute XI-component of pressure gradient term:
 !-------- ------------ -- -------- -------- -----
