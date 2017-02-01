@@ -72,7 +72,8 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
-      USE nhmg, only : nhmg_write
+      USE nhmg, only : nhmg_write_in
+      USE nhmg, only : nhmg_write_out
 #endif
       implicit none
 # include "param.h"
@@ -566,6 +567,25 @@
 !
         enddo   !<-- itrc  !--> discard DC
       enddo     !<-- j
+
+
+!# if defined NHMG
+!
+!      call nhmg_write_in(
+!     &     Lm, Mm, N,
+!     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
+!     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+!     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
+!     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
+!     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
+!     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
+!     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
+!     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
+!     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp) )
+!      
+!# endif
+
+
 !
 !======================================================================
 !
@@ -951,12 +971,6 @@
 !
 # ifdef NHMG
 
-!      call nhmg_write(
-!     & Lm, Mm, N,
-!     & ru(-1:Lm+2,-1:Mm+2,1:N),
-!     & rv(-1:Lm+2,-1:Mm+2,1:N),
-!     & rw(-1:Lm+2,-1:Mm+2,0:N) )
-
 # if defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
      &                        u(START_2D_ARRAY,1,nnew))
@@ -1115,6 +1129,21 @@ c$$$      enddo
      &                        wz(START_2D_ARRAY,0,nnew))     
 #  endif
 # endif
+
+
+!# if defined NHMG
+!
+!      call nhmg_write_out(
+!     &     Lm, Mm, N,
+!     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+!     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+!     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
+!     &     rufrc(-1:Lm+2,-1:Mm+2),
+!     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+!      
+!# endif
+
+
 !
 !======================================================================
 ! Prepare to start two-dimensional time stepping:
