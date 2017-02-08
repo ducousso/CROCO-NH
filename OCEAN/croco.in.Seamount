@@ -2,7 +2,7 @@ title:
 	Seamount Example
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               360      1000     50       1
+                360      1000     50       1
 
 S-coord: THETA_S,   THETA_B,    Hc (m)
          0.0d0      0.0d0       10.d15
@@ -40,5 +40,5 @@ vertical_mixing: Akv_bak, Akt_bak [m^2/sec]
                  0.       0. 0.
 
 nudg_cof:    TauT_in, TauT_out, TauM_in, TauM_out  [days for all]
-                1.       360.      3.      360.
+                1.       360.      1.      360.
 
