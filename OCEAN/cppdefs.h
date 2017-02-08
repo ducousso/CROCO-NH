@@ -23,7 +23,7 @@
 #undef  INNERSHELF      /* Inner Shelf Example */
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
-#undef  SEAMOUNT        /* Seamount Example */
+#define  SEAMOUNT        /* Seamount Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -35,7 +35,7 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#define  TANK            /* Tank Example */
+#undef  TANK            /* Tank Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -695,7 +695,7 @@
 # undef UV_COR
 # define SOLVE3D
 # define NEW_S_COORD
-# define NHMG
+# undef NHMG
 # undef SALINITY
 # undef NONLIN_EOS
 # undef SPLIT_EOS
@@ -716,6 +716,12 @@
 # define M3_FRC_BRY
 # define W_FRC_BRY
 # define T_FRC_BRY
+# undef OBC_M2SPECIFIED
+# undef OBC_M2FLATHER
+# undef OBC_M2CHARACT
+# define OBC_M2ORLANSKI
+# define OBC_M3ORLANSKI
+# define OBC_TORLANSKI
 
 # elif defined SHELFRONT
 /*
