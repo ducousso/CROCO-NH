@@ -72,8 +72,11 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
-      USE nhmg, only : nhmg_write_in
-      USE nhmg, only : nhmg_write_out
+      USE nhmg, only : nhmg_write_pred_in
+      USE nhmg, only : nhmg_write_pred_inter
+#else
+      USE nhmg, only : h_write_pred_in
+      USE nhmg, only : h_write_pred_inter
 #endif
       implicit none
 # include "param.h"
@@ -569,21 +572,33 @@
       enddo     !<-- j
 
 
-!# if defined NHMG
-!
-!      call nhmg_write_in(
-!     &     Lm, Mm, N,
-!     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
-!     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-!     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
-!     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
-!     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
-!     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
-!     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-!     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
-!     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp) )
-!      
-!# endif
+# ifdef NHMG
+
+      call nhmg_write_pred_in(
+     &     Lm, Mm, N,
+     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp) )
+
+# else
+
+      call h_write_pred_in(
+     &     Lm, Mm, N,
+     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp) )
+      
+# endif
 
 
 !
@@ -1131,17 +1146,26 @@ c$$$      enddo
 # endif
 
 
-!# if defined NHMG
-!
-!      call nhmg_write_out(
-!     &     Lm, Mm, N,
-!     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-!     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-!     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
-!     &     rufrc(-1:Lm+2,-1:Mm+2),
-!     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-!      
-!# endif
+# ifdef NHMG
+
+      call nhmg_write_pred_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
+     &     rufrc(-1:Lm+2,-1:Mm+2),
+     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+
+# else
+
+      call h_write_pred_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     rufrc(-1:Lm+2,-1:Mm+2),
+     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+
+# endif
 
 
 !

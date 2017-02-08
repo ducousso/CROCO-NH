@@ -62,6 +62,11 @@
           USE nhmg, only : nhmg_solve
           USE nhmg, only : nhmg_bbc
           USE nhmg, only : nhmg_coupling
+          USE nhmg, only : nhmg_write_corr_inter
+          USE nhmg, only : nhmg_write_corr_out
+#else
+          USE nhmg, only : h_write_corr_inter
+          USE nhmg, only : h_write_corr_out
 #endif
       implicit none
 # include "param.h"
@@ -392,6 +397,48 @@
       enddo      ! <-- j
 
 !
+!--------------------------------------------------------------------
+! Non-hydro coupling
+!--------------------------------------------------------------------
+!
+# ifdef NHMG
+
+#  if defined MPI
+      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
+     &                        DU_avg1(START_2D_ARRAY,nnew))
+      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
+     &                        DV_avg1(START_2D_ARRAY,nnew))
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+     &                        u(START_2D_ARRAY,1,nnew))
+      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+     &                        v(START_2D_ARRAY,1,nnew))
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                        wz(START_2D_ARRAY,0,nnew))
+
+#  endif
+
+      call nhmg_bbc(
+     & Lm, Mm, N,
+     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+
+      call nhmg_coupling(
+     & Lm, Mm, N,
+     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
+     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
+     & u(1:Lm+1,0:Mm+1,1:N,nnew),
+     & v(0:Lm+1,1:Mm+1,1:N,nnew),
+     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+
+# endif
+!
+!--------------------------------------------------------------------
+! Non-hydro coupling
+!--------------------------------------------------------------------
+!
+
+!
 # ifdef DIAGNOSTICS_UV
       do k=1,N
         do j=Jstr,Jend
@@ -485,10 +532,27 @@
 #  endif
 
       call nhmg_solve(
-     & Lm, Mm, N,
-     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+     &     Lm, Mm, N,
+     &     u(1:Lm+1,0:Mm+1,1:N,nnew),
+     &     v(0:Lm+1,1:Mm+1,1:N,nnew),
+     &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+
+# endif   
+
+# ifdef NHMG
+
+      call nhmg_write_corr_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+
+# else
+
+      call h_write_corr_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
 
 # endif
 !
@@ -522,7 +586,7 @@
 ! mass fluxes Huon,Hvom is performed within the internal range of
 ! indices (excluding ghost zones), after that the ghost points for
 ! the newly computed arrays are exchanged; in the case of nonperiodic
-! boundaries the coupling is done over the extendeed range of indices
+! boundaries the coupling is done over the extended range of indices
 ! (that is including boundary points).
 !--------------------------------------------------------------------
 !
@@ -990,6 +1054,24 @@
       call exchange_v3d_tile (istr,iend,jstr,jend, dRde  )
 #  endif
 # endif
+
+# ifdef NHMG
+
+      call nhmg_write_corr_out(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+
+# else
+
+      call h_write_corr_out(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+
+# endif
+
 !
       return
       end

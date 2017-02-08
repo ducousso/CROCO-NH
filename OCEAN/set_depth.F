@@ -469,6 +469,9 @@ C$    integer omp_get_thread_num
 #ifdef NHMG
           USE nhmg, only : nhmg_bbc
           USE nhmg, only : nhmg_coupling
+          USE nhmg, only : nhmg_write_pred_out
+#else
+          USE nhmg, only : h_write_pred_out
 #endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
@@ -623,6 +626,26 @@ C$    integer omp_get_thread_num
      &                                  wz(START_2D_ARRAY,0,nrhs))     
 #  endif
 #  endif
+
+
+#ifdef NHMG
+
+      call nhmg_write_pred_out(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
+
+# else
+
+      call h_write_pred_out(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs) )
+
+# endif
+
+
 # endif /* SOLVE3D */
       return
       end

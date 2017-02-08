@@ -24,6 +24,11 @@
       end
 
       subroutine step3d_uv1_tile (Istr,Iend,Jstr,Jend, ru,rv,DC)
+#ifdef NHMG
+      USE nhmg, only : nhmg_write_corr_in
+#else
+      USE nhmg, only : h_write_corr_in
+#endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
 # include "param.h"
@@ -42,6 +47,25 @@
 !
 # include "compute_auxiliary_bounds.h"
 !
+
+
+# ifdef NHMG
+
+      call nhmg_write_corr_in(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+
+# else
+
+      call h_write_corr_in(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+      
+# endif
+
 
       cff=0.25*dt
       do j=Jstr,Jend
