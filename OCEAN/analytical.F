@@ -2059,7 +2059,7 @@ C$    integer  trd, omp_get_thread_num
 #  ifdef M2_FRC_BRY
 #   ifdef SEAMOUNT
         do j=JstrR,JendR
-          ubarbry_west(j)=1.
+          ubarbry_west(j)=0.01
           vbarbry_west(j)=0.
         enddo
 #   else
@@ -2074,7 +2074,7 @@ C$    integer  trd, omp_get_thread_num
           do j=JstrR,JendR
 #   ifdef M3_FRC_BRY
 #    ifdef SEAMOUNT
-            ubry_west(j,k)=1.
+            ubry_west(j,k)=0.01
             vbry_west(j,k)=0.
 #    else
             ubry_west(j,k)=0.
@@ -2086,7 +2086,6 @@ C$    integer  trd, omp_get_thread_num
               tbry_west(j,k,itrc)=0.
             enddo
 #    ifdef SEAMOUNT
-!              tbry_west(j,k,itemp)=15.
               tbry_west(j,k,itemp) =15. + 10./4500.*z_r(1,j,k)
 #    endif
 #   endif
@@ -2109,7 +2108,7 @@ C$    integer  trd, omp_get_thread_num
 #  ifdef M2_FRC_BRY
 #   ifdef SEAMOUNT
         do j=JstrR,JendR
-          ubarbry_east(j)=1.
+          ubarbry_east(j)=0.01
           vbarbry_east(j)=0.
         enddo
 #   else
@@ -2124,7 +2123,7 @@ C$    integer  trd, omp_get_thread_num
           do j=JstrR,JendR
 #   ifdef M3_FRC_BRY
 #    ifdef SEAMOUNT
-            ubry_east(j,k)=1.
+            ubry_east(j,k)=0.01
             vbry_east(j,k)=0.
 #    else
             ubry_east(j,k)=0.
@@ -2136,7 +2135,6 @@ C$    integer  trd, omp_get_thread_num
               tbry_east(j,k,itrc)=0.
             enddo
 #    ifdef SEAMOUNT
-!              tbry_east(j,k,itemp)=15.
               tbry_east(j,k,itemp)=15. + 10./4500.*z_r(1,j,k)
 #    endif
 #   endif

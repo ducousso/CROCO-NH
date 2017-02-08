@@ -196,9 +196,9 @@ C$    integer omp_get_thread_num
           do i=IR_RANGE
             zeta(i,j,1)=0.
             zeta(i,j,2)=0.
-            ubar(i,j,1)=1.
+            ubar(i,j,1)=0.01
             vbar(i,j,1)=0.
-            ubar(i,j,2)=1.
+            ubar(i,j,2)=0.01
             vbar(i,j,2)=0.
           enddo
         enddo
@@ -287,9 +287,9 @@ C$    integer omp_get_thread_num
         do k=1,N
           do j=JR_RANGE
             do i=IR_RANGE
-              u(i,j,k,1)=1.
+              u(i,j,k,1)=0.01
               v(i,j,k,1)=0.
-              u(i,j,k,2)=1.
+              u(i,j,k,2)=0.01
               v(i,j,k,2)=0.
             enddo
           enddo
