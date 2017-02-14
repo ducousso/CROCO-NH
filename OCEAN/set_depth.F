@@ -246,7 +246,7 @@ C$    integer omp_get_thread_num
 
       subroutine set_HUV_tile (Istr,Iend,Jstr,Jend)
 #ifdef NHMG
-          USE nhmg, only : nhmg_fluxes
+      USE nhmg, only : nhmg_fluxes
 #endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
@@ -467,11 +467,11 @@ C$    integer omp_get_thread_num
 
       subroutine set_HUV2_tile (Istr,Iend,Jstr,Jend,DC,FC)
 #ifdef NHMG
-          USE nhmg, only : nhmg_bbc
-          USE nhmg, only : nhmg_coupling
-          USE nhmg, only : nhmg_write_pred_out
+      USE nhmg, only : nhmg_bbc
+      USE nhmg, only : nhmg_coupling
+      USE nhmg, only : nhmg_write_pred_out
 #else
-          USE nhmg, only : h_write_pred_out
+      USE nhmg, only : h_write_pred_out
 #endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
@@ -628,22 +628,22 @@ C$    integer omp_get_thread_num
 #  endif
 
 
-#ifdef NHMG
-
-      call nhmg_write_pred_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
-
-# else
-
-      call h_write_pred_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs) )
-
-# endif
+c$$$#ifdef NHMG
+c$$$
+c$$$      call nhmg_write_pred_out(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
+c$$$
+c$$$# else
+c$$$
+c$$$      call h_write_pred_out(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs) )
+c$$$
+c$$$# endif
 
 
 # endif /* SOLVE3D */

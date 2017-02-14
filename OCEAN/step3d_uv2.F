@@ -59,14 +59,14 @@
 !-------------------------------------------------------------------- 
 !
 #ifdef NHMG
-          USE nhmg, only : nhmg_solve
-          USE nhmg, only : nhmg_bbc
-          USE nhmg, only : nhmg_coupling
-          USE nhmg, only : nhmg_write_corr_inter
-          USE nhmg, only : nhmg_write_corr_out
+      USE nhmg, only : nhmg_solve
+      USE nhmg, only : nhmg_bbc
+      USE nhmg, only : nhmg_coupling
+      USE nhmg, only : nhmg_write_corr_inter
+      USE nhmg, only : nhmg_write_corr_out
 #else
-          USE nhmg, only : h_write_corr_inter
-          USE nhmg, only : h_write_corr_out
+      USE nhmg, only : h_write_corr_inter
+      USE nhmg, only : h_write_corr_out
 #endif
       implicit none
 # include "param.h"
@@ -341,7 +341,7 @@
           do k=2,N-1
             do i=Istr,Iend
 # ifdef VADV_ADAPT_IMP
-              aa = FC(i,k-1)-max(WC(i,k-1),0.)     !<-- a = sub   (lower) diagonal
+              aa = FC(i,k-1)-max(WC(i,k-1),0.) !<-- a = sub   (lower) diagonal
               cc = FC(i,k  )+min(WC(i,k  ),0.)     !<-- c = super (upper) diagonal
 # else
               aa = FC(i,k-1)
@@ -354,11 +354,11 @@
           enddo
           do i=Istr,Iend
 # ifdef VADV_ADAPT_IMP
-              aa = FC(i,N-1)-max(WC(i,N-1),0.)     !<-- a = sub   (lower) diagonal
+             aa = FC(i,N-1)-max(WC(i,N-1),0.) !<-- a = sub   (lower) diagonal
 # else
-              aa = FC(i,N-1)
+             aa = FC(i,N-1)
 # endif
-            DC(i,N)=(DC(i,N)-aa*DC(i,N-1))
+             DC(i,N)=(DC(i,N)-aa*DC(i,N-1))
      &             /(BC(i,N)-aa*CF(i,N-1))
 !-
             CF(i,0)=0.5*(Hz(i,j,N)+Hz(i,j-1,N))
@@ -396,47 +396,44 @@
         endif
       enddo      ! <-- j
 
-!
-!--------------------------------------------------------------------
-! Non-hydro coupling
-!--------------------------------------------------------------------
-!
-# ifdef NHMG
-
-#  if defined MPI
-      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
-     &                        DU_avg1(START_2D_ARRAY,nnew))
-      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
-     &                        DV_avg1(START_2D_ARRAY,nnew))
-      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
-     &                        u(START_2D_ARRAY,1,nnew))
-      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
-     &                        v(START_2D_ARRAY,1,nnew))
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        wz(START_2D_ARRAY,0,nnew))
-
-#  endif
-
-      call nhmg_bbc(
-     & Lm, Mm, N,
-     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
-      call nhmg_coupling(
-     & Lm, Mm, N,
-     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
-     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
-     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
-# endif
-!
-!--------------------------------------------------------------------
-! Non-hydro coupling
-!--------------------------------------------------------------------
-!
+c$$$!
+c$$$!--------------------------------------------------------------------
+c$$$! Non-hydro coupling
+c$$$!--------------------------------------------------------------------
+c$$$!
+c$$$# ifdef NHMG
+c$$$
+c$$$#  if defined MPI
+c$$$      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
+c$$$     &                        DU_avg1(START_2D_ARRAY,nnew))
+c$$$      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
+c$$$     &                        DV_avg1(START_2D_ARRAY,nnew))
+c$$$      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+c$$$     &                        u(START_2D_ARRAY,1,nnew))
+c$$$      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+c$$$     &                        v(START_2D_ARRAY,1,nnew))
+c$$$      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+c$$$     &                        wz(START_2D_ARRAY,0,nnew))
+c$$$#  endif
+c$$$
+c$$$      call nhmg_bbc(
+c$$$     & Lm, Mm, N,
+c$$$     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+c$$$
+c$$$      call nhmg_coupling(
+c$$$     & Lm, Mm, N,
+c$$$     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
+c$$$     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
+c$$$     & u(1:Lm+1,0:Mm+1,1:N,nnew),
+c$$$     & v(0:Lm+1,1:Mm+1,1:N,nnew),
+c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+c$$$
+c$$$# endif
+c$$$!
+c$$$!--------------------------------------------------------------------
+c$$$!
 
 !
 # ifdef DIAGNOSTICS_UV
@@ -539,22 +536,22 @@
 
 # endif   
 
-# ifdef NHMG
-
-      call nhmg_write_corr_inter(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-
-# else
-
-      call h_write_corr_inter(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-
-# endif
+c$$$# ifdef NHMG
+c$$$
+c$$$      call nhmg_write_corr_inter(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+c$$$
+c$$$# else
+c$$$
+c$$$      call h_write_corr_inter(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+c$$$
+c$$$# endif
 !
 !
 !--------------------------------------------------------------------
@@ -604,7 +601,6 @@
      &                        v(START_2D_ARRAY,1,nnew))
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                        wz(START_2D_ARRAY,0,nnew))
-
 #  endif
 
       call nhmg_bbc(
@@ -1055,22 +1051,22 @@
 #  endif
 # endif
 
-# ifdef NHMG
-
-      call nhmg_write_corr_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-
-# else
-
-      call h_write_corr_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-
-# endif
+c$$$# ifdef NHMG
+c$$$
+c$$$      call nhmg_write_corr_out(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+c$$$
+c$$$# else
+c$$$
+c$$$      call h_write_corr_out(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+c$$$
+c$$$# endif
 
 !
       return
