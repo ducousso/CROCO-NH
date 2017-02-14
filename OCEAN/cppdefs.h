@@ -718,10 +718,11 @@
 # define T_FRC_BRY
 # undef OBC_M2SPECIFIED
 # undef OBC_M2FLATHER
-# undef OBC_M2CHARACT
-# define OBC_M2ORLANSKI
+# define OBC_M2CHARACT
+# undef OBC_M2ORLANSKI
 # define OBC_M3ORLANSKI
 # define OBC_TORLANSKI
+# undef SPONGE
 
 # elif defined SHELFRONT
 /*
