@@ -237,7 +237,7 @@
         enddo
       enddo
 
-#ifdef NBQ
+#if defined NBQ || defined NHMG
 !
 !  Compute XI- and ETA-components of diffusive wz flux.
 !
