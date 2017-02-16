@@ -414,9 +414,9 @@ C$OMP BARRIER
       do tile=my_first,my_last
         call prsgrd (tile)
         call rhs3d (tile)
-!# if defined NBQ || defined NHMG
-!        call rhs3d_w_nh (tile)
-!# endif
+# if defined NBQ
+        call rhs3d_w_nh (tile)
+# endif
         call pre_step3d (tile)
 # ifdef GLS_MIXING
         call gls_prestep (tile)
