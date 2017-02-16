@@ -571,33 +571,36 @@
         enddo   !<-- itrc  !--> discard DC
       enddo     !<-- j
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_pred_in(
-c$$$     &     Lm, Mm, N,
-c$$$     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_pred_in(
-c$$$     &     Lm, Mm, N,
-c$$$     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp) )
-c$$$      
-c$$$# endif
+# ifdef NHMG
+
+      call nhmg_write_pred_in(
+     &     Lm, Mm, N,
+     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp) )
+
+# else
+
+      call h_write_pred_in(
+     &     Lm, Mm, N,
+     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp) )
+      
+# endif
+
+      write(*,*) 'pred before applying rhs.velocity'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
 !
 !======================================================================
@@ -804,7 +807,10 @@ c$$$# endif
 !
       enddo     !<-- j
       
-# if defined NBQ || defined NHMG
+      write(*,*) 'pred after applying rhs.velocity'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+
+# if defined NBQ
 !----------------------------------------------------------
 !<-- at this point 
 !<-- rw            contains internal 3D advection + Coriolis
@@ -948,7 +954,47 @@ c$$$# endif
 
       enddo
 !==
-# endif /* NBQ */     
+# endif /* NBQ */
+     
+# if defined NHMG
+!----------------------------------------------------------
+!<-- at this point 
+!<-- rw            contains internal 3D advection + Coriolis
+!----------------------------------------------------------
+      do j=Jstr,Jend
+!==
+      if (FIRST_TIME_STEP) then
+!==        
+        do k=1,N
+          do i=Istr,Iend
+             ! rw is a tendency*horizontal area
+             ! wz(:,:,:,nstp) and wz(:,:,:,indx) are velocity
+             ! wz(:,:,:,nnew) is velocity 
+             cff = (pn(i,j)*pm(i,j))
+             wz(i,j,k,nnew)=wz(i,j,k,nstp) + cdt * rw(i,j,k)*cff
+             wz(i,j,k,indx)=wz(i,j,k,nstp)
+          enddo
+        enddo
+!==        
+      else  ! NOT FIRST_TIME_STEP
+!==      
+        cff1=0.5+gamma
+        cff2=0.5-gamma
+!==        
+        do k=1,N
+          do i=Istr,Iend
+             cff = (pn(i,j)*pm(i,j))
+             wz(i,j,k,nnew)= 
+     & (cff1*wz(i,j,k,nstp) + cff2*wz(i,j,k,indx)) 
+     &                       +cdt*rw(i,j,k)*cff
+          enddo
+       enddo              
+!==                  
+      endif
+
+      enddo
+!==
+# endif /* NNMG */
 !
 !======================================================================
 ! Set PHYSICAL lateral boundary conditions for tracers.
@@ -984,6 +1030,32 @@ c$$$# endif
 !
 # ifdef NHMG
 
+      write(*,*) 'pred before solve. velocity'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+      do j=Jstr,Jend
+        do k=1,N
+          do i=Istr,Iend
+            u(i,j,k,nnew) = u(i,j,k,nnew)
+     &           *0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k)) / pn_u(i,j)
+          enddo
+        enddo
+        do k=1,N
+           do i=Istr,Iend
+              v(i,j,k,nnew) = v(i,j,k,nnew)
+     &             *0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)) / pm_v(i,j)
+           enddo
+        enddo
+        do k=1,N
+           do i=Istr,Iend
+              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &             / (pm(i,j)*pn(i,j))
+           enddo
+        enddo
+      enddo
+
 # if defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
      &                        u(START_2D_ARRAY,1,nnew))
@@ -993,20 +1065,53 @@ c$$$# endif
      &                        wz(START_2D_ARRAY,0,nnew))     
 # endif
 
+      write(*,*) 'pred before solve. fluxes'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
       call nhmg_solve(
      & Lm, Mm, N,
      & u(1:Lm+1,0:Mm+1,1:N,nnew),
      & v(0:Lm+1,1:Mm+1,1:N,nnew),
      & wz(0:Lm+1,0:Mm+1,0:N,nnew),
-     &
-     & ru(1:Lm+1,0:Mm+1,1:N),
-     & rv(0:Lm+1,1:Mm+1,1:N),
-     & rw(0:Lm+1,0:Mm+1,0:N),
      & cdt,
      & rufrc(1:Lm+1,0:Mm+1),
      & rvfrc(0:Lm+1,1:Mm+1) )
 
+      write(*,*) 'pred after solve. fluxes'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+      do j=Jstr,Jend
+        do k=1,N
+          do i=Istr,Iend
+            u(i,j,k,nnew) = u(i,j,k,nnew)
+     &           /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
+          enddo
+        enddo
+        do k=1,N
+           do i=Istr,Iend
+              v(i,j,k,nnew) = v(i,j,k,nnew)
+     &             /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
+           enddo
+        enddo
+        do k=1,N
+           do i=Istr,Iend
+              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &             * (pm(i,j)*pn(i,j))
+           enddo
+        enddo
+      enddo
+
+      write(*,*) 'pred after solve. velocity'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
 # endif
+
 !
 !======================================================================
 ! Coupling, include ghost points associated with PHYSICAL
@@ -1144,26 +1249,26 @@ c$$$      enddo
 # endif
 
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_pred_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
-c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
-c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_pred_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
-c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-c$$$
-c$$$# endif
+# ifdef NHMG
+
+      call nhmg_write_pred_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
+     &     rufrc(-1:Lm+2,-1:Mm+2),
+     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+
+# else
+
+      call h_write_pred_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     rufrc(-1:Lm+2,-1:Mm+2),
+     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+
+# endif
 
 
 !

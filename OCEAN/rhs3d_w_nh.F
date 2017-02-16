@@ -64,10 +64,10 @@
         enddo
       enddo
 
-!important! otherwise blow up of the tank
-# ifdef NHMG 
-      rw(:,:,:)=0.
-# endif
+!!important! otherwise blow up of the tank
+!# ifdef NHMG 
+!      rw(:,:,:)=0.
+!# endif
 
 !# if defined UV_COR
 !!====================================================================

@@ -77,6 +77,14 @@ C$    integer omp_get_thread_num
 #ifdef GRAV_ADJ_SOLITON
       real zint,depth,dz,gam,del
 #endif
+#ifdef SEAMOUNT
+      real u0
+      parameter (u0=0.1)
+#endif
+#ifdef CALDEIRA
+      real u0
+      parameter (u0=0.1)
+#endif
 !
 #include "compute_auxiliary_bounds.h"
 !
@@ -194,12 +202,24 @@ C$    integer omp_get_thread_num
 # elif defined SEAMOUNT
         do j=JR_RANGE
           do i=IR_RANGE
-            zeta(i,j,1)=0.
-            zeta(i,j,2)=0.
-            ubar(i,j,1)=0.01
+            zeta(i,j,1)=-f(i,j)/g*(yr(i,j)-el/2.)*u0
+            zeta(i,j,2)=zeta(i,j,1)
+            ubar(i,j,1)=u0
             vbar(i,j,1)=0.
-            ubar(i,j,2)=0.01
-            vbar(i,j,2)=0.
+            ubar(i,j,2)=ubar(i,j,1)
+            vbar(i,j,2)=vbar(i,j,1)
+          enddo
+        enddo
+
+# elif defined CALDEIRA
+        do j=JR_RANGE
+          do i=IR_RANGE
+            zeta(i,j,1)=-f(i,j)/g*(yr(i,j)-el/2.)*u0
+            zeta(i,j,2)=zeta(i,j,1)
+            ubar(i,j,1)=u0
+            vbar(i,j,1)=0.
+            ubar(i,j,2)=ubar(i,j,1)
+            vbar(i,j,2)=vbar(i,j,1)
           enddo
         enddo
 
@@ -287,9 +307,21 @@ C$    integer omp_get_thread_num
         do k=1,N
           do j=JR_RANGE
             do i=IR_RANGE
-              u(i,j,k,1)=0.01
+              u(i,j,k,1)=u0
               v(i,j,k,1)=0.
-              u(i,j,k,2)=0.01
+              u(i,j,k,2)=u0
+              v(i,j,k,2)=0.
+            enddo
+          enddo
+        enddo
+
+#  elif defined CALDEIRA
+        do k=1,N
+          do j=JR_RANGE
+            do i=IR_RANGE
+              u(i,j,k,1)=u0
+              v(i,j,k,1)=0.
+              u(i,j,k,2)=u0
               v(i,j,k,2)=0.
             enddo
           enddo
@@ -636,6 +668,21 @@ C$    integer omp_get_thread_num
               t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
 #   ifdef SALINITY
               t(i,j,k,1,isalt)=35.
+              t(i,j,k,2,isalt)=t(i,j,k,1,isalt)
+#   endif
+            enddo
+          enddo
+        enddo
+
+#  elif defined CALDEIRA
+        do k=1,N
+          do j=JR_RANGE
+            do i=IR_RANGE
+              t(i,j,k,1,itemp)=min(3.+46.*exp(z_r(i,j,k)/250.),28.)
+              t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
+#   ifdef SALINITY
+              t(i,j,k,1,isalt)=34.54+3.5*exp(z_r(i,j,k)/250.)
+     &         * sin(-z_r(i,j,k)/(1-z_r(i,j,k)/6000.)*2*3.14/1000.)
               t(i,j,k,2,isalt)=t(i,j,k,1,isalt)
 #   endif
             enddo

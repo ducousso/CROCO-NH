@@ -49,22 +49,22 @@
 !
 
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_corr_in(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_corr_in(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-c$$$      
-c$$$# endif
+# ifdef NHMG
+
+      call nhmg_write_corr_in(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+
+# else
+
+      call h_write_corr_in(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+      
+# endif
 
 
       cff=0.25*dt
@@ -109,6 +109,10 @@ c$$$# endif
           enddo
         endif
       enddo 
+
+      write(*,*) 'corr step3duv1 end. fluxes'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+
 #else
       subroutine step3d_uv1_empty
 #endif

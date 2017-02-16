@@ -1037,8 +1037,6 @@ ccc            dvde =0.5*( v(i,j-1,k,nrhs) -v(i,j+1,k,nrhs) )
 !======================================================================
 !
 
-# ifndef NHMG
-
         do i=IstrU,Iend
           rufrc(i,j)=ru(i,j,1)
 # ifndef BODYFORCE
@@ -1070,9 +1068,6 @@ ccc            dvde =0.5*( v(i,j-1,k,nrhs) -v(i,j+1,k,nrhs) )
             enddo
           enddo
         endif
-
-# endif
-
       enddo      !<-- j
 
       return

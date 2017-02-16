@@ -34,13 +34,23 @@ c********************************************************************
       trd=omp_get_thread_num()
       call prsgrd_tile (Istr,Iend,Jstr,Jend, 
      &                  A3d(1,1,trd), A3d(1,2,trd), A3d(1,3,trd),
+# ifdef NHMG
+     &                  A3d(1,5,trd),
+# endif
      &                  A2d(1,1,trd), A2d(1,2,trd), A2d(1,3,trd),
      &                  A2d(1,4,trd), A2d(1,5,trd), A2d(1,6,trd))
       return
       end
 !
       subroutine prsgrd_tile (Istr,Iend,Jstr,Jend, ru,rv, P,
+# ifdef NHMG
+     &                        rw,
+# endif
      &                                       dR,dZ, FC,dZx,rx,dRx)
+!
+# ifdef NHMG
+      USE nhmg, only : nhmg_comp_rw
+# endif
 !
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k, imin,imax,jmin,jmax
@@ -54,6 +64,9 @@ c********************************************************************
      &    dZx(PRIVATE_2D_SCRATCH_ARRAY),
      &     rx(PRIVATE_2D_SCRATCH_ARRAY),
      &    dRx(PRIVATE_2D_SCRATCH_ARRAY)
+# ifdef NHMG
+     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,0:N)
+# endif
 !
       parameter (OneFifth=0.2, OneTwelfth=1./12., epsil=0.) !1.E-10) 
 !
@@ -434,6 +447,9 @@ c********************************************************************
       trd=omp_get_thread_num()
       call prsgrd_tile (Istr,Iend,Jstr,Jend, 
      &                  A3d(1,1,trd), A3d(1,2,trd),
+# ifdef NHMG
+     &                  A3d(1,5,trd),
+# endif
      &                  A2d(1,1,trd), A2d(1,2,trd)
 #  ifdef MRL_WCI
      &                 ,A2d(1,3,trd), A2d(1,4,trd)
@@ -443,11 +459,19 @@ c********************************************************************
       end
 !
       subroutine prsgrd_tile (Istr,Iend,Jstr,Jend, 
-     &                          ru,rv,rsurf, pgrd
+     &                          ru,rv,
+# ifdef NHMG
+     &                          rw,
+# endif
+     &                                rsurf, pgrd
 #  ifdef MRL_WCI
      &                                     ,FC,rx
 #  endif
      &                                           )
+!
+# ifdef NHMG
+      USE nhmg, only : nhmg_comp_rw
+# endif
 !
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
@@ -459,6 +483,9 @@ c********************************************************************
 #  ifdef MRL_WCI
      &    ,FC(PRIVATE_2D_SCRATCH_ARRAY),    cff2,
      &     rx(PRIVATE_2D_SCRATCH_ARRAY)
+#  endif
+#  ifdef NHMG
+     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 #  endif
 #  include "grid.h"
 #  include "ocean3d.h"
@@ -634,6 +661,17 @@ c********************************************************************
 # endif /* PGF_BASIC_JACOBIAN */
 !
 !======================================================================
+
+# ifdef NHMG
+! Add hydrostatic pressure gradient for the vertical flux
+!       dpdz = -zx*dpdx - zy*dpdy (See paper)
+
+      call nhmg_comp_rw(
+     &     Lm, Mm, N,
+     &     ru,rv,rw)
+
+!======================================================================
+# endif /* NHMG */
 !
 !  add in wave effect using POM-Jacobian
 !  =====================================

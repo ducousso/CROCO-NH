@@ -136,8 +136,20 @@
           Wi(i,j,0)=0.
 # endif
 # ifdef MOVING_BATHY
+          ! the MOVING_BATHY is still uncompatible with NHMG
           We(i,j,0)=cmorph*om_r(i,j)*on_r(i,j)*dh(i,j)/dt
 # else
+# ifdef NHMG
+          ! the prognostic absolute vertical flux (through fixed grid)
+          ! is overwritten here. It is not a bug.
+          ! The reason is that Huon and Hvom have been corrected (by the barotropic correction)
+          ! but not wz. Instead of applying the barotropic correction to wz
+          ! we simply recompute wz from the 3D divergence
+          ! 
+          ! wz is a 4D array, the 4th entry refers to the time index
+          ! it turns out that the 4th entry is *always nhrs*
+          wz(i,j,0,nrhs)=0.
+# endif
           We(i,j,0)=0.
 #  ifdef NBQ_CONS2
           We2(i,j,0)=0.
@@ -148,6 +160,10 @@
           do i=Istr,Iend
             We(i,j,k)=We(i,j,k-1) -Huon(i+1,j,k)+Huon(i,j,k)
      &                            -Hvom(i,j+1,k)+Hvom(i,j,k)
+# ifdef NHMG
+            ! wz is now fully updated and consistent with (Huon, Hvom)
+            wz(i,j,k,nrhs)=We(i,j,k)
+# endif
 # ifdef NBQ_CONS1
      &                     -dHzdt(i,j,k)*om_r(i,j)*on_r(i,j)
 # endif

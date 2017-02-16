@@ -23,7 +23,8 @@
 #undef  INNERSHELF      /* Inner Shelf Example */
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
-#define  SEAMOUNT        /* Seamount Example */
+#undef  SEAMOUNT        /* Seamount Example */
+#undef  CALDEIRA        /* Caldeira Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -35,7 +36,7 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#undef  TANK            /* Tank Example */
+#define  TANK            /* Tank Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -714,7 +715,7 @@
 # define Z_FRC_BRY
 # define M2_FRC_BRY
 # define M3_FRC_BRY
-# define W_FRC_BRY
+# undef W_FRC_BRY
 # define T_FRC_BRY
 # undef OBC_M2SPECIFIED
 # undef OBC_M2FLATHER
@@ -723,6 +724,56 @@
 # define OBC_M3ORLANSKI
 # define OBC_TORLANSKI
 # undef SPONGE
+
+#elif defined CALDEIRA
+/*
+!                       CALDEIRA Example
+!                       ======== =======
+*/
+# undef OPENMP
+# define MPI
+# undef CLOSED
+# ifdef CLOSED
+#  undef OBC_EAST
+#  undef OBC_WEST
+#  undef OBC_NORTH
+#  undef OBC_SOUTH
+# else
+#  define OBC_EAST
+#  define OBC_WEST
+#  undef OBC_NORTH
+#  undef OBC_SOUTH
+# endif
+# define ANA_BRY
+# define FRC_BRY
+# ifdef FRC_BRY
+#  define Z_FRC_BRY
+#  define M2_FRC_BRY
+#  define M3_FRC_BRY
+#  define T_FRC_BRY
+# endif
+# define NEW_S_COORD
+# define ANA_GRID
+# define ANA_INITIAL
+# define ANA_SMFLUX
+# define ANA_STFLUX
+# define ANA_SSFLUX
+# define ANA_SRFLUX
+# define ANA_BSFLUX
+# define ANA_BTFLUX
+# define SOLVE3D
+# define UV_COR
+# define UV_ADV
+# define SALINITY
+# define NONLIN_EOS
+# define SPLIT_EOS
+# undef  OBC_M2SPECIFIED
+# undef  OBC_M2FLATHER
+# define  OBC_M2CHARACT
+# undef  OBC_M2ORLANSKI
+# define OBC_M3ORLANSKI
+# define OBC_TORLANSKI
+# define SPONGE
 
 # elif defined SHELFRONT
 /*

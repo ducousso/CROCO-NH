@@ -60,8 +60,8 @@
 !
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
-      USE nhmg, only : nhmg_bbc
-      USE nhmg, only : nhmg_coupling
+!      USE nhmg, only : nhmg_bbc
+!      USE nhmg, only : nhmg_coupling
       USE nhmg, only : nhmg_write_corr_inter
       USE nhmg, only : nhmg_write_corr_out
 #else
@@ -126,6 +126,10 @@
 ! Also compute the main diagonal matrix coeddicient BC.
 !--------------------------------------------------------------------
 !
+
+      write(*,*) 'corr step3duv2 before visco & coupling. fluxes'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+
       do j=Jstr,Jend
 !
 ! The vertical viscosity term is not added as an explicit divergence term
@@ -244,13 +248,10 @@
           DC(i,0)=(DC(i,0)*on_u(i,j)-DU_avg1(i,j,nnew))
      &                             /(CF(i,0)*on_u(i,j))
         enddo
+
         do k=1,N
           do i=IstrU,Iend
-# ifndef NHMG
             u(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH umask(i,j)
-# else
-            u(i,j,k,nnew)=DC(i,k) SWITCH umask(i,j)
-# endif
 # ifdef DIAGNOSTICS_UV
             MVmix(i,j,k,1)=-( MVmix(i,j,k,1) - u(i,j,k,nnew)*
      &                           0.5*(Hz(i,j,k)+Hz(i-1,j,k)) )
@@ -378,13 +379,10 @@
             DC(i,0)=(DC(i,0)*om_v(i,j)-DV_avg1(i,j,nnew))
      &                               /(CF(i,0)*om_v(i,j))
           enddo
+
           do k=1,N
             do i=Istr,Iend
-# ifndef NHMG
               v(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH vmask(i,j)
-# else
-              v(i,j,k,nnew)=DC(i,k) SWITCH vmask(i,j)
-# endif
 # ifdef DIAGNOSTICS_UV
               MVmix(i,j,k,2)=-( MVmix(i,j,k,2) - v(i,j,k,nnew)*
      &                             0.5*(Hz(i,j,k)+Hz(i,j-1,k)) )
@@ -395,6 +393,9 @@
           enddo       !--> discard DC,CF(:,0)
         endif
       enddo      ! <-- j
+
+      write(*,*) 'corr step3duv2 after visco & coupling. velocity'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
 c$$$!
 c$$$!--------------------------------------------------------------------
@@ -512,12 +513,39 @@ c$$$!
 !
       call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
       call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+
+
+# ifdef NHMG
 !
 !--------------------------------------------------------------------
 ! Non-hydro projection of momentum
 !--------------------------------------------------------------------
 !
-# ifdef NHMG
+      write(*,*) 'corr before solve. velocity'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+      do j=Jstr,Jend
+        do k=1,N
+          do i=Istr,Iend
+            u(i,j,k,nnew) = u(i,j,k,nnew)
+     &           *0.5*(Hz(i,j,k) + Hz(i-1,j,k)) / pn_u(i,j)
+          enddo
+        enddo
+        do k=1,N
+           do i=Istr,Iend
+              v(i,j,k,nnew) = v(i,j,k,nnew)
+     &             *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
+           enddo
+        enddo
+        do k=1,N
+           do i=Istr,Iend
+              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &             / (pm(i,j)*pn(i,j))
+           enddo
+        enddo
+      enddo
 
 #  if defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
@@ -528,30 +556,66 @@ c$$$!
      &                        wz(START_2D_ARRAY,0,nnew))
 #  endif
 
+      write(*,*) 'corr before solve. fluxes'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
       call nhmg_solve(
      &     Lm, Mm, N,
      &     u(1:Lm+1,0:Mm+1,1:N,nnew),
      &     v(0:Lm+1,1:Mm+1,1:N,nnew),
      &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+   
+      write(*,*) 'corr after solve. fluxes'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+      do j=Jstr,Jend
+        do k=1,N
+          do i=Istr,Iend
+            u(i,j,k,nnew) = u(i,j,k,nnew)
+     &           /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
+          enddo
+        enddo
+        do k=1,N
+           do i=Istr,Iend
+              v(i,j,k,nnew) = v(i,j,k,nnew)
+     &             /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
+           enddo
+        enddo
+        do k=1,N
+           do i=Istr,Iend
+              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &             * (pm(i,j)*pn(i,j))
+           enddo
+        enddo
+      enddo
+
+      write(*,*) 'corr after solve. velocity'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 # endif   
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_corr_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_corr_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-c$$$
-c$$$# endif
+# ifdef NHMG
+
+      call nhmg_write_corr_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+
+# else
+
+      call h_write_corr_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+
+# endif
 !
 !
 !--------------------------------------------------------------------
@@ -603,19 +667,19 @@ c$$$# endif
      &                        wz(START_2D_ARRAY,0,nnew))
 #  endif
 
-      call nhmg_bbc(
-     & Lm, Mm, N,
-     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
-      call nhmg_coupling(
-     & Lm, Mm, N,
-     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
-     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
-     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+c$$$      call nhmg_bbc(
+c$$$     & Lm, Mm, N,
+c$$$     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+c$$$
+c$$$      call nhmg_coupling(
+c$$$     & Lm, Mm, N,
+c$$$     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
+c$$$     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
+c$$$     & u(1:Lm+1,0:Mm+1,1:N,nnew),
+c$$$     & v(0:Lm+1,1:Mm+1,1:N,nnew),
+c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
 
 # endif
 
@@ -672,11 +736,7 @@ c$$$# endif
         enddo
         do k=N,1,-1
           do i=IU_RANGE
-# ifndef NHMG
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
-# else
-            u(i,j,k,nnew)=u(i,j,k,nnew)
-# endif
 # ifdef MASKING
      &                                *umask(i,j)
 #  ifdef MRL_WCI
@@ -811,11 +871,7 @@ c$$$# endif
           enddo
           do k=N,1,-1
             do i=IV_RANGE
-# ifndef NHMG
               v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
-# else
-              v(i,j,k,nnew)=v(i,j,k,nnew)
-# endif
 # ifdef MASKING
      &                                  *vmask(i,j)
 #  ifdef MRL_WCI
@@ -1051,22 +1107,22 @@ c$$$# endif
 #  endif
 # endif
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_corr_out(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_corr_out(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-c$$$
-c$$$# endif
+# ifdef NHMG
+
+      call nhmg_write_corr_out(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+
+# else
+
+      call h_write_corr_out(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+
+# endif
 
 !
       return

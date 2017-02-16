@@ -74,6 +74,8 @@
 #elif defined SEAMOUNT
 !      parameter (LLm0=64,   MMm0=64,   N=20)
       parameter (LLm0=64,   MMm0=64,   N=32)
+#elif defined CALDEIRA
+      parameter (LLm0=100,  MMm0=100,  N=50)
 #elif defined SHELFRONT
       parameter (LLm0=4,    MMm0=40,   N=10)
 #elif defined SOLITON
