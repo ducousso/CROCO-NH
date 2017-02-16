@@ -65,6 +65,7 @@ c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
 c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
 c$$$      
 c$$$# endif
+
       write(*,*) 'corr step3duv1 before applying rhs. h*u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
       write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
