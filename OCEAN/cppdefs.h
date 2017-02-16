@@ -24,7 +24,7 @@
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
 #undef  SEAMOUNT        /* Seamount Example */
-#undef  CALDEIRA        /* Caldeira Example */
+#define  CALDEIRA        /* Caldeira Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -36,7 +36,7 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#define  TANK            /* Tank Example */
+#undef  TANK            /* Tank Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -732,6 +732,7 @@
 */
 # undef OPENMP
 # define MPI
+# define NHMG
 # undef CLOSED
 # ifdef CLOSED
 #  undef OBC_EAST
@@ -751,6 +752,9 @@
 #  define M2_FRC_BRY
 #  define M3_FRC_BRY
 #  define T_FRC_BRY
+#  ifdef NHMG
+#  define W_FRC_BRY
+#  endif
 # endif
 # define NEW_S_COORD
 # define ANA_GRID

@@ -633,7 +633,8 @@
       enddo
 # endif /* UV_MIX_S_SPONGE */
 
-# if defined NBQ || defined NHMG
+!# if defined NBQ || defined NHMG
+# if defined NBQ
 !==================================================================
 !
 ! WZ horizontal Laplacian diffusion along constant S-surfaces.
