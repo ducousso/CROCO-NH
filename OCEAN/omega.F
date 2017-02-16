@@ -162,7 +162,7 @@
      &                            -Hvom(i,j+1,k)+Hvom(i,j,k)
 # ifdef NHMG
             ! wz is now fully updated and consistent with (Huon, Hvom)
-            wz(i,j,k,nrhs)=We(i,j,k)
+            wz(i,j,k,nrhs)=We(i,j,k)*pm(i,j)*pn(i,j)
 # endif
 # ifdef NBQ_CONS1
      &                     -dHzdt(i,j,k)*om_r(i,j)*on_r(i,j)

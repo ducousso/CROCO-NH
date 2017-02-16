@@ -571,36 +571,37 @@
         enddo   !<-- itrc  !--> discard DC
       enddo     !<-- j
 
-# ifdef NHMG
+c$$$# ifdef NHMG
+c$$$
+c$$$      call nhmg_write_pred_in(
+c$$$     &     Lm, Mm, N,
+c$$$     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
+c$$$     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+c$$$     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp) )
+c$$$
+c$$$# else
+c$$$
+c$$$      call h_write_pred_in(
+c$$$     &     Lm, Mm, N,
+c$$$     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
+c$$$     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+c$$$     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp) )
+c$$$      
+c$$$# endif
 
-      call nhmg_write_pred_in(
-     &     Lm, Mm, N,
-     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
-     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
-     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp) )
-
-# else
-
-      call h_write_pred_in(
-     &     Lm, Mm, N,
-     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
-     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
-     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp) )
-      
-# endif
-
-      write(*,*) 'pred before applying rhs.velocity'
+      write(*,*) 'pred before applying rhs. u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
 
 !
 !======================================================================
@@ -807,7 +808,7 @@
 !
       enddo     !<-- j
       
-      write(*,*) 'pred after applying rhs.velocity'
+      write(*,*) 'pred after applying rhs. u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
 # if defined NBQ
@@ -1030,7 +1031,7 @@
 !
 # ifdef NHMG
 
-      write(*,*) 'pred before solve. velocity'
+      write(*,*) 'pred before solve. u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
@@ -1065,10 +1066,13 @@
      &                        wz(START_2D_ARRAY,0,nnew))     
 # endif
 
-      write(*,*) 'pred before solve. fluxes'
+      write(*,*) 'pred before solve. S*u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+      write(*,*) 'pred before solve. V*u/dt'
+      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
 
       call nhmg_solve(
      & Lm, Mm, N,
@@ -1079,10 +1083,13 @@
      & rufrc(1:Lm+1,0:Mm+1),
      & rvfrc(0:Lm+1,1:Mm+1) )
 
-      write(*,*) 'pred after solve. fluxes'
+      write(*,*) 'pred after solve. S*u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+      write(*,*) 'pred after solve. V*u/dt'
+      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
 
       do j=Jstr,Jend
         do k=1,N
@@ -1105,7 +1112,7 @@
         enddo
       enddo
 
-      write(*,*) 'pred after solve. velocity'
+      write(*,*) 'pred after solve. u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
@@ -1249,26 +1256,26 @@ c$$$      enddo
 # endif
 
 
-# ifdef NHMG
-
-      call nhmg_write_pred_inter(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
-     &     rufrc(-1:Lm+2,-1:Mm+2),
-     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-
-# else
-
-      call h_write_pred_inter(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     rufrc(-1:Lm+2,-1:Mm+2),
-     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-
-# endif
+c$$$# ifdef NHMG
+c$$$
+c$$$      call nhmg_write_pred_inter(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
+c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
+c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+c$$$
+c$$$# else
+c$$$
+c$$$      call h_write_pred_inter(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
+c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+c$$$
+c$$$# endif
 
 
 !

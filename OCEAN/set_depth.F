@@ -583,6 +583,9 @@ c$$$#  ifndef NHMG
 #  undef IV_RANGE
 #  undef JV_RANGE
 
+      write(*,*) 'pred after coupling. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+
 c$$$#  else
 c$$$
 c$$$#   if defined MPI
@@ -628,22 +631,22 @@ c$$$#  endif
 #  endif
 
 
-#ifdef NHMG
-
-      call nhmg_write_pred_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
-
-# else
-
-      call h_write_pred_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs) )
-
-# endif
+c$$$#ifdef NHMG
+c$$$
+c$$$      call nhmg_write_pred_out(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
+c$$$
+c$$$# else
+c$$$
+c$$$      call h_write_pred_out(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs) )
+c$$$
+c$$$# endif
 
 
 # endif /* SOLVE3D */
