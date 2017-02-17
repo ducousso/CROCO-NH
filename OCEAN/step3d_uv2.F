@@ -688,17 +688,10 @@ c$$$!
      &     v(0:Lm+1,1:Mm+1,1:N,nnew),
      &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
    
-<<<<<<< HEAD
 !      write(*,*) 'corr after solve. S*u'
 !      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 !      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
 !      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-=======
-      write(*,*) 'corr after solve. S*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
->>>>>>> 3074cb5c0507b6a9f1f1a636defbe939405fa26c
 
       do k=1,N
          do j=Jstr,Jend
