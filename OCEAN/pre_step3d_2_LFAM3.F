@@ -1094,7 +1094,6 @@ c$$$# endif
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-
       write(*,*) 'pred before solve. V*u/dt'
       write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
 
@@ -1111,7 +1110,6 @@ c$$$# endif
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-
       write(*,*) 'pred after solve. V*u/dt'
       write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
 
