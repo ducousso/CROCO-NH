@@ -437,16 +437,16 @@
 
         do k=1,N-1 ! <= difference with u and v
           do i=Istr,Iend
-            DC(i,k)=w(i,j,k,nnew)*0.5*( Hz(i,j,k)+Hz(i,j,k+1) )
+            DC(i,k)=wz(i,j,k,nnew)*0.5*( Hz(i,j,k)+Hz(i,j,k+1) )
             BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1))-FC(i,k)-FC(i,k-1)
 # ifdef VADV_ADAPT_IMP
 !TODO     &              +max(WC(i,k  ),0.)-min(WC(i,k-1),0.)
 # endif
           enddo
           ! this is the surface Dirichlet BC for vertical mixing
-          k=N
-          DC(i,k)=w(i,j,k,nnew) ! no multiplication by *0.5*Hz(i,j,k) !!!
         enddo      !--> discard DC(:,0); keep FC
+        k=N
+        DC(i,k)=wz(i,j,k,nnew)   ! no multiplication by *0.5*Hz(i,j,k) !!!
 !
 ! Apply wind forcing.
 !
@@ -504,7 +504,7 @@
 !            cff=0.5*(Hz(i,j,k)+Hz(i-1,j,k))
 !            CF(i,0)=CF(i,0)+cff
 !            DC(i,0)=DC(i,0)+cff*DC(i,k)
-            w(i,j,k,nnew)=DC(i,k) SWITCH rmask(i,j)
+            wz(i,j,k,nnew)=DC(i,k) SWITCH rmask(i,j)
 # ifdef DIAGNOSTICS_UV
 !todo            MVmix(i,j,k,1)=
 # endif 
@@ -653,7 +653,7 @@ c$$$!
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                        v(START_2D_ARRAY,1,nnew))
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        w(START_2D_ARRAY,0,nnew)) !<=starts at k=0
+     &                        wz(START_2D_ARRAY,0,nnew)) !<=starts at k=0
 #  endif
 
       do k=1,N

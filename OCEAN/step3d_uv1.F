@@ -19,11 +19,19 @@
 # include "compute_tile_bounds.h"
       trd=omp_get_thread_num()
       call step3d_uv1_tile (Istr,Iend,Jstr,Jend,  A3d(1,1,trd),
-     &                              A3d(1,2,trd), A2d(1,1,trd))
+     &                              A3d(1,2,trd), 
+#ifdef NHMG
+     &                              A3d(1,5,trd), !<- this is rw
+#endif
+     &                              A2d(1,1,trd))
       return
       end
 
-      subroutine step3d_uv1_tile (Istr,Iend,Jstr,Jend, ru,rv,DC)
+      subroutine step3d_uv1_tile (Istr,Iend,Jstr,Jend, ru,rv,
+#ifdef NHMG
+     &                                           rw,
+#endif
+     &                                           DC)
 #ifdef NHMG
       USE nhmg, only : nhmg_write_corr_in
 #else
@@ -34,6 +42,9 @@
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),
+#ifdef NHMG
+     &     rw(PRIVATE_2D_SCRATCH_ARRAY,N),
+#endif
      &     DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff
 # include "grid.h"
 # include "ocean3d.h"
