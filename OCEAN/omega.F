@@ -136,6 +136,10 @@
           Wi(i,j,0)=0.
 # endif
 # ifdef MOVING_BATHY
+#if defined NHMG
+        write(*,*)"MOVING_BATHY and NHMG cpp keys are incompatible"
+        stop
+#endif
           ! the MOVING_BATHY is still uncompatible with NHMG
           We(i,j,0)=cmorph*om_r(i,j)*on_r(i,j)*dh(i,j)/dt
 # else

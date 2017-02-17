@@ -111,6 +111,32 @@ c$$$# endif
             enddo
           enddo
         endif
+# if defined NHMG
+        do k=1,N
+          ! dt is hidden in DC(i,0)
+          if (k.eq.N)then
+             do i=Istr,Iend
+                DC(i,0)=dt*pm(i,j)*pn(i,j)*2./Hz(i,j,k)
+             enddo
+          else
+             do i=Istr,Iend
+                DC(i,0)=dt*pm(i,j)*pn(i,j)*2./(Hz(i,j,k)+Hz(i,j,k+1))
+             enddo
+          endif
+          do i=Istr,Iend
+             ! BIG difference between (u,v) and w:
+             ! on exit of step3d_uv1
+             ! u and v are velocity * Hz (expected on entry of step3d_uv2)
+             ! w is a velocity !!! no Hz factor
+             wz(i,j,k,nnew)=wz(i,j,k,nnew)+DC(i,0)*rw(i,j,k)
+#  if defined MASKING
+             ! MRL_WCI is not yet compatible with NHMG
+             ! TODO
+             wz(i,j,k,nnew)=wz(i,j,k,nnew)*rmask(i,j)
+#  endif
+          enddo
+        enddo
+# endif
       enddo 
 
       write(*,*) 'corr step3duv1 end. h*u'
