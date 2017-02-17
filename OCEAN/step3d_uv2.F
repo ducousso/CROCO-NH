@@ -534,35 +534,54 @@ c$$$!
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-      do j=Jstr,Jend
-        do k=1,N
-          do i=Istr,Iend
-            u(i,j,k,nnew) = u(i,j,k,nnew)
-     &           *0.5*(Hz(i,j,k) + Hz(i-1,j,k)) / pn_u(i,j)
-          enddo
-        enddo
-        do k=1,N
-           do i=Istr,Iend
-              v(i,j,k,nnew) = v(i,j,k,nnew)
-     &             *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
-           enddo
-        enddo
-        do k=1,N
-           do i=Istr,Iend
-              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &             / (pm(i,j)*pn(i,j))
-           enddo
-        enddo
-      enddo
-
 #  if defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
      &                        u(START_2D_ARRAY,1,nnew))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                        v(START_2D_ARRAY,1,nnew))
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        wz(START_2D_ARRAY,0,nnew))
 #  endif
+
+!      do j=Jstr,Jend
+!        do k=1,N
+!         do i=Istr,Iend
+!            u(i,j,k,nnew) = u(i,j,k,nnew)
+!     &          *0.5*(Hz(i,j,k) + Hz(i-1,j,k)) / pn_u(i,j)
+!          enddo
+!        enddo
+!        do k=1,N
+!           do i=Istr,Iend
+!              v(i,j,k,nnew) = v(i,j,k,nnew)
+!     &          *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
+!           enddo
+!        enddo
+!        do k=1,N
+!           do i=Istr,Iend
+!              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+!     &             / (pm(i,j)*pn(i,j))
+!           enddo
+!        enddo
+!      enddo
+
+      do k=1,N
+         do j=Jstr,Jend
+            do i=Istr,Iend+1
+               u(i,j,k,nnew) = u(i,j,k,nnew)
+     &              *0.5*(Hz(i,j,k) + Hz(i-1,j,k)) / pn_u(i,j)
+            enddo
+         enddo
+         do j=Jstr,Jend+1
+           do i=Istr,Iend
+              v(i,j,k,nnew) = v(i,j,k,nnew)
+     &             *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
+           enddo
+         enddo
+         do j=Jstr,Jend
+            do i=Istr,Iend
+               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &              / (pm(i,j)*pn(i,j))
+            enddo
+         enddo
+      enddo
 
       write(*,*) 'corr before solve. S*u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
@@ -580,25 +599,46 @@ c$$$!
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-      do j=Jstr,Jend
-        do k=1,N
-          do i=Istr,Iend
-            u(i,j,k,nnew) = u(i,j,k,nnew)
+!      do j=Jstr,Jend
+!        do k=1,N
+!          do i=Istr,Iend
+!            u(i,j,k,nnew) = u(i,j,k,nnew)
+!     &           /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
+!          enddo
+!        enddo
+!        do k=1,N
+!          do i=Istr,Iend
+!              v(i,j,k,nnew) = v(i,j,k,nnew)
+!     &           /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
+!           enddo
+!        enddo
+!        do k=1,N
+!           do i=Istr,Iend
+!              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+!     &             * (pm(i,j)*pn(i,j))
+!           enddo
+!        enddo
+!      enddo
+
+      do k=1,N
+         do j=Jstr,Jend
+            do i=Istr,Iend+1
+               u(i,j,k,nnew) = u(i,j,k,nnew)
      &           /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
-          enddo
-        enddo
-        do k=1,N
+            enddo
+         enddo
+         do j=Jstr,Jend+1
            do i=Istr,Iend
               v(i,j,k,nnew) = v(i,j,k,nnew)
-     &             /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
+     &           /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
            enddo
-        enddo
-        do k=1,N
-           do i=Istr,Iend
-              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &             * (pm(i,j)*pn(i,j))
-           enddo
-        enddo
+         enddo
+         do j=Jstr,Jend
+            do i=Istr,Iend
+               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &              * (pm(i,j)*pn(i,j))
+            enddo
+         enddo
       enddo
 
       write(*,*) 'corr after solve. u'

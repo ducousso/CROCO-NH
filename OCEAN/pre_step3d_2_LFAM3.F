@@ -1036,25 +1036,76 @@ c$$$# endif
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-      do j=Jstr,Jend
-        do k=1,N
-          do i=Istr,Iend
-            u(i,j,k,nnew) = u(i,j,k,nnew)
-     &           *0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k)) / pn_u(i,j)
-          enddo
-        enddo
-        do k=1,N
+!      do j=Jstr,Jend
+!        do k=1,N
+!         do i=Istr,Iend
+!            u(i,j,k,nnew) = u(i,j,k,nnew)
+!     &          *0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k)) / pn_u(i,j)
+!          enddo
+!        enddo
+!        do k=1,N
+!           do i=Istr,Iend
+!              v(i,j,k,nnew) = v(i,j,k,nnew)
+!     &          *0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)) / pm_v(i,j)
+!           enddo
+!        enddo
+!        do k=1,N
+!           do i=Istr,Iend
+!              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+!     &             / (pm(i,j)*pn(i,j))
+!           enddo
+!        enddo
+!      enddo
+
+      do k=1,N
+
+         do j=Jstr,Jend
+            do i=IstrU,Iend
+               u(i,j,k,nnew) = u(i,j,k,nnew)
+     &              *0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k)) / pn_u(i,j)
+            enddo
+!#  ifndef EW_PERIODIC
+            if (WESTERN_EDGE) then
+                u(IstrU-1,j,k,nnew) = u(IstrU-1,j,k,nnew)
+     &              *Hz_half(IstrU-1,j,k) / pn_u(IstrU-1,j)
+            endif
+            if (EASTERN_EDGE) then
+                u(Iend+1,j,k,nnew) = u(Iend+1,j,k,nnew)
+     &              *Hz_half(Iend,j,k) / pn_u(Iend+1,j)
+            endif
+!#  endif
+         enddo
+
+         do j=JstrV,Jend
            do i=Istr,Iend
               v(i,j,k,nnew) = v(i,j,k,nnew)
      &             *0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)) / pm_v(i,j)
            enddo
-        enddo
-        do k=1,N
-           do i=Istr,Iend
-              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &             / (pm(i,j)*pn(i,j))
-           enddo
-        enddo
+         enddo
+!#  ifndef NS_PERIODIC
+         if (SOUTHERN_EDGE) then
+            do i=Istr,Iend
+               v(i,JstrV-1,k,nnew) = v(i,JstrV-1,k,nnew)
+     &              *Hz_half(i,JstrV-1,k) / pm_v(i,JstrV-1)
+               
+            enddo
+         endif
+         if (NORTHERN_EDGE) then
+            do i=Istr,Iend
+               v(i,Jend+1,k,nnew) = v(i,Jend+1,k,nnew)
+     &              *Hz_half(i,Jend,k) / pm_v(i,Jend+1)
+               
+            enddo
+         endif
+!#  endif
+
+         do j=Jstr,Jend
+            do i=Istr,Iend
+               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &              / (pm(i,j)*pn(i,j))
+            enddo
+         enddo
+
       enddo
 
 # if defined MPI
@@ -1062,8 +1113,6 @@ c$$$# endif
      &                        u(START_2D_ARRAY,1,nnew))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                        v(START_2D_ARRAY,1,nnew))
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        wz(START_2D_ARRAY,0,nnew))     
 # endif
 
       write(*,*) 'pred before solve. S*u'
@@ -1091,25 +1140,76 @@ c$$$# endif
       write(*,*) 'pred after solve. V*u/dt'
       write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
 
-      do j=Jstr,Jend
-        do k=1,N
-          do i=Istr,Iend
-            u(i,j,k,nnew) = u(i,j,k,nnew)
+!      do j=Jstr,Jend
+!        do k=1,N
+!          do i=Istr,Iend
+!            u(i,j,k,nnew) = u(i,j,k,nnew)
+!     &           /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
+!          enddo
+!        enddo
+!        do k=1,N
+!          do i=Istr,Iend
+!              v(i,j,k,nnew) = v(i,j,k,nnew)
+!     &           /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
+!           enddo
+!        enddo
+!        do k=1,N
+!           do i=Istr,Iend
+!              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+!     &             * (pm(i,j)*pn(i,j))
+!           enddo
+!        enddo
+!      enddo
+
+      do k=1,N
+
+         do j=Jstr,Jend
+            do i=IstrU,Iend
+               u(i,j,k,nnew) = u(i,j,k,nnew)
      &           /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
-          enddo
-        enddo
-        do k=1,N
+            enddo
+!#  ifndef EW_PERIODIC
+            if (WESTERN_EDGE) then
+                u(IstrU-1,j,k,nnew) = u(IstrU-1,j,k,nnew)
+     &              /Hz_half(IstrU-1,j,k) * pn_u(IstrU-1,j)
+            endif
+            if (EASTERN_EDGE) then
+                u(Iend+1,j,k,nnew) = u(Iend+1,j,k,nnew)
+     &              /Hz_half(Iend,j,k) * pn_u(Iend+1,j)
+            endif
+!#  endif
+         enddo
+
+         do j=JstrV,Jend
            do i=Istr,Iend
               v(i,j,k,nnew) = v(i,j,k,nnew)
-     &             /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
+     &           /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
            enddo
-        enddo
-        do k=1,N
-           do i=Istr,Iend
-              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &             * (pm(i,j)*pn(i,j))
-           enddo
-        enddo
+         enddo
+!#  ifndef NS_PERIODIC
+         if (SOUTHERN_EDGE) then
+            do i=Istr,Iend
+               v(i,JstrV-1,k,nnew) = v(i,JstrV-1,k,nnew)
+     &              /Hz_half(i,JstrV-1,k) * pm_v(i,JstrV-1)
+               
+            enddo
+         endif
+         if (NORTHERN_EDGE) then
+            do i=Istr,Iend
+               v(i,Jend+1,k,nnew) = v(i,Jend+1,k,nnew)
+     &              /Hz_half(i,Jend,k) * pm_v(i,Jend+1)
+               
+            enddo
+         endif
+!#  endif
+
+         do j=Jstr,Jend
+            do i=Istr,Iend
+               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &              * (pm(i,j)*pn(i,j))
+            enddo
+         enddo
+
       enddo
 
       write(*,*) 'pred after solve. u'
@@ -1276,7 +1376,6 @@ c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
 c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) )
 c$$$
 c$$$# endif
-
 
 !
 !======================================================================
