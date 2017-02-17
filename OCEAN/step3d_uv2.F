@@ -656,27 +656,6 @@ c$$$!
      &                        w(START_2D_ARRAY,0,nnew)) !<=starts at k=0
 #  endif
 
-!      do j=Jstr,Jend
-!        do k=1,N
-!         do i=Istr,Iend
-!            u(i,j,k,nnew) = u(i,j,k,nnew)
-!     &          *0.5*(Hz(i,j,k) + Hz(i-1,j,k)) / pn_u(i,j)
-!          enddo
-!        enddo
-!        do k=1,N
-!           do i=Istr,Iend
-!              v(i,j,k,nnew) = v(i,j,k,nnew)
-!     &          *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
-!           enddo
-!        enddo
-!        do k=1,N
-!           do i=Istr,Iend
-!              wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-!     &             / (pm(i,j)*pn(i,j))
-!           enddo
-!        enddo
-!      enddo
-
       do k=1,N
          do j=Jstr,Jend
             do i=Istr,Iend+1
@@ -709,10 +688,17 @@ c$$$!
      &     v(0:Lm+1,1:Mm+1,1:N,nnew),
      &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
    
+<<<<<<< HEAD
 !      write(*,*) 'corr after solve. S*u'
 !      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 !      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
 !      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+=======
+      write(*,*) 'corr after solve. S*u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+>>>>>>> 3074cb5c0507b6a9f1f1a636defbe939405fa26c
 
       do k=1,N
          do j=Jstr,Jend

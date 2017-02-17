@@ -760,7 +760,7 @@ C$OMP BARRIER
         call rhs3d_w_nh (tile)
 # endif
         call step3d_uv1 (tile)
-# if defined NBQ || defined NHMG
+# if defined NBQ
         call step3d_w (tile)
 # endif
       enddo
