@@ -1185,6 +1185,7 @@ c$$$      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
          enddo
       enddo
 
+<<<<<<< HEAD
        do i = 1,Lm+1
           do j = 0,Mm+1
               rufrc(i,j) = grid(1)%rufrcb(j,i)
@@ -1196,6 +1197,8 @@ c$$$      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
           enddo
        enddo
 
+=======
+>>>>>>> 4fb92aa8056855bb48cc4e37d0ce5982f5694c25
 c$$$      write(*,*) 'pred after solve. u'
 c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
