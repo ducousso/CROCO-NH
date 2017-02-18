@@ -64,6 +64,7 @@
 !      USE nhmg, only : nhmg_coupling
       USE nhmg, only : nhmg_write_corr_inter
       USE nhmg, only : nhmg_write_corr_out
+      USE mg_grids
 #else
       USE nhmg, only : h_write_corr_inter
       USE nhmg, only : h_write_corr_out
@@ -127,8 +128,8 @@
 !--------------------------------------------------------------------
 !
 
-      write(*,*) 'corr step3duv2 before visco & coupling. h*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv2 before visco & coupling. h*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
       do j=Jstr,Jend
 !
@@ -513,8 +514,8 @@
 # endif
       enddo      ! <-- j
 
-      write(*,*) 'corr step3duv2 after visco. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv2 after visco. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
 c$$$!
 c$$$!--------------------------------------------------------------------
@@ -659,19 +660,22 @@ c$$$!
       do k=1,N
          do j=Jstr,Jend
             do i=Istr,Iend+1
-               u(i,j,k,nnew) = u(i,j,k,nnew)
+               grid(1)%ub(k,j,i) = u(i,j,k,nnew)
+!               u(i,j,k,nnew) = u(i,j,k,nnew)
      &              *0.5*(Hz(i,j,k) + Hz(i-1,j,k)) / pn_u(i,j)
             enddo
          enddo
          do j=Jstr,Jend+1
            do i=Istr,Iend
-              v(i,j,k,nnew) = v(i,j,k,nnew)
+              grid(1)%vb(k,j,i) = v(i,j,k,nnew)
+!              v(i,j,k,nnew) = v(i,j,k,nnew)
      &             *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
            enddo
          enddo
          do j=Jstr,Jend
             do i=Istr,Iend
-               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+               grid(1)%wb(k+1,j,i) = wz(i,j,k,nnew) 
+!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
      &              / (pm(i,j)*pn(i,j))
             enddo
          enddo
@@ -682,11 +686,11 @@ c$$$!
 !      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
 !      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-      call nhmg_solve(
-     &     Lm, Mm, N,
-     &     u(1:Lm+1,0:Mm+1,1:N,nnew),
-     &     v(0:Lm+1,1:Mm+1,1:N,nnew),
-     &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+      call nhmg_solve()
+!     &     Lm, Mm, N,
+!     &     u(1:Lm+1,0:Mm+1,1:N,nnew),
+!     &     v(0:Lm+1,1:Mm+1,1:N,nnew),
+!     &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
    
 !      write(*,*) 'corr after solve. S*u'
 !      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
@@ -696,19 +700,22 @@ c$$$!
       do k=1,N
          do j=Jstr,Jend
             do i=Istr,Iend+1
-               u(i,j,k,nnew) = u(i,j,k,nnew)
+               u(i,j,k,nnew) = grid(1)%ub(k,j,i)
+!              u(i,j,k,nnew) = u(i,j,k,nnew)
      &           /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
             enddo
          enddo
          do j=Jstr,Jend+1
            do i=Istr,Iend
-              v(i,j,k,nnew) = v(i,j,k,nnew)
+              v(i,j,k,nnew) = grid(1)%vb(k,j,i)
+!              v(i,j,k,nnew) = v(i,j,k,nnew)
      &           /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
            enddo
          enddo
          do j=Jstr,Jend
             do i=Istr,Iend
-               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+               wz(i,j,k,nnew) = grid(1)%wb(k+1,j,i)
+!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
      &              * (pm(i,j)*pn(i,j))
             enddo
          enddo

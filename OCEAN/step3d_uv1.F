@@ -77,9 +77,9 @@ c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
 c$$$      
 c$$$# endif
 
-      write(*,*) 'corr step3duv1 before applying rhs. h*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+c$$$      write(*,*) 'corr step3duv1 before applying rhs. h*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
 
       cff=0.25*dt
       do j=Jstr,Jend
@@ -150,8 +150,8 @@ c$$$# endif
 # endif
       enddo 
 
-      write(*,*) 'corr step3duv1 end. h*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv1 end. h*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
 #else
       subroutine step3d_uv1_empty
