@@ -1038,6 +1038,81 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
 c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
+      if (iic.ge.(ntstart+2)) then
+      call tic(1,'AB2 del q')
+
+      do k=1,N
+         do j=Jstr,Jend
+            do i=IstrU,Iend
+               u(i,j,k,nnew) = u(i,j,k,nnew)
+     &      + (1.5*nhdu(i,j,k,iprec1)-0.5*nhdu(i,j,k,iprec2) )
+     &           /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
+            enddo
+
+            if (WESTERN_EDGE) then
+                u(IstrU-1,j,k,nnew) = u(IstrU-1,j,k,nnew)
+     &      +(1.5*nhdu(IstrU-1,j,k,iprec1)-0.5*nhdu(IstrU-1,j,k,iprec2))
+     &              /Hz_half(IstrU-1,j,k) * pn_u(IstrU-1,j)
+            endif
+            if (EASTERN_EDGE) then
+                u(Iend+1,j,k,nnew) = u(Iend+1,j,k,nnew) 
+     &      + (1.5*nhdu(Iend+1,j,k,nnew) -0.5*nhdu(Iend+1,j,k,iprec2) )
+     &              /Hz_half(Iend,j,k) * pn_u(Iend+1,j)
+            endif
+
+         enddo
+         do j=JstrV,Jend
+           do i=Istr,Iend
+              v(i,j,k,nnew) = v(i,j,k,nnew)
+     &     + (1.5*nhdv(i,j,k,iprec1)-0.5*nhdv(i,j,k,iprec2) )
+     &           /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
+           enddo
+         enddo
+!#  ifndef NS_PERIODIC
+         if (SOUTHERN_EDGE) then
+            do i=Istr,Iend
+               v(i,JstrV-1,k,nnew) = v(i,JstrV-1,k,nnew) 
+     &     + (1.5*nhdv(i,JstrV-1,k,iprec1)-0.5*nhdv(i,JstrV-1,k,iprec2))
+     &              /Hz_half(i,JstrV-1,k) * pm_v(i,JstrV-1)
+               
+            enddo
+         endif
+         if (NORTHERN_EDGE) then
+            do i=Istr,Iend
+               v(i,Jend+1,k,nnew) = v(i,Jend+1,k,nnew) 
+     &     +(1.5*nhdv(i,Jend+1,k,iprec1)-0.5*nhdv(i,Jend+1,k,iprec2) )
+     &              /Hz_half(i,Jend,k) * pm_v(i,Jend+1)
+               
+            enddo
+         endif
+!#  endif
+         do j=Jstr,Jend
+            do i=Istr,Iend
+               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &      + (1.5*nhdw(i,j,k,iprec1)-0.5*nhdw(i,j,k,iprec2) )
+     &              * (pm(i,j)*pn(i,j))
+            enddo
+         enddo
+      enddo
+
+      cff = 1./cdt
+      do k=1,N
+         do j = 0,Mm+1
+            do i = 0,Lm+1
+              rufrc(i,j) = rufrc(i,j) + (1.5*nhdu(i,j,k,iprec1)
+     &           -0.5*nhdu(i,j,k,iprec2)) / pm_u(i,j) * cff
+              rvfrc(i,j) = rvfrc(i,j)+(1.5*nhdv(i,j,k,iprec1)
+     &             -0.5*nhdv(i,j,k,iprec2)) / pn_v(i,j) * cff
+           enddo
+        enddo
+      enddo
+
+
+
+      call toc(1,'AB2 del q')
+
+      else
+
       call tic(1,'swap predictor')
       do k=1,N
          do j=Jstr,Jend
@@ -1197,8 +1272,9 @@ c$$$      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
               rvfrc(i,j) = grid(1)%rvfrcb(j,i)
           enddo
        enddo
-      call toc(1,'swap predictor')
 
+      call toc(1,'swap predictor')
+       endif      
 c$$$      write(*,*) 'pred after solve. u'
 c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))

@@ -782,6 +782,10 @@ C$OMP BARRIER
 C$OMP BARRIER
 
 #endif /* SOLVE3D */
+#ifdef  NHMG
+      iprec1 = 1+mod(iprec1,2)
+      iprec2 = 1+mod(iprec2,2)
+#endif
 !
 #if defined AGRIF && defined AGRIF_2WAY
 !

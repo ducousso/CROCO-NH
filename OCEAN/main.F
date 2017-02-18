@@ -747,6 +747,10 @@ CR      write(*,*) '  0' MYID
       nbstep3d = 0
 #endif
       iic = ntstart
+#ifdef  NHMG
+      iprec1 = 1
+      iprec2 = 2
+#endif
 
 #ifdef AGRIF
       iind = -1

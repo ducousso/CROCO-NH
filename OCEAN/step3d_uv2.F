@@ -702,28 +702,31 @@ c$$$!
 !      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
 !      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-         do j=Jstr,Jend
+         do j=Jstr-1,Jend+1
             do k=1,N
-               do i=Istr,Iend+1
-                  u(i,j,k,nnew) = grid(1)%ub(k,j,i)
+               do i=Istr-1,Iend+1
+                  nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i)
+                  u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
 !              u(i,j,k,nnew) = u(i,j,k,nnew)
      &                 /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
                enddo
             enddo
          enddo
-         do j=Jstr,Jend+1
+         do j=Jstr-1,Jend+1
             do k=1,N
-               do i=Istr,Iend
-                  v(i,j,k,nnew) = grid(1)%vb(k,j,i)
+               do i=Istr-1,Iend+1
+                  nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)
+                  v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
 !              v(i,j,k,nnew) = v(i,j,k,nnew)
      &                 /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
                enddo
             enddo
          enddo
-         do j=Jstr,Jend
+         do j=Jstr-1,Jend+1
             do k=1,N
-               do i=Istr,Iend
-                  wz(i,j,k,nnew) = grid(1)%wb(k+1,j,i)
+               do i=Istr-1,Iend+1
+                  nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)
+                  wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
 !               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
      &                 * (pm(i,j)*pn(i,j))
                enddo
