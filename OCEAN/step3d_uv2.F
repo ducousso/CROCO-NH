@@ -65,6 +65,7 @@
       USE nhmg, only : nhmg_write_corr_inter
       USE nhmg, only : nhmg_write_corr_out
       USE mg_grids
+      USE mg_tictoc
 #else
       USE nhmg, only : h_write_corr_inter
       USE nhmg, only : h_write_corr_out
@@ -656,30 +657,34 @@ c$$$!
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                        wz(START_2D_ARRAY,0,nnew)) !<=starts at k=0
 #  endif
-
-      do k=1,N
+      call tic(1,'swap corrector')
          do j=Jstr,Jend
-            do i=Istr,Iend+1
-               grid(1)%ub(k,j,i) = u(i,j,k,nnew)
+            do k=1,N
+               do i=Istr,Iend+1
+                  grid(1)%ub(k,j,i) = u(i,j,k,nnew)
 !               u(i,j,k,nnew) = u(i,j,k,nnew)
      &              *0.5*(Hz(i,j,k) + Hz(i-1,j,k)) / pn_u(i,j)
+               enddo
             enddo
          enddo
          do j=Jstr,Jend+1
-           do i=Istr,Iend
-              grid(1)%vb(k,j,i) = v(i,j,k,nnew)
+            do k=1,N
+               do i=Istr,Iend
+                  grid(1)%vb(k,j,i) = v(i,j,k,nnew)
 !              v(i,j,k,nnew) = v(i,j,k,nnew)
-     &             *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
-           enddo
-         enddo
-         do j=Jstr,Jend
-            do i=Istr,Iend
-               grid(1)%wb(k+1,j,i) = wz(i,j,k,nnew) 
-!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &              / (pm(i,j)*pn(i,j))
+     &                 *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
+               enddo
             enddo
          enddo
-      enddo
+         do j=Jstr,Jend
+            do k=1,N
+               do i=Istr,Iend
+                  grid(1)%wb(k+1,j,i) = wz(i,j,k,nnew) 
+!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &                 / (pm(i,j)*pn(i,j))
+               enddo
+            enddo
+         enddo
 
 !      write(*,*) 'corr before solve. S*u'
 !      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
@@ -697,29 +702,34 @@ c$$$!
 !      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
 !      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-      do k=1,N
          do j=Jstr,Jend
-            do i=Istr,Iend+1
-               u(i,j,k,nnew) = grid(1)%ub(k,j,i)
+            do k=1,N
+               do i=Istr,Iend+1
+                  u(i,j,k,nnew) = grid(1)%ub(k,j,i)
 !              u(i,j,k,nnew) = u(i,j,k,nnew)
-     &           /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
+     &                 /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
+               enddo
             enddo
          enddo
          do j=Jstr,Jend+1
-           do i=Istr,Iend
-              v(i,j,k,nnew) = grid(1)%vb(k,j,i)
+            do k=1,N
+               do i=Istr,Iend
+                  v(i,j,k,nnew) = grid(1)%vb(k,j,i)
 !              v(i,j,k,nnew) = v(i,j,k,nnew)
-     &           /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
-           enddo
-         enddo
-         do j=Jstr,Jend
-            do i=Istr,Iend
-               wz(i,j,k,nnew) = grid(1)%wb(k+1,j,i)
-!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &              * (pm(i,j)*pn(i,j))
+     &                 /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
+               enddo
             enddo
          enddo
-      enddo
+         do j=Jstr,Jend
+            do k=1,N
+               do i=Istr,Iend
+                  wz(i,j,k,nnew) = grid(1)%wb(k+1,j,i)
+!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &                 * (pm(i,j)*pn(i,j))
+               enddo
+            enddo
+         enddo
+      call toc(1,'swap corrector')
 
 !      write(*,*) 'corr after solve. u'
 !      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))

@@ -75,6 +75,7 @@
       USE nhmg, only : nhmg_write_pred_in
       USE nhmg, only : nhmg_write_pred_inter
       USE mg_grids
+      use mg_tictoc
 #else
       USE nhmg, only : h_write_pred_in
       USE nhmg, only : h_write_pred_inter
@@ -1037,6 +1038,7 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
 c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
+      call tic(1,'swap predictor')
       do k=1,N
          do j=Jstr,Jend
             do i=IstrU,Iend
@@ -1185,7 +1187,6 @@ c$$$      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
          enddo
       enddo
 
-<<<<<<< HEAD
        do i = 1,Lm+1
           do j = 0,Mm+1
               rufrc(i,j) = grid(1)%rufrcb(j,i)
@@ -1196,9 +1197,8 @@ c$$$      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
               rvfrc(i,j) = grid(1)%rvfrcb(j,i)
           enddo
        enddo
+      call toc(1,'swap predictor')
 
-=======
->>>>>>> 4fb92aa8056855bb48cc4e37d0ce5982f5694c25
 c$$$      write(*,*) 'pred after solve. u'
 c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
