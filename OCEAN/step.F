@@ -702,6 +702,10 @@ C$OMP END MASTER
 #endif
       integer omp_get_num_threads, omp_get_thread_num 
       integer itrc
+
+# if defined NHMG
+      integer, save :: count = 0
+# endif
       
       real t1,t2,t3
 
@@ -720,10 +724,13 @@ C$OMP BARRIER
       enddo
 
 # ifdef NHMG
+      count = count+1
+      if (mod(count,10).eq.0) then
       call nhmg_matrices(
      & Lm,Mm,N,
      & z_r(0:Lm+1,0:Mm+1,1:N),
      &  Hz(0:Lm+1,0:Mm+1,1:N))
+      endif
 # endif
 
 C$OMP BARRIER

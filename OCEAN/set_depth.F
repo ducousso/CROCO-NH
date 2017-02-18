@@ -583,8 +583,8 @@ c$$$#  ifndef NHMG
 #  undef IV_RANGE
 #  undef JV_RANGE
 
-      write(*,*) 'pred after coupling. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+c$$$      write(*,*) 'pred after coupling. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
 
 c$$$#  else
 c$$$

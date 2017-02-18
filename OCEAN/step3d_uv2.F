@@ -127,8 +127,8 @@
 !--------------------------------------------------------------------
 !
 
-      write(*,*) 'corr step3duv2 before visco & coupling. h*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv2 before visco & coupling. h*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
       do j=Jstr,Jend
 !
@@ -513,8 +513,8 @@
 # endif
       enddo      ! <-- j
 
-      write(*,*) 'corr step3duv2 after visco. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv2 after visco. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
 c$$$!
 c$$$!--------------------------------------------------------------------

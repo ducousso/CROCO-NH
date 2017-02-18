@@ -599,9 +599,9 @@ c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp) )
 c$$$      
 c$$$# endif
 
-      write(*,*) 'pred before applying rhs. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+c$$$      write(*,*) 'pred before applying rhs. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
 
 !
 !======================================================================
@@ -808,8 +808,8 @@ c$$$# endif
 !
       enddo     !<-- j
       
-      write(*,*) 'pred after applying rhs. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'pred after applying rhs. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
 # if defined NBQ
 !----------------------------------------------------------
@@ -1031,10 +1031,10 @@ c$$$# endif
 !
 # ifdef NHMG
 
-      write(*,*) 'pred before solve. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+c$$$      write(*,*) 'pred before solve. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
       do k=1,N
          do j=Jstr,Jend
@@ -1090,12 +1090,12 @@ c$$$# endif
      &                        v(START_2D_ARRAY,1,nnew))
 # endif
 
-      write(*,*) 'pred before solve. S*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-      write(*,*) 'pred before solve. V*u/dt'
-      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
+c$$$      write(*,*) 'pred before solve. S*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+c$$$      write(*,*) 'pred before solve. V*u/dt'
+c$$$      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
 
       call nhmg_solve(
      & Lm, Mm, N,
@@ -1106,12 +1106,12 @@ c$$$# endif
      & rufrc(1:Lm+1,0:Mm+1),
      & rvfrc(0:Lm+1,1:Mm+1) )
 
-      write(*,*) 'pred after solve. S*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-      write(*,*) 'pred after solve. V*u/dt'
-      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
+c$$$      write(*,*) 'pred after solve. S*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+c$$$      write(*,*) 'pred after solve. V*u/dt'
+c$$$      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
 
       do k=1,N
          do j=Jstr,Jend
@@ -1160,10 +1160,10 @@ c$$$# endif
          enddo
       enddo
 
-      write(*,*) 'pred after solve. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+c$$$      write(*,*) 'pred after solve. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 # endif
 
