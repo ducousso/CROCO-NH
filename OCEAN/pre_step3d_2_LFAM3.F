@@ -1069,24 +1069,23 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
      &           /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
            enddo
          enddo
-!#  ifndef NS_PERIODIC
          if (SOUTHERN_EDGE) then
+            j = JstrV-1
             do i=Istr,Iend
-               v(i,JstrV-1,k,nnew) = v(i,JstrV-1,k,nnew) 
-     &     + (1.5*nhdv(i,JstrV-1,k,iprec1)-0.5*nhdv(i,JstrV-1,k,iprec2))
-     &              /Hz_half(i,JstrV-1,k) * pm_v(i,JstrV-1)
+               v(i,j,k,nnew) = v(i,j,k,nnew) 
+     &     + (1.5*nhdv(i,j+1,k,iprec1)-0.5*nhdv(i,j+1,k,iprec2))
+     &              /Hz_half(i,j+1,k) * pm_v(i,j)
                
             enddo
          endif
          if (NORTHERN_EDGE) then
+            j = Jend+1
             do i=Istr,Iend
-               v(i,Jend+1,k,nnew) = v(i,Jend+1,k,nnew) 
-     &     +(1.5*nhdv(i,Jend+1,k,iprec1)-0.5*nhdv(i,Jend+1,k,iprec2) )
-     &              /Hz_half(i,Jend,k) * pm_v(i,Jend+1)
-               
+               v(i,j,k,nnew) = v(i,j,k,nnew) 
+     &     +(1.5*nhdv(i,j-1,k,iprec1)-0.5*nhdv(i,j-1,k,iprec2) )
+     &              /Hz_half(i,j-1,k) * pm_v(i,j)               
             enddo
          endif
-!#  endif
          do j=Jstr,Jend
             do i=Istr,Iend
                wz(i,j,k,nnew) = wz(i,j,k,nnew) 
@@ -1098,8 +1097,8 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
       cff = 1./cdt
       do k=1,N
-         do j = 0,Mm+1
-            do i = 0,Lm+1
+         do j = 1,Mm
+            do i = 1,Lm
               rufrc(i,j) = rufrc(i,j) + (1.5*nhdu(i,j,k,iprec1)
      &           -0.5*nhdu(i,j,k,iprec2)) * pn_u(i,j) * cff
               rvfrc(i,j) = rvfrc(i,j)+(1.5*nhdv(i,j,k,iprec1)
