@@ -1039,6 +1039,7 @@ c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
 c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
       if (iic.ge.(ntstart+2)) then
+!      if (iic.lt.0) then
       call tic(1,'AB2 del q')
 
       do k=1,N
@@ -1100,9 +1101,9 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
          do j = 0,Mm+1
             do i = 0,Lm+1
               rufrc(i,j) = rufrc(i,j) + (1.5*nhdu(i,j,k,iprec1)
-     &           -0.5*nhdu(i,j,k,iprec2)) / pm_u(i,j) * cff
+     &           -0.5*nhdu(i,j,k,iprec2)) * pn_u(i,j) * cff
               rvfrc(i,j) = rvfrc(i,j)+(1.5*nhdv(i,j,k,iprec1)
-     &             -0.5*nhdv(i,j,k,iprec2)) / pn_v(i,j) * cff
+     &             -0.5*nhdv(i,j,k,iprec2)) * pm_v(i,j) * cff
            enddo
         enddo
       enddo
