@@ -77,8 +77,8 @@
       USE mg_grids
       use mg_tictoc
 #else
-      USE nhmg, only : h_write_pred_in
-      USE nhmg, only : h_write_pred_inter
+!      USE nhmg, only : h_write_pred_in
+!      USE nhmg, only : h_write_pred_inter
 #endif
       implicit none
 # include "param.h"
