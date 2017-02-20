@@ -402,10 +402,10 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
             enddo
           enddo       !--> discard DC,CF(:,0)
         endif
-
-# if defined NHMG
 !
-! Implicit diffusion on w...
+# if defined NHMG
+!--------------------------------------------------------------------
+! Time step momentum equation in the s-direction.
 !
 # ifdef DIAGNOSTICS_UV
         write(*,*)"DIAGNOSTICS_UV and NHMG cpp keys are incompatible"
@@ -415,6 +415,7 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 !          enddo
 !        enddo
 # endif
+
         do i=Istr,Iend
           FC(i,0)=0.
           FC(i,N)=0.
@@ -518,6 +519,8 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 c$$$      write(*,*) 'corr step3duv2 after visco. u'
 c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
+
+
 !
 # ifdef DIAGNOSTICS_UV
       do k=1,N
@@ -604,135 +607,48 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 ! Non-hydro projection of momentum
 !--------------------------------------------------------------------
 !
-!      write(*,*) 'corr before solve. u'
-!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-!      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-#  if defined MPI
+#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
      &                        u(START_2D_ARRAY,1,nnew))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                        v(START_2D_ARRAY,1,nnew))
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        wz(START_2D_ARRAY,0,nnew)) !<=starts at k=0
 #  endif
+
       call tic(1,'swap corrector')
+      
+      call nhmg_solve(u(:,:,:,nnew),
+     &                v(:,:,:,nnew),
+     &                wz(:,:,:,nnew),
+     &                Hz,.false.)
+
+      do k=1,N
          do j=Jstr,Jend
-            do k=1,N
-               do i=Istr,Iend+1
-                  grid(1)%ub(k,j,i) = u(i,j,k,nnew)
-!               u(i,j,k,nnew) = u(i,j,k,nnew)
-     &              *0.5*(Hz(i,j,k) + Hz(i-1,j,k)) / pn_u(i,j)
-               enddo
+            do i=Istr,Iend+1
+               nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i)
+               u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
+     &              /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
             enddo
          enddo
+
          do j=Jstr,Jend+1
-            do k=1,N
-               do i=Istr,Iend
-                  grid(1)%vb(k,j,i) = v(i,j,k,nnew)
-!              v(i,j,k,nnew) = v(i,j,k,nnew)
-     &                 *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
-               enddo
+            do i=Istr,Iend
+               nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)
+               v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
+     &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
             enddo
          enddo
-         do j=Jstr,Jend
-            do k=1,N
-               do i=Istr,Iend
-                  grid(1)%wb(k+1,j,i) = wz(i,j,k,nnew) 
-!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &                 / (pm(i,j)*pn(i,j))
-               enddo
-            enddo
-         enddo
-
-!      write(*,*) 'corr before solve. S*u'
-!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-!      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-
-      call nhmg_solve()
-!     &     Lm, Mm, N,
-!     &     u(1:Lm+1,0:Mm+1,1:N,nnew),
-!     &     v(0:Lm+1,1:Mm+1,1:N,nnew),
-!     &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-   
-!      write(*,*) 'corr after solve. S*u'
-!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-!      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
          do j=Jstr,Jend
-            do k=1,N
-               do i=IstrU,Iend
-                  nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i)
-                  u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
-     &                 /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
-               enddo
-            enddo
-            if (WESTERN_EDGE) then
-               i=IstrU-1
-               do k=1,N
-                  nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i+1)
-                  u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i+1)
-     &                 /Hz(i+1,j,k) * pn_u(i,j)
-               enddo
-            endif
-            if (EASTERN_EDGE) then
-               i=Iend+1
-               do k=1,N
-                  nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i-1)
-                  u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i-1)
-     &                 /Hz(i-1,j,k) * pn_u(i,j)
-               enddo
-            endif
-         enddo
-         do j=JstrV,Jend
-            do k=1,N
-               do i=Istr,Iend
-                  nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)
-                  v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
-     &                 /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
-               enddo
+            do i=Istr,Iend
+               nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)
+               wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
+     &              * (pm(i,j)*pn(i,j))
             enddo
          enddo
-         if (SOUTHERN_EDGE) then
-            j=JstrV-1
-            do k=1,N
-               do i=Istr,Iend
-                  nhdv(i,j,k,iprec1) = grid(1)%dv(k,j+1,i)
-                  v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j+1,i)
-     &              /Hz(i,j+1,k) * pm_v(i,j)
-               enddo
-            enddo
-         endif
-         if (NORTHERN_EDGE) then
-            j=Jend+1
-            do k=1,N
-               do i=Istr,Iend
-                  nhdv(i,j,k,iprec1) = grid(1)%dv(k,j-1,i)
-                  v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j-1,i)
-     &              /Hz(i,j-1,k) * pm_v(i,j)
-               enddo
-            enddo
-         endif
+      enddo
 
-         do j=Jstr,Jend
-            do k=1,N
-               do i=Istr,Iend
-                  nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)
-                  wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
-!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &                 * (pm(i,j)*pn(i,j))
-               enddo
-            enddo
-         enddo
       call toc(1,'swap corrector')
-
-!      write(*,*) 'corr after solve. u'
-!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-!      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 # endif    /* NHMG */
 
@@ -1058,33 +974,6 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 !
         endif  !<-- j.ge.Jstr
       enddo    !<-- j loop
-
-!      write(*,*) 'corr step3duv2 after coupling. u'
-!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-
-# ifdef NHMG
-      ! barotropic coupling on wz
-      ! since Huon and Hvon are corrected
-      ! we can either correct wz by distributing a 
-      ! linear vertical profile on wz OR
-      ! recompute (and overwrite) wz by
-      ! vertically integrating the horizontal fluxes
-      do j=Jstr,Jend
-        ! the three lines below should be useless as wz(:,:,0,:) should 
-        ! be already equal to 0
-!        do i=Istr,Iend
-!           wz(i,j,0,nnew) = 0.
-!        enddo
-        do k=1,N          
-          DC(i,0)=pm(i,j)*pn(i,j)
-          do i=Istr,Iend
-            wz(i,j,k,nnew)=wz(i,j,k-1,nnew) 
-     &      - DC(i,0)*( Huon(i+1,j,k)-Huon(i,j,k)
-     &                 +Hvom(i,j+1,k)-Hvom(i,j,k) )
-          enddo
-        enddo
-      enddo
-# endif
 !
 !
 !--------------------------------------------------------------------
@@ -1211,10 +1100,6 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
      &                                 u(START_2D_ARRAY,1,nnew))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                                 v(START_2D_ARRAY,1,nnew))
-#  if defined NHMG
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                                 wz(START_2D_ARRAY,0,nnew)) 
-#  endif
 
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend, 
      &                                   Huon(START_2D_ARRAY,1))
@@ -1225,13 +1110,39 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
      &                                   ubar(START_2D_ARRAY,knew))
       call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
      &                                   vbar(START_2D_ARRAY,knew))
-#   if defined TS_MIX_ISO || defined TS_MIX_GEO
+#  if defined TS_MIX_ISO || defined TS_MIX_GEO
       call exchange_u3d_tile (istr,iend,jstr,jend, dRdx  )
       call exchange_v3d_tile (istr,iend,jstr,jend, dRde  )
 #  endif
 # endif
+!
+!--------------------------------------------------------------------
+! Coupling wz
+!--------------------------------------------------------------------
+!
+# ifdef NHMG
+      do j=Jstr,Jend
+        do k=1,N          
+          DC(i,0)=pm(i,j)*pn(i,j)
+          do i=Istr,Iend
+            ! at this time, Huon and Hvom CANNOT used : they are 
+            ! defined at n+1/2 instead of n+1
+            wz(i,j,k,nnew)=wz(i,j,k-1,nnew) 
+     &      - DC(i,0)*( 
+     &       +0.5*(Hz(i,j,k)+Hz(i+1,j,k))*on_u(i+1,j)*u(i+1,j,k,nnew)
+     &       -0.5*(Hz(i-1,j,k)+Hz(i,j,k))*on_u(i,j)*u(i,j,k,nnew)
+     &       +0.5*(Hz(i,j,k)+Hz(i,j+1,k))*om_v(i,j+1)*v(i,j+1,k,nnew)
+     &       -0.5*(Hz(i,j-1,k)+Hz(i,j,k))*om_v(i,j)*v(i,j,k,nnew) )
+          enddo
+        enddo
+      enddo
 
+#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                                 wz(START_2D_ARRAY,0,nnew)) 
+#  endif
 
+# endif
 !
       return
       end

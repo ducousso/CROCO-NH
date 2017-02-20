@@ -734,7 +734,7 @@
 */
 # undef OPENMP
 # define MPI
-# undef NHMG
+# define NHMG
 # undef CLOSED
 # ifdef CLOSED
 #  undef OBC_EAST

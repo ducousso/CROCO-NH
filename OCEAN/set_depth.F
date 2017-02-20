@@ -245,9 +245,7 @@ C$    integer omp_get_thread_num
       end
 
       subroutine set_HUV_tile (Istr,Iend,Jstr,Jend)
-#ifdef NHMG
-      USE nhmg, only : nhmg_fluxes
-#endif
+
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
 #  include "param.h"
@@ -259,8 +257,6 @@ C$    integer omp_get_thread_num
 #    include "forces.h"
 #  endif
 #  include "compute_auxiliary_bounds.h"
-!
-c$$$#  ifndef NHMG
 !
 #  ifdef EW_PERIODIC 
 #   define IU_RANGE Istr,Iend
@@ -321,18 +317,6 @@ c$$$#  ifndef NHMG
 #  undef JU_RANGE
 #  undef IV_RANGE
 #  undef JV_RANGE
-
-c$$$#  else
-c$$$
-c$$$      call nhmg_fluxes(
-c$$$     & Lm, Mm, N,
-c$$$     & u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-c$$$     & v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-c$$$     & wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
-c$$$     & Huon(1:Lm+1,0:Mm+1,1:N),
-c$$$     & Hvom(0:Lm+1,1:Mm+1,1:N) )
-c$$$
-c$$$#  endif
 !
 ! Exchange periodic boundaries, if so prescribed.
 !
@@ -467,8 +451,6 @@ C$    integer omp_get_thread_num
 
       subroutine set_HUV2_tile (Istr,Iend,Jstr,Jend,DC,FC)
 #ifdef NHMG
-      USE nhmg, only : nhmg_bbc
-      USE nhmg, only : nhmg_coupling
       USE nhmg, only : nhmg_write_pred_out
 #else
       USE nhmg, only : h_write_pred_out
@@ -487,8 +469,6 @@ C$    integer omp_get_thread_num
 #  include "coupling.h"
 !
 #  include "compute_auxiliary_bounds.h"
-!
-c$$$#  ifndef NHMG
 !
 #  ifdef EW_PERIODIC
 #   define IU_RANGE Istr,Iend
@@ -582,36 +562,6 @@ c$$$#  ifndef NHMG
 #  undef JU_RANGE
 #  undef IV_RANGE
 #  undef JV_RANGE
-
-c$$$      write(*,*) 'pred after coupling. u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
-
-c$$$#  else
-c$$$
-c$$$#   if defined MPI
-c$$$      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        DU_avg2(START_2D_ARRAY))
-c$$$      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        DV_avg2(START_2D_ARRAY))
-c$$$#   endif
-c$$$
-c$$$      call nhmg_bbc(
-c$$$     & Lm, Mm, N,
-c$$$     & u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-c$$$     & v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nrhs) )
-c$$$
-c$$$      call nhmg_coupling(
-c$$$     & Lm, Mm, N,
-c$$$     & DU_avg2(1:Lm+1,0:Mm+1),
-c$$$     & DV_avg2(0:Lm+1,1:Mm+1),
-c$$$     & u(1:Lm+1,0:Mm+1,1:N,nrhs),
-c$$$     & v(0:Lm+1,1:Mm+1,1:N,nrhs),
-c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nrhs),
-c$$$     & Huon(1:Lm+1,0:Mm+1,1:N),
-c$$$     & Hvom(0:Lm+1,1:Mm+1,1:N) )
-c$$$
-c$$$#  endif
 !
 ! Exchange periodic boundaries, if so prescribed.
 !
@@ -629,7 +579,29 @@ c$$$#  endif
      &                                  wz(START_2D_ARRAY,0,nrhs))     
 #  endif
 #  endif
+!
+! Coupling wz
+!
+# ifdef NHMG
+      do j=Jstr,Jend
+        do k=1,N          
+          DC(i,0)=pm(i,j)*pn(i,j)
+          do i=Istr,Iend
+            ! at this time, Huon and Hvom can used : they are 
+            ! defined at n+1/2
+            wz(i,j,k,nnew)=wz(i,j,k-1,nnew) 
+     &      - DC(i,0)*( Huon(i+1,j,k)-Huon(i,j,k)
+     &                 +Hvom(i,j+1,k)-Hvom(i,j,k) )
+          enddo
+        enddo
+      enddo
 
+#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                                 wz(START_2D_ARRAY,0,nnew)) 
+#  endif
+
+# endif
 
 c$$$#ifdef NHMG
 c$$$

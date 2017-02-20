@@ -724,13 +724,13 @@ C$OMP BARRIER
       enddo
 
 # ifdef NHMG
-      count = count+1
-      if (mod(count,10).eq.0) then
+!      count = count+1
+!      if (mod(count,10).eq.0) then
       call nhmg_matrices(
      & Lm,Mm,N,
      & z_r(0:Lm+1,0:Mm+1,1:N),
      &  Hz(0:Lm+1,0:Mm+1,1:N))
-      endif
+!      endif
 # endif
 
 C$OMP BARRIER

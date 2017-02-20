@@ -2128,7 +2128,7 @@ C$    integer  trd, omp_get_thread_num
         enddo
 #  endif
 #  if defined SOLVE3D && defined W_FRC_BRY
-        do k=0,N
+        do k=1,N
            do j=JstrR,JendR
 #    if defined SEAMOUNT
               wbry_west(j,k)=0.
@@ -2208,7 +2208,7 @@ C$    integer  trd, omp_get_thread_num
         enddo
 #  endif
 #  if defined SOLVE3D && defined W_FRC_BRY
-        do k=0,N
+        do k=1,N
            do j=JstrR,JendR
 #    if defined SEAMOUNT
               wbry_east(j,k)=0.
@@ -2276,7 +2276,7 @@ C$    integer  trd, omp_get_thread_num
         enddo
 #  endif
 #  if defined SOLVE3D && defined W_FRC_BRY
-        do k=0,N
+        do k=1,N
           do i=IstrR,IendR
 #   if defined SEAMOUNT
             wbry_south(i,k)=0.
@@ -2344,7 +2344,7 @@ C$    integer  trd, omp_get_thread_num
         enddo
 #  endif
 #  if defined SOLVE3D && defined W_FRC_BRY
-        do k=O,N
+        do k=1,N
           do i=IstrR,IendR
 #   if defined SEAMOUNT
             wbry_north(i,k)=0.
