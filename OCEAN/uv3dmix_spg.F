@@ -633,8 +633,7 @@
       enddo
 # endif /* UV_MIX_S_SPONGE */
 
-!# if defined NBQ || defined NHMG
-# if defined NBQ
+# if defined NBQ || defined NHMG
 !==================================================================
 !
 ! WZ horizontal Laplacian diffusion along constant S-surfaces.
@@ -671,9 +670,10 @@
 !
         do j=Jstr,Jend
           do i=Istr,Iend
-            cff1=pm(i,j)*pn(i,j)
+            cff1=pm(i,j)*pn(i,j) /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
             wz(i,j,k,indx)=wz(i,j,k,indx)+dt*cff1*(FX(i+1,j)-FX(i,j)
      &                                           + FE(i,j+1)-FE(i,j))
+
           enddo
         enddo
       enddo ! 1,N-1
@@ -698,7 +698,7 @@
       enddo
       do j=Jstr,Jend
         do i=Istr,Iend
-          cff1=pm(i,j)*pn(i,j)
+          cff1=pm(i,j)*pn(i,j) /(0.5*(Hz(i,j,N)))
           wz(i,j,N,indx)=wz(i,j,N,indx)+dt*cff1*(FX(i+1,j)-FX(i,j)
      &                                         + FE(i,j+1)-FE(i,j))
         enddo

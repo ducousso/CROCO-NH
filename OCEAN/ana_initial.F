@@ -678,11 +678,13 @@ C$    integer omp_get_thread_num
         do k=1,N
           do j=JR_RANGE
             do i=IR_RANGE
-              t(i,j,k,1,itemp)=min(3.+46.*exp(z_r(i,j,k)/250.),28.)
+              t(i,j,k,1,itemp)=15. + 10./1300.*z_r(i,j,k)
+!              t(i,j,k,1,itemp)=min(3.+46.*exp(z_r(i,j,k)/250.),28.)
               t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
 #   ifdef SALINITY
-              t(i,j,k,1,isalt)=34.54+3.5*exp(z_r(i,j,k)/250.)
-     &         * sin(-z_r(i,j,k)/(1-z_r(i,j,k)/6000.)*2*3.14/1000.)
+              t(i,j,k,1,isalt)=34.54
+!              t(i,j,k,1,isalt)=34.54+3.5*exp(z_r(i,j,k)/250.)
+!     &         * sin(-z_r(i,j,k)/(1-z_r(i,j,k)/6000.)*2*3.14/1000.)
               t(i,j,k,2,isalt)=t(i,j,k,1,isalt)
 #   endif
             enddo

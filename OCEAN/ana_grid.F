@@ -117,11 +117,13 @@ C$    integer omp_get_thread_num
                      beta=0.
 # elif defined SEAMOUNT
                      depth=4500.
-                     f0=1.E-4
+!                     f0=1.E-4
+                     f0=0.
                      beta=0.
 # elif defined CALDEIRA
                      depth=1300.
-                     f0=0.5E-4
+!                     f0=0.5E-4
+                     f0=0.
                      beta=0.
 # elif defined SHELFRONT
                      depth=1660.
@@ -411,8 +413,8 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
         do i=IstrR,IendR
 !          h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
 !     &                                  (yr(i,j)-0.5*el)**2))) 
-          h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2)))
-!          h(i,j)=depth
+!          h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2)))
+          h(i,j)=depth
         enddo
       enddo
 # elif defined CALDEIRA
@@ -423,6 +425,7 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
 !     &                                  (yr(i,j)-0.5*el)**2))) 
           h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
      &                                  (yr(i,j)-0.5*el)**2))) 
+!          h(i,j)=depth
         enddo
       enddo
 # elif defined SHELFRONT

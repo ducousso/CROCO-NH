@@ -48,7 +48,6 @@
 # include "compute_auxiliary_bounds.h"
 !
 
-
 c$$$# ifdef NHMG
 c$$$
 c$$$      call nhmg_write_corr_in(

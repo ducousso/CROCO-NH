@@ -405,45 +405,6 @@
       write(*,*) 'corr step3duv2 after visco. u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
-c$$$!
-c$$$!--------------------------------------------------------------------
-c$$$! Non-hydro coupling
-c$$$!--------------------------------------------------------------------
-c$$$!
-c$$$# ifdef NHMG
-c$$$
-c$$$#  if defined MPI
-c$$$      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        DU_avg1(START_2D_ARRAY,nnew))
-c$$$      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        DV_avg1(START_2D_ARRAY,nnew))
-c$$$      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        u(START_2D_ARRAY,1,nnew))
-c$$$      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        v(START_2D_ARRAY,1,nnew))
-c$$$      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        wz(START_2D_ARRAY,0,nnew))
-c$$$#  endif
-c$$$
-c$$$      call nhmg_bbc(
-c$$$     & Lm, Mm, N,
-c$$$     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-c$$$
-c$$$      call nhmg_coupling(
-c$$$     & Lm, Mm, N,
-c$$$     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
-c$$$     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
-c$$$     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-c$$$     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-c$$$
-c$$$# endif
-c$$$!
-c$$$!--------------------------------------------------------------------
-c$$$!
-
 !
 # ifdef DIAGNOSTICS_UV
       do k=1,N
@@ -521,8 +482,7 @@ c$$$!
 !
       call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
       call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
-
-
+!
 # ifdef NHMG
 !
 !--------------------------------------------------------------------
@@ -604,7 +564,7 @@ c$$$!
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-# endif   
+# endif    /* NHMG */
 
 c$$$# ifdef NHMG
 c$$$

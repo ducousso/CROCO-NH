@@ -832,14 +832,6 @@ c$$$# endif
 #  endif
      &                                                            )
      &                     ) * 2./ (Hz_half(i,j,k)+Hz_half(i,j,k+1)) !<-- wz has units m.s-1
-!            wz(i,j,k,nnew)=( wz(i,j,k,nstp)*(Hz(i,j,k)+Hz(i,j,k+1))
-!     &                                          +dt*pn(i,j)*pm(i,j)
-!     &                              *(rw(i,j,k)
-!#  ifdef NBQ
-!     &                                         +rw_nbq_avg1(i,j,k)
-!#  endif
-!     &                                                            )
-!     &                     )   /  (Hz_half(i,j,k)+Hz_half(i,j,k+1)) !<-- wz has units m.s-1
 
             wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+
      &                                         Hz(i,j,k+1)) !<-- wz(indx) has units kg.m-1.s-1
@@ -861,14 +853,6 @@ c$$$# endif
 #  endif
      &                                               )
      &                     ) * 2. /  Hz_half(i,j,N) !<-- wz has units m.s-1
-!            wz(i,j,N,nnew)=( wz(i,j,N,nstp)*Hz(i,j,N)
-!     &                            +dt*pn(i,j)*pm(i,j)
-!     &                *(rw(i,j,N)
-!#  ifdef NBQ
-!     &                            +rw_nbq_avg1(i,j,N)
-!#  endif
-!     &                                               )
-!     &                     )        /  Hz_half(i,j,N) !<-- wz has units m.s-1
 
             wz(i,j,N,indx)=wz(i,j,N,nstp)*0.5*Hz(i,j,N) !<-- wz(indx) has units kg.m-1.s-1
 #  ifdef NBQ
@@ -897,17 +881,6 @@ c$$$# endif
 #  endif
      &                                                          )
      &                      ) * 2./ (Hz_half(i,j,k)+Hz_half(i,j,k+1))  !<-- wz has units m.s-1
-!             wz(i,j,k,nnew)=( cff1*wz(i,j,k,nstp)*(Hz(i,j,k  )+
-!     &                                             Hz(i,j,k+1))
-!     &                       +cff2*wz(i,j,k,indx)*(Hz_bak(i,j,k  )+
-!     &                                             Hz_bak(i,j,k+1))
-!     &                       +2.*cdt*pn(i,j)*pm(i,j)
-!     &                              *(rw(i,j,k)
-!#  ifdef NBQ
-!     &                                       +rw_nbq_avg1(i,j,k)
-!#  endif
-!     &                                                          )
-!     &                      ) / (Hz_half(i,j,k)+Hz_half(i,j,k+1))  !<-- wz has units m.s-1
 
              wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+
      &                                          Hz(i,j,k+1)) !<-- wz(indx) has units kg.m-1.s-1
@@ -932,15 +905,6 @@ c$$$# endif
 #  endif
      &                                                        )
      &                      ) * 2. / Hz_half(i,j,N)                !<-- wz has units m.s-1
-!             wz(i,j,N,nnew)=( cff1*wz(i,j,N,nstp)*Hz    (i,j,N)
-!     &                       +cff2*wz(i,j,N,indx)*Hz_bak(i,j,N)
-!     &                       +2.*cdt*pn(i,j)*pm(i,j)
-!     &                          *(rw(i,j,N)
-!#  ifdef NBQ
-!     &                                     +rw_nbq_avg1(i,j,N)
-!#  endif
-!     &                                                        )
-!     &                      )/ Hz_half(i,j,N)                !<-- wz has units m.s-1
 
              wz(i,j,N,indx)=wz(i,j,N,nstp)*0.5*Hz(i,j,N)   !<-- wz(indx) has units kg.m-1.s-1
 #  ifdef NBQ
@@ -966,15 +930,20 @@ c$$$# endif
 !==
       if (FIRST_TIME_STEP) then
 !==        
-        do k=1,N
+        do k=1,N-1
           do i=Istr,Iend
              ! rw is a tendency*horizontal area
              ! wz(:,:,:,nstp) and wz(:,:,:,indx) are velocity
              ! wz(:,:,:,nnew) is velocity 
-             cff = (pn(i,j)*pm(i,j))
+             cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
              wz(i,j,k,nnew)=wz(i,j,k,nstp) + cdt * rw(i,j,k)*cff
              wz(i,j,k,indx)=wz(i,j,k,nstp)
           enddo
+        enddo
+        do i=Istr,Iend
+           cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,N)))
+           wz(i,j,N,nnew)=wz(i,j,N,nstp) + cdt * rw(i,j,N)*cff
+           wz(i,j,N,indx)=wz(i,j,N,nstp)
         enddo
 !==        
       else  ! NOT FIRST_TIME_STEP
@@ -982,20 +951,28 @@ c$$$# endif
         cff1=0.5+gamma
         cff2=0.5-gamma
 !==        
-        do k=1,N
-          do i=Istr,Iend
-             cff = (pn(i,j)*pm(i,j))
-             wz(i,j,k,nnew)= 
-     & (cff1*wz(i,j,k,nstp) + cff2*wz(i,j,k,indx)) 
-     &                       +cdt*rw(i,j,k)*cff
-          enddo
-       enddo              
-!==                  
+        do k=1,N-1
+           do i=Istr,Iend
+              cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
+              wz(i,j,k,nnew)= 
+     &             (cff1*wz(i,j,k,nstp) + cff2*wz(i,j,k,indx)) 
+     &             +cdt*rw(i,j,k)*cff
+              wz(i,j,k,indx)=wz(i,j,k,nstp)
+           enddo
+        enddo     
+        do i=Istr,Iend
+           cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,N)))
+           wz(i,j,N,nnew)= 
+     &          (cff1*wz(i,j,N,nstp) + cff2*wz(i,j,N,indx)) 
+     &          +cdt*rw(i,N,k)*cff
+           wz(i,j,N,indx)=wz(i,j,N,nstp)
+        enddo
+!==   
       endif
 
       enddo
 !==
-# endif /* NNMG */
+# endif /* NHMG */
 !
 !======================================================================
 ! Set PHYSICAL lateral boundary conditions for tracers.

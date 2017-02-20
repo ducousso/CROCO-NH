@@ -2,7 +2,7 @@ title:
 	Caldeira
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-               1000000      100     100       1
+                1000      100     100       1
 
 S-coord: THETA_S,   THETA_B,    Hc (m)
          1.0d0      4.0d0       10.d0
@@ -27,7 +27,7 @@ averages: NTSAVG, NAVG, NRPFAVG / filename
 primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
                           T    T   T   T  T    30*T
 auxiliary_history_fields:   rho Omega W  Akv  Akt  Aks Visc3d Diff3d  HBL HBBL Bostr Wstr Ustr Vstr Shfl rsw rlw lat sen Hm HEL BIOL
-                             T   F    T   F    T    F   F      F       F   T    F     20*F
+                             T   T    T   F    T    F   F      F       F   T    F     20*F
 
 gls_history_fields:   Akk Akp  TKE  GLS  Lscale
                        T   T    T     T    T

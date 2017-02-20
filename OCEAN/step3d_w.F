@@ -74,19 +74,36 @@
 !  Apply right-hand-side
 !--------------------------------------------------------------------
 !
+
+!      do j=Jstr,Jend
+!        do k=1,N
+!          do i=Istr,Iend
+!            wz(i,j,k,nnew)=wz(i,j,k,nnew)
+!     &            +dt*pn(i,j)*pm(i,j)*(rw(i,j,k)
+!# ifdef NBQ
+!     &                                          +rw_nbq_avg2(i,j,k)
+!# endif
+!     &                                                             )
+!          enddo
+!        enddo
+!      enddo
+
       do j=Jstr,Jend
-        do k=1,N
+        do k=1,N-1
           do i=Istr,Iend
             wz(i,j,k,nnew)=wz(i,j,k,nnew)
-     &            +dt*pn(i,j)*pm(i,j)*(rw(i,j,k)
-# ifdef NBQ
-     &                                          +rw_nbq_avg2(i,j,k)
-# endif
-     &                                                             )
+     &            +dt*pn(i,j)*pm(i,j)*rw(i,j,k)
+     &            /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
           enddo
+        enddo
+        do i=Istr,Iend
+           wz(i,j,N,nnew)=wz(i,j,N,nnew)
+     &          +dt*pn(i,j)*pm(i,j)*rw(i,N,k)
+     &          /(0.5*Hz(i,j,N))
         enddo
       enddo
 
+!care all the vert mixing part is lacking
 
 !
 !--------------------------------------------------------------------

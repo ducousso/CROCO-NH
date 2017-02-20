@@ -337,6 +337,10 @@
 
 # if defined EW_PERIODIC || defined NS_PERIODIC  || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend, We(START_2D_ARRAY,0))
+#ifdef NHMG
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend, 
+     &     wz(START_2D_ARRAY,0,nrhs))
+#endif
 #ifdef VADV_ADAPT_IMP       
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend, Wi(START_2D_ARRAY,0))
 #endif      

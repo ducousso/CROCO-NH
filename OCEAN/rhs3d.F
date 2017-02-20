@@ -1024,6 +1024,17 @@ ccc            dvde =0.5*( v(i,j-1,k,nrhs) -v(i,j+1,k,nrhs) )
 !
 !======================================================================
 !
+! Add 
+!
+!======================================================================
+!
+# ifdef NHMG
+
+# endif   /* NHMG */
+
+!
+!======================================================================
+!
 !  Start computation of the forcing terms for the 2D (barotropic
 !  mode) momentum equations: vertically integrate the just computed
 !  r.h.s "ru" and "rv". Also, if so prescribed, add in the
