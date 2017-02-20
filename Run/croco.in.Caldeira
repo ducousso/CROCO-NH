@@ -2,7 +2,7 @@ title:
 	Caldeira
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                1000      100     100       1
+               10000      100     100       1
 
 S-coord: THETA_S,   THETA_B,    Hc (m)
          1.0d0      4.0d0       10.d0
@@ -16,7 +16,7 @@ restart:          NRST, NRPFRST / filename
                           caldeira_rst.nc
 
 history: LDEFHIS, NWRT, NRPFHIS / filename 
-            T     10      1000 
+            T     100      1000 
                           caldeira_his.nc
 
 averages: NTSAVG, NAVG, NRPFAVG / filename

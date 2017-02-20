@@ -12,5 +12,5 @@
        interp_type    = 'linear',      !- linear or nearest
        restrict_type  = 'avg',         !- linear or avg
        netcdf_output  = .false.,       !- .false. or .true.
-       check_output   = .true.,       !- .false. or .true.
+       check_output   = .false.,       !- .false. or .true.
 /

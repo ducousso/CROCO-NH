@@ -64,6 +64,8 @@
 !      USE nhmg, only : nhmg_coupling
       USE nhmg, only : nhmg_write_corr_inter
       USE nhmg, only : nhmg_write_corr_out
+      USE mg_grids
+      USE mg_tictoc
 #else
       USE nhmg, only : h_write_corr_inter
       USE nhmg, only : h_write_corr_out
@@ -127,8 +129,8 @@
 !--------------------------------------------------------------------
 !
 
-      write(*,*) 'corr step3duv2 before visco & coupling. h*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv2 before visco & coupling. h*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
       do j=Jstr,Jend
 !
@@ -400,10 +402,121 @@
             enddo
           enddo       !--> discard DC,CF(:,0)
         endif
+
+# if defined NHMG
+!
+! Implicit diffusion on w...
+!
+# ifdef DIAGNOSTICS_UV
+        write(*,*)"DIAGNOSTICS_UV and NHMG cpp keys are incompatible"
+        stop
+!        do k=1,N
+!          do i=Istr,Iend
+!          enddo
+!        enddo
+# endif
+        do i=Istr,Iend
+          FC(i,0)=0.
+          FC(i,N)=0.
+# ifdef VADV_ADAPT_IMP
+          DC(i,0)=dt*pm(i,j)*pn(i,j)
+          WC(i,0)=0.
+          WC(i,N)=0.
+# endif
+        enddo
+
+        do k=1,N-1
+          do i=Istr,Iend
+             !Akv(i,j,k) sits at the same place as wz(i,j,k)
+            FC(i,k)=-0.5*dt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k)
+# ifdef VADV_ADAPT_IMP
+        write(*,*)"VADV_ADAPT_IMP and NHMG cpp keys are incompatible"
+        stop
+!TODO            WC(i,k)=DC(i,0)*0.5*(Wi(i,j,k)+Wi(i-1,j,k))
+# endif
+          enddo
+        enddo
+
+        do k=1,N-1 ! <= difference with u and v
+          do i=Istr,Iend
+            DC(i,k)=wz(i,j,k,nnew)*0.5*( Hz(i,j,k)+Hz(i,j,k+1) )
+            BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1))-FC(i,k)-FC(i,k-1)
+# ifdef VADV_ADAPT_IMP
+!TODO     &              +max(WC(i,k  ),0.)-min(WC(i,k-1),0.)
+# endif
+          enddo
+          ! this is the surface Dirichlet BC for vertical mixing
+        enddo      !--> discard DC(:,0); keep FC
+        k=N
+        DC(i,k)=wz(i,j,k,nnew)   ! no multiplication by *0.5*Hz(i,j,k) !!!
+!
+! Apply wind forcing.
+!
+# ifndef BODYFORCE
+! the wind does not force W
+# endif
+        do i=Istr,Iend
+          cff=1./BC(i,1)
+          CF(i,1)=cff*( FC(i,1)                  !<-- q(1) = c(1)/b(1)
+# ifdef VADV_ADAPT_IMP
+!TODO&                +min( WC(i,1),0.)
+# endif
+     &                                 )
+          DC(i,1)=cff*DC(i,1)
+        enddo
+        do k=2,N-1
+          do i=Istr,Iend
+# ifdef VADV_ADAPT_IMP
+!TODO         aa = FC(i,k-1)-max(WC(i,k-1),0.)   !<-- a = sub   (lower) diagonal
+!TODO         cc = FC(i,k  )+min(WC(i,k  ),0.)   !<-- c = super (upper) diagonal
+# else
+              aa = FC(i,k-1)
+              cc = FC(i,k  )
+# endif
+            cff=1./(BC(i,k)-aa*CF(i,k-1))        !<-- p    = 1/(b(k)-a(k)*q(k))
+            CF(i,k)=cff*cc
+            ! DC was a velocity * Hz, after this operation
+            ! it becomes a velocity (cff is one over a length)
+            DC(i,k)=cff*(DC(i,k)-aa*DC(i,k-1))          
+          enddo
+        enddo
+        do i=Istr,Iend
+# ifdef VADV_ADAPT_IMP
+!TODO         aa = FC(i,N-1)-max(WC(i,N-1),0.)   !<-- a = sub   (lower) diagonal
+# else
+              aa = FC(i,N-1)
+# endif
+! wz(:,:,N) is not mixed => kept constant => Dirichlet BC for vertical mixing
+!            
+!          DC(i,N)=(DC(i,N)-aa*DC(i,N-1))
+!     &           /(BC(i,N)-aa*CF(i,N-1))
+
+!-the two lines below are used for the barotropic integration
+! used for the barotropic correction => useless in NHMG
+!          CF(i,0)=0.5*(Hz(i,j,N)+Hz(i-1,j,N))
+!          DC(i,0)=CF(i,0)*DC(i,N)
+        enddo
+        do k=N-1,1,-1
+          do i=Istr,Iend
+! note that DC(i,N) is used here (even though wz(:,:,N) is not changed)
+! from the line below applied at k=N-1, it can be seen why DC(i,N) should
+! be a velocity and not a velocity * Hz 
+            DC(i,k)=DC(i,k)-CF(i,k)*DC(i,k+1)
+!- idem: three lines below are for the barotropic correction
+!            cff=0.5*(Hz(i,j,k)+Hz(i-1,j,k))
+!            CF(i,0)=CF(i,0)+cff
+!            DC(i,0)=DC(i,0)+cff*DC(i,k)
+            wz(i,j,k,nnew)=DC(i,k) SWITCH rmask(i,j)
+# ifdef DIAGNOSTICS_UV
+!todo            MVmix(i,j,k,1)=
+# endif 
+          enddo
+        enddo      !--> discard FC,BC; keep DC,CF(:,0)
+# endif
       enddo      ! <-- j
 
-      write(*,*) 'corr step3duv2 after visco. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv2 after visco. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
 !
 # ifdef DIAGNOSTICS_UV
@@ -480,108 +593,149 @@
 ! Set PHYSICAL lateral boundary conditions.
 !--------------------------------------------------------------------
 !
-      call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
       call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+      call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
+# if defined NHMG
+      call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+# endif
 !
 # ifdef NHMG
-!
 !--------------------------------------------------------------------
 ! Non-hydro projection of momentum
 !--------------------------------------------------------------------
 !
-      write(*,*) 'corr before solve. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+!      write(*,*) 'corr before solve. u'
+!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+!      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 #  if defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
      &                        u(START_2D_ARRAY,1,nnew))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                        v(START_2D_ARRAY,1,nnew))
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                        wz(START_2D_ARRAY,0,nnew)) !<=starts at k=0
 #  endif
-
-      do k=1,N
+      call tic(1,'swap corrector')
          do j=Jstr,Jend
-            do i=Istr,Iend+1
-               u(i,j,k,nnew) = u(i,j,k,nnew)
+            do k=1,N
+               do i=Istr,Iend+1
+                  grid(1)%ub(k,j,i) = u(i,j,k,nnew)
+!               u(i,j,k,nnew) = u(i,j,k,nnew)
      &              *0.5*(Hz(i,j,k) + Hz(i-1,j,k)) / pn_u(i,j)
+               enddo
             enddo
          enddo
          do j=Jstr,Jend+1
-           do i=Istr,Iend
-              v(i,j,k,nnew) = v(i,j,k,nnew)
-     &             *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
-           enddo
-         enddo
-         do j=Jstr,Jend
-            do i=Istr,Iend
-               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &              / (pm(i,j)*pn(i,j))
+            do k=1,N
+               do i=Istr,Iend
+                  grid(1)%vb(k,j,i) = v(i,j,k,nnew)
+!              v(i,j,k,nnew) = v(i,j,k,nnew)
+     &                 *0.5*(Hz(i,j,k) + Hz(i,j-1,k)) / pm_v(i,j)
+               enddo
             enddo
          enddo
-      enddo
+         do j=Jstr,Jend
+            do k=1,N
+               do i=Istr,Iend
+                  grid(1)%wb(k+1,j,i) = wz(i,j,k,nnew) 
+!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &                 / (pm(i,j)*pn(i,j))
+               enddo
+            enddo
+         enddo
 
-      write(*,*) 'corr before solve. S*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+!      write(*,*) 'corr before solve. S*u'
+!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+!      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-      call nhmg_solve(
-     &     Lm, Mm, N,
-     &     u(1:Lm+1,0:Mm+1,1:N,nnew),
-     &     v(0:Lm+1,1:Mm+1,1:N,nnew),
-     &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+      call nhmg_solve()
+!     &     Lm, Mm, N,
+!     &     u(1:Lm+1,0:Mm+1,1:N,nnew),
+!     &     v(0:Lm+1,1:Mm+1,1:N,nnew),
+!     &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
    
-      write(*,*) 'corr after solve. S*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+!      write(*,*) 'corr after solve. S*u'
+!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+!      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-      do k=1,N
          do j=Jstr,Jend
-            do i=Istr,Iend+1
-               u(i,j,k,nnew) = u(i,j,k,nnew)
-     &           /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
+            do k=1,N
+               do i=IstrU,Iend
+                  nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i)
+                  u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
+     &                 /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
+               enddo
+            enddo
+            if (WESTERN_EDGE) then
+               i=IstrU-1
+               do k=1,N
+                  nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i+1)
+                  u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i+1)
+     &                 /Hz(i+1,j,k) * pn_u(i,j)
+               enddo
+            endif
+            if (EASTERN_EDGE) then
+               i=Iend+1
+               do k=1,N
+                  nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i-1)
+                  u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i-1)
+     &                 /Hz(i-1,j,k) * pn_u(i,j)
+               enddo
+            endif
+         enddo
+         do j=JstrV,Jend
+            do k=1,N
+               do i=Istr,Iend
+                  nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)
+                  v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
+     &                 /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
+               enddo
             enddo
          enddo
-         do j=Jstr,Jend+1
-           do i=Istr,Iend
-              v(i,j,k,nnew) = v(i,j,k,nnew)
-     &           /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
-           enddo
-         enddo
+         if (SOUTHERN_EDGE) then
+            j=JstrV-1
+            do k=1,N
+               do i=Istr,Iend
+                  nhdv(i,j,k,iprec1) = grid(1)%dv(k,j+1,i)
+                  v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j+1,i)
+     &              /Hz(i,j+1,k) * pm_v(i,j)
+               enddo
+            enddo
+         endif
+         if (NORTHERN_EDGE) then
+            j=Jend+1
+            do k=1,N
+               do i=Istr,Iend
+                  nhdv(i,j,k,iprec1) = grid(1)%dv(k,j-1,i)
+                  v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j-1,i)
+     &              /Hz(i,j-1,k) * pm_v(i,j)
+               enddo
+            enddo
+         endif
+
          do j=Jstr,Jend
-            do i=Istr,Iend
-               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &              * (pm(i,j)*pn(i,j))
+            do k=1,N
+               do i=Istr,Iend
+                  nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)
+                  wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
+!               wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+     &                 * (pm(i,j)*pn(i,j))
+               enddo
             enddo
          enddo
-      enddo
+      call toc(1,'swap corrector')
 
-      write(*,*) 'corr after solve. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+!      write(*,*) 'corr after solve. u'
+!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+!      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 # endif    /* NHMG */
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_corr_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_corr_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-c$$$
-c$$$# endif
 !
 !
 !--------------------------------------------------------------------
@@ -617,37 +771,6 @@ c$$$# endif
 ! (that is including boundary points).
 !--------------------------------------------------------------------
 !
-
-c$$$# ifdef NHMG
-c$$$
-c$$$#  if defined MPI
-c$$$      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        DU_avg1(START_2D_ARRAY,nnew))
-c$$$      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        DV_avg1(START_2D_ARRAY,nnew))
-c$$$      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        u(START_2D_ARRAY,1,nnew))
-c$$$      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        v(START_2D_ARRAY,1,nnew))
-c$$$      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-c$$$     &                        wz(START_2D_ARRAY,0,nnew))
-c$$$#  endif
-c$$$
-c$$$      call nhmg_bbc(
-c$$$     & Lm, Mm, N,
-c$$$     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-c$$$
-c$$$      call nhmg_coupling(
-c$$$     & Lm, Mm, N,
-c$$$     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
-c$$$     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
-c$$$     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-c$$$     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-c$$$     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-c$$$
-c$$$# endif
 
 # ifdef EW_PERIODIC
 #  define IU_RANGE Istr,Iend
@@ -936,8 +1059,32 @@ c$$$# endif
         endif  !<-- j.ge.Jstr
       enddo    !<-- j loop
 
-      write(*,*) 'corr step3duv2 after coupling. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+!      write(*,*) 'corr step3duv2 after coupling. u'
+!      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+
+# ifdef NHMG
+      ! barotropic coupling on wz
+      ! since Huon and Hvon are corrected
+      ! we can either correct wz by distributing a 
+      ! linear vertical profile on wz OR
+      ! recompute (and overwrite) wz by
+      ! vertically integrating the horizontal fluxes
+      do j=Jstr,Jend
+        ! the three lines below should be useless as wz(:,:,0,:) should 
+        ! be already equal to 0
+!        do i=Istr,Iend
+!           wz(i,j,0,nnew) = 0.
+!        enddo
+        do k=1,N          
+          DC(i,0)=pm(i,j)*pn(i,j)
+          do i=Istr,Iend
+            wz(i,j,k,nnew)=wz(i,j,k-1,nnew) 
+     &      - DC(i,0)*( Huon(i+1,j,k)-Huon(i,j,k)
+     &                 +Hvom(i,j+1,k)-Hvom(i,j,k) )
+          enddo
+        enddo
+      enddo
+# endif
 !
 !
 !--------------------------------------------------------------------
@@ -950,6 +1097,10 @@ c$$$# endif
 ! coupling process (P. Marchesiello, 17 Jun 2004).
 !
 # ifdef PSOURCE
+# if defined NHMG
+        write(*,*)"PSOURCE and NHMG cpp keys are incompatible"
+        stop
+# endif 
       do is=1,Nsrc
 #  ifdef MPI
            i=Isrc_mpi(is,mynode)
@@ -988,6 +1139,10 @@ c$$$# endif
 !--------------------------------------------------------------------
 !
 # if defined M3NUDGING && defined M3CLIMATOLOGY
+# if defined NHMG
+        write(*,*)"M3NUDGING and NHMG cpp keys are incompatible"
+        stop
+# endif 
 
 #  ifdef ZONAL_NUDGING
       if (iic.eq.ntstart .or. mod(iic,10).eq.0) then
@@ -1076,22 +1231,6 @@ c$$$# endif
 #  endif
 # endif
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_corr_out(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_corr_out(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-c$$$
-c$$$# endif
 
 !
       return

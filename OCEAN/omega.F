@@ -136,6 +136,10 @@
           Wi(i,j,0)=0.
 # endif
 # ifdef MOVING_BATHY
+#if defined NHMG
+        write(*,*)"MOVING_BATHY and NHMG cpp keys are incompatible"
+        stop
+#endif
           ! the MOVING_BATHY is still uncompatible with NHMG
           We(i,j,0)=cmorph*om_r(i,j)*on_r(i,j)*dh(i,j)/dt
 # else
@@ -162,7 +166,7 @@
      &                            -Hvom(i,j+1,k)+Hvom(i,j,k)
 # ifdef NHMG
             ! wz is now fully updated and consistent with (Huon, Hvom)
-            wz(i,j,k,nrhs)=We(i,j,k)*pm(i,j)*pn(i,j)
+!            wz(i,j,k,nrhs)=We(i,j,k)*pm(i,j)*pn(i,j)
 # endif
 # ifdef NBQ_CONS1
      &                     -dHzdt(i,j,k)*om_r(i,j)*on_r(i,j)

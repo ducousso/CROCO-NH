@@ -19,11 +19,19 @@
 # include "compute_tile_bounds.h"
       trd=omp_get_thread_num()
       call step3d_uv1_tile (Istr,Iend,Jstr,Jend,  A3d(1,1,trd),
-     &                              A3d(1,2,trd), A2d(1,1,trd))
+     &                              A3d(1,2,trd), 
+#ifdef NHMG
+     &                              A3d(1,5,trd), !<- this is rw
+#endif
+     &                              A2d(1,1,trd))
       return
       end
 
-      subroutine step3d_uv1_tile (Istr,Iend,Jstr,Jend, ru,rv,DC)
+      subroutine step3d_uv1_tile (Istr,Iend,Jstr,Jend, ru,rv,
+#ifdef NHMG
+     &                                           rw,
+#endif
+     &                                           DC)
 #ifdef NHMG
       USE nhmg, only : nhmg_write_corr_in
 #else
@@ -34,6 +42,9 @@
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),
+#ifdef NHMG
+     &     rw(PRIVATE_2D_SCRATCH_ARRAY,N),
+#endif
      &     DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff
 # include "grid.h"
 # include "ocean3d.h"
@@ -65,9 +76,9 @@ c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
 c$$$      
 c$$$# endif
 
-      write(*,*) 'corr step3duv1 before applying rhs. h*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+c$$$      write(*,*) 'corr step3duv1 before applying rhs. h*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
 
       cff=0.25*dt
       do j=Jstr,Jend
@@ -110,10 +121,36 @@ c$$$# endif
             enddo
           enddo
         endif
+# if defined NHMG
+        do k=1,N
+          ! dt is hidden in DC(i,0)
+          if (k.eq.N)then
+             do i=Istr,Iend
+                DC(i,0)=dt*pm(i,j)*pn(i,j)*2./Hz(i,j,k)
+             enddo
+          else
+             do i=Istr,Iend
+                DC(i,0)=dt*pm(i,j)*pn(i,j)*2./(Hz(i,j,k)+Hz(i,j,k+1))
+             enddo
+          endif
+          do i=Istr,Iend
+             ! BIG difference between (u,v) and w:
+             ! on exit of step3d_uv1
+             ! u and v are velocity * Hz (expected on entry of step3d_uv2)
+             ! w is a velocity !!! no Hz factor
+             wz(i,j,k,nnew)=wz(i,j,k,nnew)+DC(i,0)*rw(i,j,k)
+#  if defined MASKING
+             ! MRL_WCI is not yet compatible with NHMG
+             ! TODO
+             wz(i,j,k,nnew)=wz(i,j,k,nnew)*rmask(i,j)
+#  endif
+          enddo
+        enddo
+# endif
       enddo 
 
-      write(*,*) 'corr step3duv1 end. h*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv1 end. h*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
 #else
       subroutine step3d_uv1_empty
