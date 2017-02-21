@@ -76,9 +76,14 @@ c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
 c$$$      
 c$$$# endif
 
-c$$$      write(*,*) 'corr step3duv1 before applying rhs. h*u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+      write(*,*) 'corr step3duv1 before applying rhs. h*u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+      write(*,*) 'corr step3duv1 rhs.'
+      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
+      write(*,*) maxval(rw(1:Lm,1:Mm,:))
 
       cff=0.25*dt
       do j=Jstr,Jend
@@ -121,6 +126,7 @@ c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
             enddo
           enddo
         endif
+
 # if defined NHMG
         do k=1,N
           ! dt is hidden in DC(i,0)
@@ -149,8 +155,10 @@ c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
 # endif
       enddo 
 
-c$$$      write(*,*) 'corr step3duv1 end. h*u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) 'corr step3duv1 end. h*u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 #else
       subroutine step3d_uv1_empty

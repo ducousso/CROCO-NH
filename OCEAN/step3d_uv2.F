@@ -129,8 +129,10 @@
 !--------------------------------------------------------------------
 !
 
-c$$$      write(*,*) 'corr step3duv2 before visco & coupling. h*u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) 'corr step3duv2 before visco . h*u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
       do j=Jstr,Jend
 !
@@ -516,9 +518,10 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 # endif
       enddo      ! <-- j
 
-c$$$      write(*,*) 'corr step3duv2 after visco. u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-
+      write(*,*) 'corr step3duv2 after visco. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 
 !
@@ -607,6 +610,10 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 ! Non-hydro projection of momentum
 !--------------------------------------------------------------------
 !
+      write(*,*) 'corr before solve. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
@@ -650,8 +657,29 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 
       call toc(1,'swap corrector')
 
+      write(*,*) 'corr after solve. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
 # endif    /* NHMG */
 
+c$$$# ifdef NHMG
+c$$$
+c$$$      call nhmg_write_corr_inter(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+c$$$
+c$$$# else
+c$$$
+c$$$      call h_write_corr_inter(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+c$$$
+c$$$# endif
 !
 !
 !--------------------------------------------------------------------
@@ -974,6 +1002,9 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 !
         endif  !<-- j.ge.Jstr
       enddo    !<-- j loop
+
+      write(*,*) 'corr step3duv2 after coupling. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 !
 !
 !--------------------------------------------------------------------
@@ -1123,8 +1154,8 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 # ifdef NHMG
       do j=Jstr,Jend
         do k=1,N          
-          DC(i,0)=pm(i,j)*pn(i,j)
           do i=Istr,Iend
+            DC(i,0)=pm(i,j)*pn(i,j)
             ! at this time, Huon and Hvom CANNOT used : they are 
             ! defined at n+1/2 instead of n+1
             wz(i,j,k,nnew)=wz(i,j,k-1,nnew) 
@@ -1143,6 +1174,25 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 #  endif
 
 # endif
+
+c$$$# ifdef NHMG
+c$$$
+c$$$      call nhmg_write_corr_out(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+c$$$
+c$$$# else
+c$$$
+c$$$      call h_write_corr_out(
+c$$$     &     Lm, Mm, N,
+c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+c$$$
+c$$$# endif
+
+
 !
       return
       end

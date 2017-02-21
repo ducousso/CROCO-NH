@@ -585,7 +585,9 @@ c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
 c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
 c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
 c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp) )
+c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp),
+c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
+c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) )
 c$$$
 c$$$# else
 c$$$
@@ -597,13 +599,20 @@ c$$$     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
 c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
 c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
 c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp) )
+c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
+c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
+c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) ) )
 c$$$      
 c$$$# endif
 
-c$$$      write(*,*) 'pred before applying rhs. u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+      write(*,*) 'pred before applying rhs. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nstp))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nstp))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nstp))
+      write(*,*) 'pred rhs.'
+      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
+      write(*,*) maxval(rw(1:Lm,1:Mm,:))
 
 !
 !======================================================================
@@ -1063,7 +1072,13 @@ c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
 !         write(*,*) 'node',mynode,'lbound(v)',lbound(v)
 !         write(*,*) 'node',mynode,'lbound(wz)',lbound(wz)
 !         write(*,*) 'node',mynode,'lbound(Hz_half)',lbound(Hz_half)
-   
+
+         write(*,*) 'pred before solve. u', maxval(u(1:Lm+1,1:Mm,:,nnew))
+         write(*,*) 'pred before solve. v', maxval(v(1:Lm,1:Mm+1,:,nnew))
+         write(*,*) 'pred before solve. w', maxval(wz(1:Lm,1:Mm,:,nnew))
+         write(*,*) 'pred before solve. rufrc', maxval(rufrc(1:Lm+1,1:Mm))
+         write(*,*) 'pred before solve. rvfrc', maxval(rvfrc(1:Lm,1:Mm+1))
+
          call nhmg_solve(u(:,:,:,nnew),
      &                   v(:,:,:,nnew),
      &                   wz(:,:,:,nnew),
@@ -1076,6 +1091,7 @@ c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
                do i=IstrU,Iend
                   u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
+
                   rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
                enddo
             enddo
@@ -1095,7 +1111,13 @@ c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
                enddo
             enddo
          enddo
-         
+        
+         write(*,*) 'pred after solve. u', maxval(u(1:Lm+1,1:Mm,:,nnew))
+         write(*,*) 'pred after solve. v', maxval(v(1:Lm,1:Mm+1,:,nnew))
+         write(*,*) 'pred after solve. w', maxval(wz(1:Lm,1:Mm,:,nnew))
+         write(*,*) 'pred after solve. rufrc', maxval(rufrc(1:Lm+1,1:Mm))
+         write(*,*) 'pred after solve. rvfrc', maxval(rvfrc(1:Lm,1:Mm+1))
+ 
          call toc(1,'swap predictor')
 
       endif      

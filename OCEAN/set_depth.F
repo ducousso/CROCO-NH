@@ -486,6 +486,11 @@ C$    integer omp_get_thread_num
 #   define JV_RANGE Jstr,JendR
 #  endif
 
+      write(*,*) 'set_HUV2 before coupling. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+
       do j=JU_RANGE
         do i=IU_RANGE
           DC(i,0)=0.
@@ -574,10 +579,6 @@ C$    integer omp_get_thread_num
      &                                    Hvom(START_2D_ARRAY,1))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                                  v(START_2D_ARRAY,1,nrhs))
-#  if defined NHMG
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                                  wz(START_2D_ARRAY,0,nrhs))     
-#  endif
 #  endif
 !
 ! Coupling wz
@@ -585,11 +586,11 @@ C$    integer omp_get_thread_num
 # ifdef NHMG
       do j=Jstr,Jend
         do k=1,N          
-          DC(i,0)=pm(i,j)*pn(i,j)
           do i=Istr,Iend
+            DC(i,0)=pm(i,j)*pn(i,j)
             ! at this time, Huon and Hvom can used : they are 
             ! defined at n+1/2
-            wz(i,j,k,nnew)=wz(i,j,k-1,nnew) 
+            wz(i,j,k,nrhs)=wz(i,j,k-1,nrhs) 
      &      - DC(i,0)*( Huon(i+1,j,k)-Huon(i,j,k)
      &                 +Hvom(i,j+1,k)-Hvom(i,j,k) )
           enddo
@@ -598,10 +599,15 @@ C$    integer omp_get_thread_num
 
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                                 wz(START_2D_ARRAY,0,nnew)) 
+     &                                 wz(START_2D_ARRAY,0,nrhs)) 
 #  endif
 
 # endif
+
+      write(*,*) 'set_HUV2 after coupling. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 
 c$$$#ifdef NHMG
 c$$$
