@@ -605,14 +605,14 @@ c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) ) )
 c$$$      
 c$$$# endif
 
-      write(*,*) 'pred before applying rhs. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nstp))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nstp))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nstp))
-      write(*,*) 'pred rhs.'
-      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
-      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
-      write(*,*) maxval(rw(1:Lm,1:Mm,:))
+c$$$      write(*,*) 'pred before applying rhs. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nstp))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nstp))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nstp))
+c$$$      write(*,*) 'pred rhs.'
+c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+c$$$      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
+c$$$      write(*,*) maxval(rw(1:Lm,1:Mm,:))
 
 !
 !======================================================================
@@ -1068,16 +1068,29 @@ c$$$# endif
      &        v(START_2D_ARRAY,1,nnew))
 # endif
        
-!         write(*,*) 'node',mynode,'lbound(u)',lbound(u)
-!         write(*,*) 'node',mynode,'lbound(v)',lbound(v)
-!         write(*,*) 'node',mynode,'lbound(wz)',lbound(wz)
-!         write(*,*) 'node',mynode,'lbound(Hz_half)',lbound(Hz_half)
-
-         write(*,*) 'pred before solve. u', maxval(u(1:Lm+1,1:Mm,:,nnew))
-         write(*,*) 'pred before solve. v', maxval(v(1:Lm,1:Mm+1,:,nnew))
-         write(*,*) 'pred before solve. w', maxval(wz(1:Lm,1:Mm,:,nnew))
-         write(*,*) 'pred before solve. rufrc', maxval(rufrc(1:Lm+1,1:Mm))
-         write(*,*) 'pred before solve. rvfrc', maxval(rvfrc(1:Lm,1:Mm+1))
+# if defined NH_MASKING
+         do k=1,N    
+            do j=Jstr,Jend
+               do i=IstrU,Iend
+                  u(i,j,k,nnew) = u(i,j,k,nnew)*umask(i,j)
+               enddo
+            enddo
+         enddo
+        do k=1,N    
+            do j=JstrV,Jend
+               do i=Istr,Iend
+                  v(i,j,k,nnew) = v(i,j,k,nnew)*vmask(i,j)
+               enddo
+            enddo
+         enddo
+         do k=1,N    
+            do j=Jstr,Jend
+               do i=Istr,Iend
+                  wz(i,j,k,nnew) = wz(i,j,k,nnew)*rmask(i,j)
+               enddo
+            enddo
+         enddo
+# endif
 
          call nhmg_solve(u(:,:,:,nnew),
      &                   v(:,:,:,nnew),
@@ -1112,12 +1125,6 @@ c$$$# endif
             enddo
          enddo
         
-         write(*,*) 'pred after solve. u', maxval(u(1:Lm+1,1:Mm,:,nnew))
-         write(*,*) 'pred after solve. v', maxval(v(1:Lm,1:Mm+1,:,nnew))
-         write(*,*) 'pred after solve. w', maxval(wz(1:Lm,1:Mm,:,nnew))
-         write(*,*) 'pred after solve. rufrc', maxval(rufrc(1:Lm+1,1:Mm))
-         write(*,*) 'pred after solve. rvfrc', maxval(rvfrc(1:Lm,1:Mm+1))
- 
          call toc(1,'swap predictor')
 
       endif      

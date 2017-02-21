@@ -133,7 +133,7 @@
       common /metrics_pmon_u/pmon_u /metrics_pnom_v/pnom_v
       common /metrics_grdscl/grdscl
 
-#ifdef MASKING
+#if defined MASKING || defined NH_MASKING
       real rmask(GLOBAL_2D_ARRAY)
       real pmask(GLOBAL_2D_ARRAY)
       real umask(GLOBAL_2D_ARRAY)

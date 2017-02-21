@@ -1558,7 +1558,7 @@ ccc          dvde = 0.5*( vrhs(i,j-1)-vrhs(i,j+1) )
 # endif
 #endif
      &                                                    )
-#ifdef MASKING
+#if defined MASKING || defined NH_MASKING
      &                                         *umask(i,j)
 #endif
 #ifdef WET_DRY
@@ -1602,7 +1602,7 @@ ccc          dvde = 0.5*( vrhs(i,j-1)-vrhs(i,j+1) )
 # endif
 #endif
      &                                                    )
-#ifdef MASKING
+#if defined MASKING || defined NH_MASKING
      &                                         *vmask(i,j)
 #endif
 #ifdef WET_DRY
@@ -1658,7 +1658,7 @@ ccc          dvde = 0.5*( vrhs(i,j-1)-vrhs(i,j+1) )
 # else          
           DUnew = dtfast*M2nudgcof(i,j)*(ubclm(i,j)-ubar(i,j,knew))
 # endif
-# ifdef MASKING
+# if defined MASKING || defined NH_MASKING
      &                 * umask(i,j)
 # endif 
 # ifdef WET_DRY
@@ -1678,7 +1678,7 @@ ccc          dvde = 0.5*( vrhs(i,j-1)-vrhs(i,j+1) )
 # else
           DVnew = dtfast*M2nudgcof(i,j)*(vbclm(i,j)-vbar(i,j,knew))    
 # endif      
-# ifdef MASKING
+# if defined MASKING || defined NH_MASKING
      &                 * vmask(i,j)
 # endif 
 # ifdef WET_DRY

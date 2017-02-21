@@ -129,10 +129,10 @@
 !--------------------------------------------------------------------
 !
 
-      write(*,*) 'corr step3duv2 before visco . h*u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv2 before visco . h*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
       do j=Jstr,Jend
 !
@@ -518,10 +518,10 @@
 # endif
       enddo      ! <-- j
 
-      write(*,*) 'corr step3duv2 after visco. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv2 after visco. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 
 !
@@ -610,10 +610,10 @@
 ! Non-hydro projection of momentum
 !--------------------------------------------------------------------
 !
-      write(*,*) 'corr before solve. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr before solve. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
@@ -623,7 +623,31 @@
 #  endif
 
       call tic(1,'swap corrector')
-      
+
+# if defined NH_MASKING
+         do k=1,N    
+            do j=Jstr,Jend
+               do i=IstrU,Iend
+                  u(i,j,k,nnew) = u(i,j,k,nnew)*umask(i,j)
+               enddo
+            enddo
+         enddo
+        do k=1,N    
+            do j=JstrV,Jend
+               do i=Istr,Iend
+                  v(i,j,k,nnew) = v(i,j,k,nnew)*vmask(i,j)
+               enddo
+            enddo
+         enddo
+         do k=1,N    
+            do j=Jstr,Jend
+               do i=Istr,Iend
+                  wz(i,j,k,nnew) = wz(i,j,k,nnew)*rmask(i,j)
+               enddo
+            enddo
+         enddo
+# endif
+
       call nhmg_solve(u(:,:,:,nnew),
      &                v(:,:,:,nnew),
      &                wz(:,:,:,nnew),
@@ -657,10 +681,10 @@
 
       call toc(1,'swap corrector')
 
-      write(*,*) 'corr after solve. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr after solve. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 # endif    /* NHMG */
 

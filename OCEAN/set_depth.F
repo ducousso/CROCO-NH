@@ -486,10 +486,10 @@ C$    integer omp_get_thread_num
 #   define JV_RANGE Jstr,JendR
 #  endif
 
-      write(*,*) 'set_HUV2 before coupling. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+c$$$      write(*,*) 'set_HUV2 before coupling. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 
       do j=JU_RANGE
         do i=IU_RANGE
@@ -604,10 +604,10 @@ C$    integer omp_get_thread_num
 
 # endif
 
-      write(*,*) 'set_HUV2 after coupling. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+c$$$      write(*,*) 'set_HUV2 after coupling. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 
 c$$$#ifdef NHMG
 c$$$
