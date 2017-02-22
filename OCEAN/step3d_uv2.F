@@ -65,11 +65,11 @@
 #endif
 #ifdef NHMG_DEBUG
 # ifdef NHMG
-      USE nhmg, only : nhmg_write_corr_inter
-      USE nhmg, only : nhmg_write_corr_out
+      USE nhmg_debug, only : nhmg_write_corr_inter
+      USE nhmg_debug, only : nhmg_write_corr_out
 # else
-      USE nhmg, only : h_write_corr_inter
-      USE nhmg, only : h_write_corr_out
+      USE nhmg_debug, only : h_write_corr_inter
+      USE nhmg_debug, only : h_write_corr_out
 # endif
 #endif
       implicit none
@@ -692,20 +692,16 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 # ifdef NHMG_DEBUG
 #  ifdef NHMG
-
       call nhmg_write_corr_inter(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-
 #  else
-
       call h_write_corr_inter(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-
 #  endif
 # endif
 
@@ -1032,8 +1028,9 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
         endif  !<-- j.ge.Jstr
       enddo    !<-- j loop
 
-      write(*,*) 'corr step3duv2 after coupling. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv2 after coupling. u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+
 !
 !
 !--------------------------------------------------------------------

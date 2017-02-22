@@ -34,9 +34,9 @@
      &                                           DC)
 #ifdef NHMG_DEBUG
 # ifdef NHMG
-      USE nhmg, only : nhmg_write_corr_in
+      USE nhmg_debug, only : nhmg_write_corr_in
 # else
-      USE nhmg, only : h_write_corr_in
+      USE nhmg_debug, only : h_write_corr_in
 # endif
 #endif
       implicit none
@@ -63,6 +63,14 @@
 
 #ifdef NHMG_DEBUG
 # ifdef NHMG
+c$$$      write(*,*) 'corr step3duv1 before applying rhs. h*u'
+c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+c$$$      write(*,*) 'corr step3duv1 rhs.'
+c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+c$$$      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
+c$$$      write(*,*) maxval(rw(1:Lm,1:Mm,:))
       call nhmg_write_corr_in(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
@@ -75,15 +83,6 @@
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )    
 # endif
 #endif
-
-c$$$      write(*,*) 'corr step3duv1 before applying rhs. h*u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-c$$$      write(*,*) 'corr step3duv1 rhs.'
-c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
-c$$$      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
-c$$$      write(*,*) maxval(rw(1:Lm,1:Mm,:))
 
       cff=0.25*dt
       do j=Jstr,Jend

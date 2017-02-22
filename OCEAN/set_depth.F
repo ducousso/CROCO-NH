@@ -452,9 +452,9 @@ C$    integer omp_get_thread_num
       subroutine set_HUV2_tile (Istr,Iend,Jstr,Jend,DC,FC)
 #ifdef NHMG_DEBUG
 # ifdef NHMG
-      USE nhmg, only : nhmg_write_pred_out
+      USE nhmg_debug, only : nhmg_write_pred_out
 # else
-      USE nhmg, only : h_write_pred_out
+      USE nhmg_debug, only : h_write_pred_out
 # endif
 #endif
       implicit none
@@ -606,13 +606,12 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 
 # endif
 
+#ifdef NHMG_DEBUG
+# ifdef NHMG
 c$$$      write(*,*) 'set_HUV2 after coupling. u'
 c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
 c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
 c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
-
-#ifdef NHMG_DEBUG
-# ifdef NHMG
       call nhmg_write_pred_out(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
