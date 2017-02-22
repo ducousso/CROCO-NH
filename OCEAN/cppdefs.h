@@ -736,6 +736,7 @@
 # define MPI
 # define NHMG
 # define NH_MASKING
+# define NH_DEBUG
 # undef CLOSED
 # ifdef CLOSED
 #  undef OBC_EAST

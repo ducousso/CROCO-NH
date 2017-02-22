@@ -72,13 +72,17 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
-      USE nhmg, only : nhmg_write_pred_in
-      USE nhmg, only : nhmg_write_pred_inter
       USE mg_grids
       use mg_tictoc
-#else
-!      USE nhmg, only : h_write_pred_in
-!      USE nhmg, only : h_write_pred_inter
+#endif
+#ifdef NHMG_DEBUG
+# ifdef NHMG
+      USE nhmg, only : nhmg_write_pred_in
+      USE nhmg, only : nhmg_write_pred_inter
+# else
+      USE nhmg, only : h_write_pred_in
+      USE nhmg, only : h_write_pred_inter
+# endif
 #endif
       implicit none
 # include "param.h"
@@ -573,38 +577,12 @@
         enddo   !<-- itrc  !--> discard DC
       enddo     !<-- j
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_pred_in(
-c$$$     &     Lm, Mm, N,
-c$$$     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp),
-c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
-c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_pred_in(
-c$$$     &     Lm, Mm, N,
-c$$$     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
-c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
-c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) ) )
-c$$$      
-c$$$# endif
+!
+!======================================================================
+!
 
+# ifdef NHMG_DEBUG
+#  ifdef NHMG
 c$$$      write(*,*) 'pred before applying rhs. u'
 c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nstp))
 c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nstp))
@@ -613,6 +591,33 @@ c$$$      write(*,*) 'pred rhs.'
 c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
 c$$$      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
 c$$$      write(*,*) maxval(rw(1:Lm,1:Mm,:))
+      call nhmg_write_pred_in(
+     &     Lm, Mm, N,
+     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp),
+     &     rufrc(-1:Lm+2,-1:Mm+2),
+     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+#  else
+      call h_write_pred_in(
+     &     Lm, Mm, N,
+     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
+     &     rufrc(-1:Lm+2,-1:Mm+2),
+     &     rvfrc(-1:Lm+2,-1:Mm+2) ) )
+#  endif
+# endif
 
 !
 !======================================================================
@@ -1267,26 +1272,28 @@ c$$$      enddo
 #  endif
 # endif
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_pred_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
-c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
-c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_pred_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     rufrc(-1:Lm+2,-1:Mm+2),
-c$$$     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-c$$$
-c$$$# endif
+!
+!======================================================================
+!
+
+# ifdef NHMG_DEBUG
+#  ifdef NHMG
+      call nhmg_write_pred_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
+     &     rufrc(-1:Lm+2,-1:Mm+2),
+     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+#  else
+      call h_write_pred_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     rufrc(-1:Lm+2,-1:Mm+2),
+     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+#  endif
+# endif
 
 !
 !======================================================================

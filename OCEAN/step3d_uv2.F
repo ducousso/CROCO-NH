@@ -60,15 +60,17 @@
 !
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
-!      USE nhmg, only : nhmg_bbc
-!      USE nhmg, only : nhmg_coupling
-      USE nhmg, only : nhmg_write_corr_inter
-      USE nhmg, only : nhmg_write_corr_out
       USE mg_grids
       USE mg_tictoc
-#else
+#endif
+#ifdef NHMG_DEBUG
+# ifdef NHMG
+      USE nhmg, only : nhmg_write_corr_inter
+      USE nhmg, only : nhmg_write_corr_out
+# else
       USE nhmg, only : h_write_corr_inter
       USE nhmg, only : h_write_corr_out
+# endif
 #endif
       implicit none
 # include "param.h"
@@ -688,22 +690,25 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
 # endif    /* NHMG */
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_corr_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_corr_inter(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-c$$$
-c$$$# endif
+# ifdef NHMG_DEBUG
+#  ifdef NHMG
+
+      call nhmg_write_corr_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+
+#  else
+
+      call h_write_corr_inter(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+
+#  endif
+# endif
+
 !
 !
 !--------------------------------------------------------------------
@@ -1199,23 +1204,20 @@ c$$$# endif
 
 # endif
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_corr_out(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_corr_out(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-c$$$
-c$$$# endif
-
+# ifdef NHMG_DEBUG
+#  ifdef NHMG
+      call nhmg_write_corr_out(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+#  else
+      call h_write_corr_out(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+#  endif
+# endif
 
 !
       return
