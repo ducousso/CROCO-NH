@@ -724,6 +724,10 @@ C$OMP BARRIER
       enddo
 
 # ifdef NHMG
+
+!XXXXXXXXXXXXXXXXXXXX
+! care that dz is properly updated. needed to compute rw etc     
+
 !      count = count+1
 !      if (mod(count,10).eq.0) then
       call nhmg_matrices(

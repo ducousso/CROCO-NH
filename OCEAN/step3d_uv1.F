@@ -32,10 +32,12 @@
      &                                           rw,
 #endif
      &                                           DC)
-#ifdef NHMG
-      USE nhmg, only : nhmg_write_corr_in
-#else
-      USE nhmg, only : h_write_corr_in
+#ifdef NHMG_DEBUG
+# ifdef NHMG
+      USE nhmg_debug, only : nhmg_write_corr_in
+# else
+      USE nhmg_debug, only : h_write_corr_in
+# endif
 #endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
@@ -59,23 +61,8 @@
 # include "compute_auxiliary_bounds.h"
 !
 
-c$$$# ifdef NHMG
-c$$$
-c$$$      call nhmg_write_corr_in(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-c$$$
-c$$$# else
-c$$$
-c$$$      call h_write_corr_in(
-c$$$     &     Lm, Mm, N,
-c$$$     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-c$$$     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-c$$$      
-c$$$# endif
-
+#ifdef NHMG_DEBUG
+# ifdef NHMG
 c$$$      write(*,*) 'corr step3duv1 before applying rhs. h*u'
 c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
@@ -84,6 +71,18 @@ c$$$      write(*,*) 'corr step3duv1 rhs.'
 c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
 c$$$      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
 c$$$      write(*,*) maxval(rw(1:Lm,1:Mm,:))
+      call nhmg_write_corr_in(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+# else
+      call h_write_corr_in(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )    
+# endif
+#endif
 
       cff=0.25*dt
       do j=Jstr,Jend
