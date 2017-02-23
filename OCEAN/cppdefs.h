@@ -782,6 +782,8 @@
 # define OBC_M3ORLANSKI
 # define OBC_TORLANSKI
 # define SPONGE
+                      /* Semi-implicit Vertical Tracer/Mom Advection */
+# define  VADV_ADAPT_IMP
 
 # elif defined SHELFRONT
 /*

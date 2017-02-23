@@ -6,7 +6,19 @@
 ! to this implicit greatment at the predictor step (VMIX_PREDICTOR key). 
 ! Historically, it is only done at the corrector step.
 !----------------------------------------------------------------------
-# define VMIX_PREDICTOR
+
+! Note: DC(i,0) has to be defined outside of this *.h block
+! DC(i,0) is cdt/horiz_area for tracers but
+! DC(i,0) is 1/horiz_area for u,v and w!!!
+! where cdt = 0.5*dt (first time step) and (1-gamma)*dt (afterwards)
+
+
+! to be consistent with the code that runs without 
+! vertical advection the VMIX_PREDICTOR should
+! be turned off
+! the idea is to treat viscous effects only at the corrector
+# undef VMIX_PREDICTOR
+
 
 #if defined TRIDIAG_TRA
           do i=istr,iend
@@ -156,4 +168,63 @@
               v(i,j,k,nnew)=DC(i,k)+CF(i,k)*v(i,j,k+1,nnew)   
             enddo
           enddo        
+#elif defined TRIDIAG_W
+         do k=0,N-1
+            do i=istr,iend
+#  ifdef VMIX_PREDICTOR
+	      ! FC is positive in the above cases (trac,u and v).
+              ! It is negative in the tridiagonal solver
+              ! of step3d_uv2.F => MEGA CONFUSING!
+              ! 
+              ! proposition: I rewrite this chunk of tridiag_pred.h
+              ! exactly as it is in step3d_uv2.F and use BC(i,i)
+               FC(i,k)=-0.5*cdt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k+1)
+#  else
+               FC(i,k)= 0.
+#  endif
+               ! cdt already in DC(i,0)
+               WC(i,k)=cdt*DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
+            enddo
+         enddo
+         do k=1,N-1
+          do i=Istr,Iend
+             DC(i,k)=wz(i,j,k,nnew)
+     &            *0.5*(Hz_half(i,j,k)+Hz_half(i,j,k+1))
+             BC(i,k)=0.5*(Hz_half(i,j,k)+Hz_half(i,j,k+1))
+     &            +max(WC(i,k  ),0.)-min(WC(i,k-1),0.)
+#  ifdef VMIX_PREDICTOR
+     &            -FC(i,k)-FC(i,k-1)
+#  endif
+          enddo
+          ! this is the surface Dirichlet BC for vertical mixing
+        enddo
+        k=N
+        DC(i,k)=wz(i,j,k,nnew)
+        do i=Istr,Iend
+          CF(i,0) = 0.
+          DC(i,0) = 0. !<=Dirichlet BC, no flux
+        enddo
+        do k=1,N-1,+1
+           do i=istr,iend
+#  ifdef VMIX_PREDICTOR
+              aa = FC(i,k-1)-max(WC(i,k-1),0.)
+              cc = FC(i,k  )+min(WC(i,k  ),0.)
+#  else
+              aa = -max(WC(i,k-1),0.)
+              cc = +min(WC(i,k  ),0.)
+#  endif
+            cff=1./(BC(i,k)-aa*CF(i,k-1))        !<-- p    = 1/(b(k)-a(k)*q(k))
+            CF(i,k)=cff*cc
+            DC(i,k)=cff*(DC(i,k)-aa*DC(i,k-1))          
+          enddo
+        enddo
+        do k=N-1,1,-1
+          do i=Istr,Iend
+            DC(i,k)=DC(i,k)-CF(i,k)*DC(i,k+1)
+            wz(i,j,k,nnew)=DC(i,k) SWITCH rmask(i,j)
+# ifdef DIAGNOSTICS_UV
+!todo            MVmix(i,j,k,1)=
+# endif 
+          enddo
+        enddo      !--> discard FC,BC; keep DC,CF(:,0)
 #endif

@@ -982,9 +982,34 @@
         enddo
 !==   
       endif
+      do i=Istr,Iend
+         DC(i,0)=pm(i,j)*pn(i,j)
+      enddo
 
+!
+!======================================================================
+!
+!  Compute implicit vertical advection/viscosity
+!
+# ifdef VADV_ADAPT_IMP
+#  undef  TRIDIAG_TRA
+#  undef  TRIDIAG_U
+#  undef  TRIDIAG_V
+#  define TRIDIAG_W
+#  include "tridiag_pred.h"
+#  undef TRIADIA_W
+# endif
+!
+!======================================================================
+!
       enddo
 !==
+
+
+
+
+
+
 # endif /* NHMG */
 !
 !======================================================================
