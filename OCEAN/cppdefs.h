@@ -783,7 +783,30 @@
 # define OBC_TORLANSKI
 # define SPONGE
                       /* Semi-implicit Vertical Tracer/Mom Advection */
-# define  VADV_ADAPT_IMP
+# undef  VADV_ADAPT_IMP
+                      /* Vertical Mixing */
+# undef  BODYFORCE
+# undef  BVF_MIXING
+# define LMD_MIXING
+# undef  GLS_MIXING
+# ifdef LMD_MIXING
+#  define LMD_SKPP
+#  define LMD_BKPP
+#  define LMD_RIMIX
+#  define LMD_CONVEC
+#  undef  LMD_DDMIX
+#  define LMD_NONLOCAL
+# endif
+# ifdef GLS_MIXING
+#  define GLS_KKL
+#  undef  GLS_KOMEGA
+#  undef  GLS_KEPSILON
+#  undef  GLS_GEN
+#  undef  KANTHA_CLAYSON
+#  undef  CRAIG_BANNER
+#  undef  CANUTO_A
+#  undef  ZOS_HSIG
+# endif
 
 # elif defined SHELFRONT
 /*

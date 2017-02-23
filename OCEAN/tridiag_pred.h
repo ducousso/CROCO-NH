@@ -17,7 +17,7 @@
 ! vertical advection the VMIX_PREDICTOR should
 ! be turned off
 ! the idea is to treat viscous effects only at the corrector
-# undef VMIX_PREDICTOR
+# define VMIX_PREDICTOR
 
 
 #if defined TRIDIAG_TRA
@@ -182,7 +182,6 @@
 #  else
                FC(i,k)= 0.
 #  endif
-               ! cdt already in DC(i,0)
                WC(i,k)=cdt*DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
             enddo
          enddo

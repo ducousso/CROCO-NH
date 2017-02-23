@@ -428,6 +428,7 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
             !FC(i,N) should not be used for w
             FC(i,k)=-0.5*dt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k+1)
 # ifdef VADV_ADAPT_IMP
+            DC(i,0)=dt*pm(i,j)*pn(i,j)
             WC(i,k)=DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
 # endif
           enddo

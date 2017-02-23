@@ -570,6 +570,7 @@
 #  define TRIDIAG_TRA
 #  undef  TRIDIAG_U
 #  undef  TRIDIAG_V 
+#  undef  TRIDIAG_W 
 #   include "tridiag_pred.h"
 #  undef TRIDIAG_TRA
 # endif          
@@ -718,6 +719,7 @@
 #  undef  TRIDIAG_TRA
 #  define TRIDIAG_U
 #  undef  TRIDIAG_V
+#  undef  TRIDIAG_W 
 #   include "tridiag_pred.h"
 # endif
 !
@@ -817,6 +819,7 @@
 # undef  TRIDIAG_TRA
 # undef  TRIDIAG_U
 # define TRIDIAG_V
+#  undef  TRIDIAG_W 
 #  include "tridiag_pred.h"
 # endif
 !
@@ -996,8 +999,7 @@
 #  undef  TRIDIAG_U
 #  undef  TRIDIAG_V
 #  define TRIDIAG_W
-#  include "tridiag_pred.h"
-#  undef TRIADIA_W
+#####################  include "tridiag_pred2.h"
 # endif
 !
 !======================================================================
@@ -1058,10 +1060,14 @@
                do i=IstrU,Iend
                   u(i,j,k,nnew) = u(i,j,k,nnew)
      &                 + (1.5*nhdu(i,j,k,iprec1)-0.5*nhdu(i,j,k,iprec2))
-     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
-                  rufrc(i,j) = rufrc(i,j) 
-     &                 + (1.5*nhdu(i,j,k,iprec1)-0.5*nhdu(i,j,k,iprec2)) 
-     &                 * om_u(i,j) * cff
+     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
+     &                 * pn_u(i,j)
+
+! bad interaction of NH pressure grd and barotropic mode => blow up
+
+!                  rufrc(i,j) = rufrc(i,j) 
+!     &                 + (1.5*nhdu(i,j,k,iprec1)-0.5*nhdu(i,j,k,iprec2)) 
+!     &                 * om_u(i,j) * cff
                enddo
             enddo
             
@@ -1069,17 +1075,18 @@
                do i=Istr,Iend
                   v(i,j,k,nnew) = v(i,j,k,nnew)
      &                 + (1.5*nhdv(i,j,k,iprec1)-0.5*nhdv(i,j,k,iprec2))
-     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
-                  rvfrc(i,j) = rvfrc(i,j)
-     &                 + (1.5*nhdv(i,j,k,iprec1)-0.5*nhdv(i,j,k,iprec2)) 
-     &                 * om_v(i,j) * cff
+     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
+     &                 * pm_v(i,j)
+!                  rvfrc(i,j) = rvfrc(i,j)
+!     &                 + (1.5*nhdv(i,j,k,iprec1)-0.5*nhdv(i,j,k,iprec2)) 
+!     &                 * om_v(i,j) * cff
                enddo
             enddo
             
             do j=Jstr,Jend
                do i=Istr,Iend
                   wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &                 + (1.5*nhdw(i,j,k,iprec1)-0.5*nhdw(i,j,k,iprec2) )
+     &                 + (1.5*nhdw(i,j,k,iprec1)-0.5*nhdw(i,j,k,iprec2))
      &                 * (pm(i,j)*pn(i,j))
                enddo
             enddo
@@ -1133,7 +1140,8 @@
             do j=Jstr,Jend
                do i=IstrU,Iend
                   u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
-     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
+     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
+     &                 * pn_u(i,j)
 !instab comes from rufrc
                   rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff 
                enddo
@@ -1142,7 +1150,8 @@
             do j=JstrV,Jend
                do i=Istr,Iend
                   v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
-     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
+     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
+     &                 * pm_v(i,j)
 !instab comes from rvfrc
                   rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
                enddo
