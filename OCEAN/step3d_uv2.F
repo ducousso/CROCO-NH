@@ -421,23 +421,29 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 # endif
 
         do i=Istr,Iend
-          FC(i,0)=0.
-          FC(i,N)=0.
+          FC(i,0)=-0.5*dt*Akv(i,j,1) ! <- w_k=1 is connected to the bottom w_k=0
+                                     ! via the averaged Akv at rho level k=1
+                                     ! since Akv(i,j,0)=0, the result is
+                                     ! FC(i,0)=-0.5*dt*Akv(i,j,1)
+          FC(i,N)=0. ! <- this coefficient is not used for w
+                     ! because it is outside of the domain
+                     ! the FC connecting w_k=N-1 to w_k=N is FC(i,N-1)
+                     ! it is defined below
 # ifdef VADV_ADAPT_IMP
           DC(i,0)=dt*pm(i,j)*pn(i,j)
-          WC(i,0)=0.
-          WC(i,N)=0.
+          WC(i,0)=0. ! <- Dirichlet condition = no flux
 # endif
         enddo
 
         do k=1,N-1
           do i=Istr,Iend
-             !Akv(i,j,k) sits at the same place as wz(i,j,k)
-            FC(i,k)=-0.5*dt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k)
+            !FC(i,k) sits above w(i,j,k) and connects
+            !w(i,j,k) with w(i,j,k+1) 
+            FC(i,k)=-0.5*dt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k+1)
 # ifdef VADV_ADAPT_IMP
-        write(*,*)"VADV_ADAPT_IMP and NHMG cpp keys are incompatible"
-        stop
-!TODO            WC(i,k)=DC(i,0)*0.5*(Wi(i,j,k)+Wi(i-1,j,k))
+!        write(*,*)"VADV_ADAPT_IMP and NHMG cpp keys are incompatible"
+!        stop
+            WC(i,k)=DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
 # endif
           enddo
         enddo
@@ -447,12 +453,15 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
             DC(i,k)=wz(i,j,k,nnew)*0.5*( Hz(i,j,k)+Hz(i,j,k+1) )
             BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1))-FC(i,k)-FC(i,k-1)
 # ifdef VADV_ADAPT_IMP
-!TODO     &              +max(WC(i,k  ),0.)-min(WC(i,k-1),0.)
+     &              +max(WC(i,k  ),0.)-min(WC(i,k-1),0.)
 # endif
           enddo
           ! this is the surface Dirichlet BC for vertical mixing
         enddo      !--> discard DC(:,0); keep FC
         k=N
+        ! Dirichlet condition = we keep the wz(:,:,N) identical
+        ! it is almost zero but not exactly, it differs from 0 by
+        ! the breathing term
         DC(i,k)=wz(i,j,k,nnew)   ! no multiplication by *0.5*Hz(i,j,k) !!!
 !
 ! Apply wind forcing.
@@ -464,7 +473,7 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
           cff=1./BC(i,1)
           CF(i,1)=cff*( FC(i,1)                  !<-- q(1) = c(1)/b(1)
 # ifdef VADV_ADAPT_IMP
-!TODO&                +min( WC(i,1),0.)
+     &                +min( WC(i,1),0.)
 # endif
      &                                 )
           DC(i,1)=cff*DC(i,1)
@@ -472,8 +481,8 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
         do k=2,N-1
           do i=Istr,Iend
 # ifdef VADV_ADAPT_IMP
-!TODO         aa = FC(i,k-1)-max(WC(i,k-1),0.)   !<-- a = sub   (lower) diagonal
-!TODO         cc = FC(i,k  )+min(WC(i,k  ),0.)   !<-- c = super (upper) diagonal
+              aa = FC(i,k-1)-max(WC(i,k-1),0.)   !<-- a = sub   (lower) diagonal
+              cc = FC(i,k  )+min(WC(i,k  ),0.)   !<-- c = super (upper) diagonal
 # else
               aa = FC(i,k-1)
               cc = FC(i,k  )
@@ -487,7 +496,7 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
         enddo
         do i=Istr,Iend
 # ifdef VADV_ADAPT_IMP
-!TODO         aa = FC(i,N-1)-max(WC(i,N-1),0.)   !<-- a = sub   (lower) diagonal
+              aa = FC(i,N-1)-max(WC(i,N-1),0.)   !<-- a = sub   (lower) diagonal
 # else
               aa = FC(i,N-1)
 # endif
