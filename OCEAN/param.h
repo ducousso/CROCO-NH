@@ -124,6 +124,7 @@
 # ifndef MOVING_BATHY
 #  ifndef TANKY
 !      parameter (LLm0=50,   MMm0=1,    N=50)   ! 20 cm resolution
+!      parameter (LLm0=64,   MMm0=64,    N=32) ! NHMG test
       parameter (LLm0=64,   MMm0=64,    N=64) ! NHMG test
 #  else
       parameter (LLm0=1,    MMm0=50,   N=50)   ! 20 cm resolution

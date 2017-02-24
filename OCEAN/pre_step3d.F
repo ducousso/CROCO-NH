@@ -74,14 +74,10 @@
       USE nhmg, only : nhmg_solve
       USE mg_grids
       use mg_tictoc
-#endif
-#ifdef NHMG_DEBUG
-# ifdef NHMG
+# ifdef NHMG_DEBUG
       USE nhmg_debug, only : nhmg_write_pred_in
-      USE nhmg_debug, only : nhmg_write_pred_inter
-# else
-      USE nhmg_debug, only : h_write_pred_in
-      USE nhmg_debug, only : h_write_pred_inter
+      USE nhmg_debug, only : nhmg_write_pred_inter1
+      USE nhmg_debug, only : nhmg_write_pred_inter2
 # endif
 #endif
       implicit none
@@ -582,15 +578,16 @@
 !
 
 # ifdef NHMG_DEBUG
-#  ifdef NHMG
-      write(*,*) 'pred before applying rhs. u'
+
+      write(*,*) 'pre_step3d : u,v,wz before applying rhs. [u]'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nstp))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nstp))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nstp))
-      write(*,*) 'pred rhs.'
+      write(*,*) 'pred_step3d : ru,rv,rw. [Vol*u/dt]'
       write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
       write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
       write(*,*) maxval(rw(1:Lm,1:Mm,:))
+
       call nhmg_write_pred_in(
      &     Lm, Mm, N,
      &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
@@ -602,21 +599,10 @@
      &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp),
-     &     rufrc(-1:Lm+2,-1:Mm+2),
-     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-#  else
-      call h_write_pred_in(
-     &     Lm, Mm, N,
-     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
-     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
-     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
-     &     rufrc(-1:Lm+2,-1:Mm+2),
-     &     rvfrc(-1:Lm+2,-1:Mm+2) ) )
-#  endif
+     &     ru(-1:Lm+2,-1:Mm+2,1:N),
+     &     rv(-1:Lm+2,-1:Mm+2,1:N),
+     &     rw(-1:Lm+2,-1:Mm+2,0:N) )
+
 # endif
 
 !
@@ -986,6 +972,14 @@
       enddo
 !==
 # endif /* NHMG */
+
+# ifdef NHMG_DEBUG
+      write(*,*) 'pre_step3d : u,v,wz after applying rhs. [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+# endif
+
 !
 !======================================================================
 ! Set PHYSICAL lateral boundary conditions for tracers.
@@ -1019,12 +1013,33 @@
 ! Non-hydro projection of momentum
 !======================================================================
 !
+
+# ifdef NHMG_DEBUG
+
+      write(*,*) 'pre_step3d : u,v,wz before nh projection. [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+      write(*,*) 'pre_step3d : rufrc,rvfrc before nh projection.'
+      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
+      write(*,*) maxval(rvfrc(1:Lm,1:Mm+1))
+
+      call nhmg_write_pred_inter1(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
+     &     rufrc(-1:Lm+2,-1:Mm+2),
+     &     rvfrc(-1:Lm+2,-1:Mm+2) )
+
+# endif
+
 # ifdef NHMG
 
       cff = 1./cdt
 
-!      if (iic.ge.(ntstart+2)) then
-      if (iic.lt.0) then
+      if (iic.ge.(ntstart+2)) then
+!      if (iic.lt.0) then
 
          call tic(1,'AB2 del q')
 
@@ -1032,29 +1047,29 @@
             do j=Jstr,Jend
                do i=IstrU,Iend
                   u(i,j,k,nnew) = u(i,j,k,nnew)
-     &                 + (1.5*nhdu(i,j,k,iprec1)-0.5*nhdu(i,j,k,iprec2))
+     &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1))*cdt
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
                   rufrc(i,j) = rufrc(i,j) 
-     &                 + (1.5*nhdu(i,j,k,iprec1)-0.5*nhdu(i,j,k,iprec2)) 
-     &                 * om_u(i,j) * cff
+     &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1)) 
+     &                 * om_u(i,j)
                enddo
             enddo
             
             do j=JstrV,Jend
                do i=Istr,Iend
                   v(i,j,k,nnew) = v(i,j,k,nnew)
-     &                 + (1.5*nhdv(i,j,k,iprec1)-0.5*nhdv(i,j,k,iprec2))
+     &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1))*cdt
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
                   rvfrc(i,j) = rvfrc(i,j)
-     &                 + (1.5*nhdv(i,j,k,iprec1)-0.5*nhdv(i,j,k,iprec2)) 
-     &                 * om_v(i,j) * cff
+     &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1)) 
+     &                 * on_v(i,j)
                enddo
             enddo
             
             do j=Jstr,Jend
                do i=Istr,Iend
                   wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-     &                 + (1.5*nhdw(i,j,k,iprec1)-0.5*nhdw(i,j,k,iprec2) )
+     &                 + (1.5*nhdw(i,j,k,iprec2)-0.5*nhdw(i,j,k,iprec1))*cdt
      &                 * (pm(i,j)*pn(i,j))
                enddo
             enddo
@@ -1135,6 +1150,16 @@
 
       endif      
 
+# endif
+
+# ifdef NHMG_DEBUG
+      write(*,*) 'pre_step3d : u,v,wz after nh projection. [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+      write(*,*) 'pre_step3d : rufrc,rvfrc after nh projection.'
+      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
+      write(*,*) maxval(rvfrc(1:Lm,1:Mm+1))
 # endif
 
 !
@@ -1278,22 +1303,15 @@ c$$$      enddo
 !
 
 # ifdef NHMG_DEBUG
-#  ifdef NHMG
-      call nhmg_write_pred_inter(
+
+      call nhmg_write_pred_inter2(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
      &     rufrc(-1:Lm+2,-1:Mm+2),
      &     rvfrc(-1:Lm+2,-1:Mm+2) )
-#  else
-      call h_write_pred_inter(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     rufrc(-1:Lm+2,-1:Mm+2),
-     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-#  endif
+
 # endif
 
 !

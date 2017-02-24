@@ -62,14 +62,10 @@
       USE nhmg, only : nhmg_solve
       USE mg_grids
       USE mg_tictoc
-#endif
-#ifdef NHMG_DEBUG
-# ifdef NHMG
-      USE nhmg_debug, only : nhmg_write_corr_inter
+# ifdef NHMG_DEBUG
+      USE nhmg_debug, only : nhmg_write_corr_inter1
+      USE nhmg_debug, only : nhmg_write_corr_inter2
       USE nhmg_debug, only : nhmg_write_corr_out
-# else
-      USE nhmg_debug, only : h_write_corr_inter
-      USE nhmg_debug, only : h_write_corr_out
 # endif
 #endif
       implicit none
@@ -119,6 +115,14 @@
        cfilt=csmooth            ! coefficient
       endif
 # endif
+
+#ifdef NHMG_DEBUG
+      write(*,*) 'step3d_uv2 : u,v,wz before imp vert visc. [h*u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+# endif
+
 !
 !--------------------------------------------------------------------
 ! Time step momentum equation in the XI-direction.
@@ -130,12 +134,6 @@
 ! Also compute the main diagonal matrix coeddicient BC.
 !--------------------------------------------------------------------
 !
-
-c$$$      write(*,*) 'corr step3duv2 before visco . h*u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-
       do j=Jstr,Jend
 !
 ! The vertical viscosity term is not added as an explicit divergence term
@@ -520,11 +518,12 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 # endif
       enddo      ! <-- j
 
-c$$$      write(*,*) 'corr step3duv2 after visco. u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-
+#ifdef NHMG_DEBUG
+      write(*,*) 'step3d_uv2 : u,v,wz after imp vert visc. [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+# endif
 
 !
 # ifdef DIAGNOSTICS_UV
@@ -612,10 +611,21 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 ! Non-hydro projection of momentum
 !--------------------------------------------------------------------
 !
-c$$$      write(*,*) 'corr before solve. u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+#ifdef NHMG_DEBUG
+
+      write(*,*) 'step3d_uv2 : u,v,wz before projection . [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+      call nhmg_write_corr_inter1(
+     &     Lm, Mm, N,
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+
+# endif
 
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
@@ -658,7 +668,7 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
       do k=1,N
          do j=Jstr,Jend
             do i=Istr,Iend+1
-               nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i)
+               nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i)/dt !stored as a trend
                u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
      &              /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
             enddo
@@ -666,7 +676,7 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
          do j=Jstr,Jend+1
             do i=Istr,Iend
-               nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)
+               nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)/dt !stored as a trend
                v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
      &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
             enddo
@@ -674,7 +684,7 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
          do j=Jstr,Jend
             do i=Istr,Iend
-               nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)
+               nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)/dt !stored as a trend
                wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
      &              * (pm(i,j)*pn(i,j))
             enddo
@@ -683,26 +693,21 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
       call toc(1,'swap corrector')
 
-c$$$      write(*,*) 'corr after solve. u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-
 # endif    /* NHMG */
 
 # ifdef NHMG_DEBUG
-#  ifdef NHMG
-      call nhmg_write_corr_inter(
+
+      write(*,*) 'step3d_uv2 : u,v,wz after projection . [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+      call nhmg_write_corr_inter2(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-#  else
-      call h_write_corr_inter(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-#  endif
+
 # endif
 
 !
@@ -740,6 +745,13 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 ! (that is including boundary points).
 !--------------------------------------------------------------------
 !
+
+#ifdef NHMG_DEBUG
+      write(*,*) 'step3d_uv2 : u,v,wz before coupling . [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+# endif
 
 # ifdef EW_PERIODIC
 #  define IU_RANGE Istr,Iend
@@ -1027,10 +1039,6 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 !
         endif  !<-- j.ge.Jstr
       enddo    !<-- j loop
-
-c$$$      write(*,*) 'corr step3duv2 after coupling. u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-
 !
 !
 !--------------------------------------------------------------------
@@ -1178,6 +1186,7 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 !--------------------------------------------------------------------
 !
 # ifdef NHMG
+
       do j=Jstr,Jend
         do k=1,N          
           do i=Istr,Iend
@@ -1202,18 +1211,18 @@ c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
 # endif
 
 # ifdef NHMG_DEBUG
-#  ifdef NHMG
+
+      write(*,*) 'step3d_uv2 : u,v,wz after coupling . [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
       call nhmg_write_corr_out(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-#  else
-      call h_write_corr_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-#  endif
+
 # endif
 
 !

@@ -32,11 +32,9 @@
      &                                           rw,
 #endif
      &                                           DC)
-#ifdef NHMG_DEBUG
-# ifdef NHMG
+#ifdef NHMG
+# ifdef NHMG_DEBUG
       USE nhmg_debug, only : nhmg_write_corr_in
-# else
-      USE nhmg_debug, only : h_write_corr_in
 # endif
 #endif
       implicit none
@@ -45,7 +43,7 @@
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),
 #ifdef NHMG
-     &     rw(PRIVATE_2D_SCRATCH_ARRAY,N),
+     &     rw(PRIVATE_2D_SCRATCH_ARRAY,0:N),
 #endif
      &     DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff
 # include "grid.h"
@@ -62,26 +60,28 @@
 !
 
 #ifdef NHMG_DEBUG
-# ifdef NHMG
-c$$$      write(*,*) 'corr step3duv1 before applying rhs. h*u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-c$$$      write(*,*) 'corr step3duv1 rhs.'
-c$$$      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
-c$$$      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
-c$$$      write(*,*) maxval(rw(1:Lm,1:Mm,:))
+
+      write(*,*) 'step3d_uv1 : u,v,wz before applying rhs. [h*u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+      write(*,*) 'step3d_uv1 : ru,rv,rw.'
+      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
+      write(*,*) maxval(rw(1:Lm,1:Mm,:))
+      write(*,*) 'step3d_uv1 : wz before and rw [16,32,62:64]' 
+      write(*,*) wz(16,32,62:64,nnew)
+      write(*,*) rw(16,32,62:64)
+
       call nhmg_write_corr_in(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-# else
-      call h_write_corr_in(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )    
-# endif
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
+     &     ru(-1:Lm+2,-1:Mm+2,1:N),
+     &     rv(-1:Lm+2,-1:Mm+2,1:N),
+     &     rw(-1:Lm+2,-1:Mm+2,0:N) )
+
 #endif
 
       cff=0.25*dt
@@ -154,10 +154,14 @@ c$$$      write(*,*) maxval(rw(1:Lm,1:Mm,:))
 # endif
       enddo 
 
-c$$$      write(*,*) 'corr step3duv1 end. h*u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+# if defined NHMG_DEBUG
+      write(*,*) 'step3d_uv1 : u,v,wz after applying rhs. [h*u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+      write(*,*) 'step3d_uv1 : wz after [16,32,62:64]' 
+      write(*,*) wz(16,32,62:64,nnew)
+# endif
 
 #else
       subroutine step3d_uv1_empty

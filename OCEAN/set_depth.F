@@ -450,11 +450,9 @@ C$    integer omp_get_thread_num
       end
 
       subroutine set_HUV2_tile (Istr,Iend,Jstr,Jend,DC,FC)
-#ifdef NHMG_DEBUG
-# ifdef NHMG
+#ifdef NHMG
+# ifdef NHMG_DEBUG
       USE nhmg_debug, only : nhmg_write_pred_out
-# else
-      USE nhmg_debug, only : h_write_pred_out
 # endif
 #endif
       implicit none
@@ -488,10 +486,12 @@ C$    integer omp_get_thread_num
 #   define JV_RANGE Jstr,JendR
 #  endif
 
-c$$$      write(*,*) 'set_HUV2 before coupling. u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
-c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
-c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+# ifdef NHMG_DEBUG
+      write(*,*) 'set_HUV2 : u,v,wz before coupling. [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+# endif
 
       do j=JU_RANGE
         do i=IU_RANGE
@@ -586,6 +586,7 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 ! Coupling wz
 !
 # ifdef NHMG
+
       do j=Jstr,Jend
         do k=1,N          
           do i=Istr,Iend
@@ -607,22 +608,18 @@ c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 # endif
 
 #ifdef NHMG_DEBUG
-# ifdef NHMG
-c$$$      write(*,*) 'set_HUV2 after coupling. u'
-c$$$      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
-c$$$      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
-c$$$      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+
+      write(*,*) 'set_HUV2 : u,v,wz after coupling. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+
       call nhmg_write_pred_out(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
-# else
-      call h_write_pred_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs) )
-# endif
+
 #endif
 
 # endif /* SOLVE3D */

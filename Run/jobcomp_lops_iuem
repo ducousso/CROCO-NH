@@ -68,8 +68,8 @@ MAKE=make
 #
 # clean scratch area
 #
-#rm -rf $SCRDIR
-#mkdir $SCRDIR
+rm -rf $SCRDIR
+mkdir $SCRDIR
 #
 # AGRIF sources directory
 #
@@ -77,35 +77,35 @@ AGRIF_SRC=${ROOT_DIR}/AGRIF
 #
 # copy SOURCE code
 #
-rsync -auvz ${SOURCE}/*.F90 $SCRDIR
-rsync -auvz ${SOURCE}/*.h90 $SCRDIR
-rsync -auvz ${SOURCE}/*.F   $SCRDIR
-rsync -auvz ${SOURCE}/*.h   $SCRDIR
-rsync -auvz ${SOURCE}/Make* $SCRDIR
-rsync -auvz ${SOURCE}/testkeys.F $SCRDIR
-rsync -auvz ${SOURCE}/jobcomp $SCRDIR
-rsync -auvz ${SOURCE}/amr.in $SCRDIR
-rsync -auvz ${AGRIF_SRC} $SCRDIR
-rsync -auvz ${ROOT_DIR}/XIOS/*.F $SCRDIR
-rsync -auvz ${ROOT_DIR}/PISCES/* $SCRDIR
-rsync -auvz ${ROOT_DIR}/PISCES/kRGB61* $RUNDIR
+/bin/cp -f ${SOURCE}/*.F90 $SCRDIR
+/bin/cp -f ${SOURCE}/*.h90 $SCRDIR
+/bin/cp -f ${SOURCE}/*.F   $SCRDIR
+/bin/cp -f ${SOURCE}/*.h   $SCRDIR
+/bin/cp -f ${SOURCE}/Make* $SCRDIR
+/bin/cp -f ${SOURCE}/testkeys.F $SCRDIR
+/bin/cp -f ${SOURCE}/jobcomp $SCRDIR
+/bin/cp -f ${SOURCE}/amr.in $SCRDIR
+/bin/cp -RLf ${AGRIF_SRC} $SCRDIR
+/bin/cp -f ${ROOT_DIR}/XIOS/*.F $SCRDIR
+/bin/cp -f ${ROOT_DIR}/PISCES/* $SCRDIR
+/bin/cp -f ${ROOT_DIR}/PISCES/kRGB61* $RUNDIR
 
 if [[ -e "namelist_pisces" ]] ; then
 	echo "  file namelist_pisces exists in Run directory"
 else
-	rsync -auvz ${SOURCE}/PISCES/namelist_pisces* $RUNDIR
+	/bin/cp -f ${SOURCE}/PISCES/namelist_pisces* $RUNDIR
 	echo "  file namelist_pisces copied from source directory"
 fi
 
 #
 # overwrite with local files
 #
-rsync -auvzL *.F90 $SCRDIR
-rsync -auvzL *.h90 $SCRDIR
-rsync -auvzL *.F $SCRDIR
-rsync -auvzL *.h $SCRDIR
-rsync -auvzL Make* $SCRDIR
-rsync -auvzL jobcomp $SCRDIR
+/bin/cp -f *.F90 $SCRDIR
+/bin/cp -f *.h90 $SCRDIR
+/bin/cp -f *.F $SCRDIR
+/bin/cp -f *.h $SCRDIR
+/bin/cp -f Make* $SCRDIR
+/bin/cp -f jobcomp $SCRDIR
 #
 # Change directory
 #
@@ -193,7 +193,7 @@ if $($CPP1 testkeys.F | grep -i -q agrifisdefined) ; then
 	FFLAGS1="$FFLAGS1 -IAGRIF"
 	LDFLAGS1="-LAGRIF -lagrif $LDFLAGS1"
 # we use the AGRIF Makedefs.generic definition
-	rsync -auvz Makedefs.generic.AGRIF Makedefs.generic
+	/bin/cp -f Makedefs.generic.AGRIF Makedefs.generic
 fi
 #
 # determine if MPI compilation is required
