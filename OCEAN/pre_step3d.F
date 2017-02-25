@@ -1038,8 +1038,8 @@
 
       cff = 1./cdt
 
-!      if (iic.ge.(ntstart+2)) then
-      if (iic.lt.0) then
+      if (iic.ge.(ntstart+2)) then
+!      if (iic.lt.0) then
 
          call tic(1,'AB2 del q')
 
@@ -1049,8 +1049,11 @@
                   u(i,j,k,nnew) = u(i,j,k,nnew)
      &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1))*cdt
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
+!                  rufrc(i,j) = rufrc(i,j) 
+!     &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1)) 
+!     &                 * om_u(i,j)
                   rufrc(i,j) = rufrc(i,j) 
-     &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1)) 
+     &                 + (nhdu(i,j,k,iprec2)) 
      &                 * om_u(i,j)
                enddo
             enddo
@@ -1060,8 +1063,11 @@
                   v(i,j,k,nnew) = v(i,j,k,nnew)
      &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1))*cdt
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
+!                  rvfrc(i,j) = rvfrc(i,j)
+!     &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1)) 
+!     &                 * on_v(i,j)
                   rvfrc(i,j) = rvfrc(i,j)
-     &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1)) 
+     &                 + (nhdv(i,j,k,iprec2)) 
      &                 * on_v(i,j)
                enddo
             enddo
