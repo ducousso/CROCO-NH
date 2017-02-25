@@ -1038,8 +1038,8 @@
 
       cff = 1./cdt
 
-      if (iic.ge.(ntstart+2)) then
-!      if (iic.lt.0) then
+!      if (iic.ge.(ntstart+2)) then
+      if (iic.lt.0) then
 
          call tic(1,'AB2 del q')
 
