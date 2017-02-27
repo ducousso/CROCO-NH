@@ -965,7 +965,7 @@
 #  undef  TRIDIAG_U
 #  undef  TRIDIAG_V
 #  define TRIDIAG_W
-#   include "tridiag_pred2.h"
+#   include "tridiag_pred.h"
 # endif
 !
 !======================================================================
