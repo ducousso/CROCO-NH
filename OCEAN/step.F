@@ -414,8 +414,7 @@ C$OMP BARRIER
       do tile=my_first,my_last
         call prsgrd (tile)
         call rhs3d (tile)
-# if defined NBQ 
-! || defined NHMG
+# if defined NBQ || defined NHMG
         call rhs3d_w_nh (tile)
 # endif
         call pre_step3d (tile)
@@ -768,8 +767,7 @@ C$OMP BARRIER
       do tile=my_first,my_last
         call prsgrd (tile)
         call rhs3d (tile)
-# if defined NBQ 
-! || defined NHMG
+# if defined NBQ || defined NHMG
         call rhs3d_w_nh (tile)
 # endif
         call step3d_uv1 (tile)
