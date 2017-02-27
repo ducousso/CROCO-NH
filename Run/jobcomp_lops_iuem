@@ -224,12 +224,12 @@ fi
 #
 unset COMPILENHMG
 echo "Checking COMPILENHMG..."
-#if $($CPP1 testkeys.F | grep -i -q nhmgisdefined) ; then
+if $($CPP1 testkeys.F | grep -i -q nhmgisdefined) ; then
 	echo " => NHMG activated"
 	COMPILENHMG=TRUE
-	LDFLAGS1="$LDFLAGS1 $NHMGLIB"
-	FFLAGS1="$FFLAGS1 $NHMGINC"
-#fi
+	LDFLAGS1="$NHMGLIB $LDFLAGS1"
+	FFLAGS1="$NHMGINC $FFLAGS1"
+fi
 #
 # determine if XIOS compilation is required
 #
