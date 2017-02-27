@@ -805,7 +805,7 @@
 # undef  TRIDIAG_TRA
 # undef  TRIDIAG_U
 # define TRIDIAG_V
-#  undef  TRIDIAG_W 
+# undef  TRIDIAG_W 
 #  include "tridiag_pred.h"
 # endif
 !
@@ -813,7 +813,7 @@
 !
       enddo     !<-- j
       
-# if defined NBQ
+# ifdef NBQ
 !----------------------------------------------------------
 !<-- at this point 
 !<-- rw            contains internal 3D advection + Coriolis
@@ -826,15 +826,10 @@
 !==        
         do k=1,N-1
           do i=Istr,Iend
-            wz(i,j,k,nnew)=(wz(i,j,k,nstp)*0.5*(Hz(i,j,k)+Hz(i,j,k+1))
-     &                                          +cdt*pn(i,j)*pm(i,j)
-     &                              *(rw(i,j,k)
-#  ifdef NBQ
-     &                                         +rw_nbq_avg1(i,j,k)
-#  endif
-     &                                                            )
-     &                     ) * 2./ (Hz_half(i,j,k)+Hz_half(i,j,k+1)) !<-- wz has units m.s-1
-
+            wz(i,j,k,nnew)=( wz(i,j,k,nstp)*(Hz(i,j,k)+Hz(i,j,k+1))
+     &                                          +dt*pn(i,j)*pm(i,j)
+     &                              *(rw(i,j,k)+rw_nbq_avg1(i,j,k))
+     &                     )   /  (Hz_half(i,j,k)+Hz_half(i,j,k+1)) !<-- wz has units m.s-1
             wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+
      &                                         Hz(i,j,k+1)) !<-- wz(indx) has units kg.m-1.s-1
 #  ifdef NBQ
@@ -847,15 +842,10 @@
         enddo
 !== Special treatment for k=N because the control volume at the top is Hz/2       
         do i=Istr,Iend
-            wz(i,j,N,nnew)=(wz(i,j,N,nstp)*0.5*Hz(i,j,N)
-     &                            +cdt*pn(i,j)*pm(i,j)
-     &                            *(rw(i,j,N)
-#  ifdef NBQ
-     &                            +rw_nbq_avg1(i,j,N)
-#  endif
-     &                                               )
-     &                     ) * 2. /  Hz_half(i,j,N) !<-- wz has units m.s-1
-
+            wz(i,j,N,nnew)=( wz(i,j,N,nstp)*Hz(i,j,N)
+     &                            +dt*pn(i,j)*pm(i,j)
+     &                *(rw(i,j,N)+rw_nbq_avg1(i,j,N))
+     &                     )        /  Hz_half(i,j,N) !<-- wz has units m.s-1
             wz(i,j,N,indx)=wz(i,j,N,nstp)*0.5*Hz(i,j,N) !<-- wz(indx) has units kg.m-1.s-1
 #  ifdef NBQ
             qdm_w(i,j,N,1)=0.
@@ -872,18 +862,13 @@
 !==        
         do k=1,N-1
           do i=Istr,Iend
-             wz(i,j,k,nnew)=( cff1*wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+
-     &                                                 Hz(i,j,k+1))
-     &                       +cff2*wz(i,j,k,indx)*0.5*(Hz_bak(i,j,k  )+
-     &                                                 Hz_bak(i,j,k+1))
-     &                       +cdt*pn(i,j)*pm(i,j)
-     &                              *(rw(i,j,k)
-#  ifdef NBQ
-     &                                       +rw_nbq_avg1(i,j,k)
-#  endif
-     &                                                          )
-     &                      ) * 2./ (Hz_half(i,j,k)+Hz_half(i,j,k+1))  !<-- wz has units m.s-1
-
+             wz(i,j,k,nnew)=( cff1*wz(i,j,k,nstp)*(Hz(i,j,k  )+         ! n      
+     &                                             Hz(i,j,k+1))         !
+     &                       +cff2*wz(i,j,k,indx)*(Hz_bak(i,j,k  )+     ! n - 1
+     &                                             Hz_bak(i,j,k+1))     !
+     &                       +2.*cdt*pn(i,j)*pm(i,j)                    ! n - 1/2
+     &                              *(rw(i,j,k)+rw_nbq_avg1(i,j,k))     !
+     &                      ) / (Hz_half(i,j,k)+Hz_half(i,j,k+1))  !<-- wz has units m.s-1
              wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+
      &                                          Hz(i,j,k+1)) !<-- wz(indx) has units kg.m-1.s-1
 #  ifdef NBQ
@@ -898,16 +883,11 @@
 
 !== Special treatment for k=N because the control volume at the top is Hz/2             
        do i=Istr,Iend
-             wz(i,j,N,nnew)=( cff1*wz(i,j,N,nstp)*0.5*Hz    (i,j,N)
-     &                       +cff2*wz(i,j,N,indx)*0.5*Hz_bak(i,j,N)
-     &                       +cdt*pn(i,j)*pm(i,j)
-     &                          *(rw(i,j,N)
-#  ifdef NBQ
-     &                                     +rw_nbq_avg1(i,j,N)
-#  endif
-     &                                                        )
-     &                      ) * 2. / Hz_half(i,j,N)                !<-- wz has units m.s-1
-
+             wz(i,j,N,nnew)=( cff1*wz(i,j,N,nstp)*Hz    (i,j,N)
+     &                       +cff2*wz(i,j,N,indx)*Hz_bak(i,j,N)
+     &                       +2.*cdt*pn(i,j)*pm(i,j)
+     &                          *(rw(i,j,N)+rw_nbq_avg1(i,j,N))
+     &                      )/ Hz_half(i,j,N)                !<-- wz has units m.s-1
              wz(i,j,N,indx)=wz(i,j,N,nstp)*0.5*Hz(i,j,N)   !<-- wz(indx) has units kg.m-1.s-1
 #  ifdef NBQ
              qdm_w(i,j,N,1)=qdm_w(i,j,N,2)
@@ -985,7 +965,7 @@
 #  undef  TRIDIAG_U
 #  undef  TRIDIAG_V
 #  define TRIDIAG_W
-#####################  include "tridiag_pred2.h"
+#   include "tridiag_pred2.h"
 # endif
 !
 !======================================================================
