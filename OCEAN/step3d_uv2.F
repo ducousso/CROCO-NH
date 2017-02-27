@@ -615,7 +615,7 @@
 
       call tic(1,'swap corrector')
 
-# if defined NH_MASKING
+# if defined NHMG_MASKING
          do k=1,N    
             do j=Jstr,Jend
                do i=IstrU,Iend

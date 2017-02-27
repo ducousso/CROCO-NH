@@ -426,7 +426,7 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
 !          h(i,j)=depth*(1-0.6*exp(-cff*((xr(i,j)-0.5*xl)**2+
 !     &                                  (yr(i,j)-0.5*el)**2))) 
           h(i,j)=depth
-#  if defined MASKING || defined NH_MASKING
+#  if defined MASKING || defined NHMG_MASKING
           rmask(i,j)=1.0
           if (h(i,j).lt.0.5*depth) then
             rmask(i,j)=0.0

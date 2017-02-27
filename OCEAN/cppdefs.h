@@ -24,7 +24,7 @@
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
 #undef  SEAMOUNT        /* Seamount Example */
-#undef  CALDEIRA        /* Caldeira Example */
+#define  CALDEIRA        /* Caldeira Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -36,7 +36,7 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#define  TANK            /* Tank Example */
+#undef  TANK            /* Tank Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -736,7 +736,7 @@
 # define MPI
 # define NHMG
 # undef NHMG_DEBUG
-# undef NH_MASKING
+# undef NHMG_MASKING
 # undef CLOSED
 # ifdef CLOSED
 #  undef OBC_EAST
@@ -782,6 +782,8 @@
 # define OBC_M3ORLANSKI
 # define OBC_TORLANSKI
 # define SPONGE
+# undef NHMG_VADV_AND_VMIX
+# ifdef NHMG_VADV_AND_VMIX
                       /* Semi-implicit Vertical Tracer/Mom Advection */
 # undef  VADV_ADAPT_IMP
                       /* Vertical Mixing */
@@ -806,6 +808,7 @@
 #  undef  CRAIG_BANNER
 #  undef  CANUTO_A
 #  undef  ZOS_HSIG
+# endif
 # endif
 
 # elif defined SHELFRONT

@@ -1116,7 +1116,7 @@
      &        v(START_2D_ARRAY,1,nnew))
 # endif
        
-# if defined NH_MASKING
+# if defined NHMG_MASKING
          do k=1,N    
             do j=Jstr,Jend
                do i=IstrU,Iend
