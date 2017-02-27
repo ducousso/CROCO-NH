@@ -52,7 +52,7 @@ setenv LD_LIBRARY_PATH $HOME/CROCO-NH/NHMG/lib:$LD_LIBRARY_PATH
 set SRC_DIR=/home2/caparmor/nducouss/CROCO-NH/Run
 set CODFILE=./croco_bimin_8x8
 set MODEL=croco.in.bimin
-set RUNEXP=EXP_NHMG_8x8_2_LFAM3_dbg_bis
+set RUNEXP=EXP_NHMG_8x8_new2
 set EXEC_DIR=/work/nducouss/BIMIN
 set INPUT_DATA=/work/nducouss/BIMIN/INPUT/INPUT_8x8
 
