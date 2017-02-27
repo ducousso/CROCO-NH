@@ -414,7 +414,8 @@ C$OMP BARRIER
       do tile=my_first,my_last
         call prsgrd (tile)
         call rhs3d (tile)
-# if defined NBQ || defined NHMG
+# if defined NBQ 
+! || defined NHMG
         call rhs3d_w_nh (tile)
 # endif
         call pre_step3d (tile)
@@ -702,6 +703,10 @@ C$OMP END MASTER
 #endif
       integer omp_get_num_threads, omp_get_thread_num 
       integer itrc
+
+# if defined NHMG
+      integer, save :: count = 0
+# endif
       
       real t1,t2,t3
 
@@ -720,10 +725,17 @@ C$OMP BARRIER
       enddo
 
 # ifdef NHMG
+
+!XXXXXXXXXXXXXXXXXXXX
+! care that dz is properly updated. needed to compute rw etc     
+
+!      count = count+1
+!      if (mod(count,10).eq.0) then
       call nhmg_matrices(
      & Lm,Mm,N,
      & z_r(0:Lm+1,0:Mm+1,1:N),
      &  Hz(0:Lm+1,0:Mm+1,1:N))
+!      endif
 # endif
 
 C$OMP BARRIER
@@ -756,11 +768,12 @@ C$OMP BARRIER
       do tile=my_first,my_last
         call prsgrd (tile)
         call rhs3d (tile)
-# if defined NBQ || defined NHMG
+# if defined NBQ 
+! || defined NHMG
         call rhs3d_w_nh (tile)
 # endif
         call step3d_uv1 (tile)
-# if defined NBQ || defined NHMG
+# if defined NBQ
         call step3d_w (tile)
 # endif
       enddo
@@ -775,6 +788,10 @@ C$OMP BARRIER
 C$OMP BARRIER
 
 #endif /* SOLVE3D */
+#ifdef  NHMG
+      iprec1 = 1+mod(iprec1,2)
+      iprec2 = 1+mod(iprec2,2)
+#endif
 !
 #if defined AGRIF && defined AGRIF_2WAY
 !

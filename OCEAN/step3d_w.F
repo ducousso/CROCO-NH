@@ -74,89 +74,37 @@
 !  Apply right-hand-side
 !--------------------------------------------------------------------
 !
+
+!      do j=Jstr,Jend
+!        do k=1,N
+!          do i=Istr,Iend
+!            wz(i,j,k,nnew)=wz(i,j,k,nnew)
+!     &            +dt*pn(i,j)*pm(i,j)*(rw(i,j,k)
+!# ifdef NBQ
+!     &                                          +rw_nbq_avg2(i,j,k)
+!# endif
+!     &                                                             )
+!          enddo
+!        enddo
+!      enddo
+
       do j=Jstr,Jend
-        do k=1,N
+        do k=1,N-1
           do i=Istr,Iend
             wz(i,j,k,nnew)=wz(i,j,k,nnew)
-     &            +dt*pn(i,j)*pm(i,j)*(rw(i,j,k)
-# ifdef NBQ
-     &                                          +rw_nbq_avg2(i,j,k)
-# endif
-     &                                                             )
+     &            +dt*pn(i,j)*pm(i,j)*rw(i,j,k)
+     &            /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
           enddo
+        enddo
+        do i=Istr,Iend
+           wz(i,j,N,nnew)=wz(i,j,N,nnew)
+     &          +dt*pn(i,j)*pm(i,j)*rw(i,N,k)
+     &          /(0.5*Hz(i,j,N))
         enddo
       enddo
 
-# define NBQ_WDIF
-# undef NBQ_WDIF
-# ifdef NBQ_WDIF
-!
-!====================================================================     
-!== Turbulent vertical diffusion for wz
-!== At this point wz contains rho.Hz.wz with units kg.m-1.s-1  
-!== The implicit integration contains a division by rho.Hz
-!==================================================================== 
-!
-      do j=Jstr,Jend
-!
-        do k=1,N-1
-          do i=Istr,Iend
-            FC(i,k)=-0.5*dt*( Akv(i,j,k+1)+Akv(i,j,k) )
-     &                 /    ( z_w(i,j,k+1)-z_w(i,j,k) )
-          enddo
-        enddo
-        do i=Istr,Iend
-          FC(i,0)=0.
-          FC(i,N)=0.
-        enddo
+!care all the vert mixing part is lacking
 
-        do k=1,N-1
-          do i=Istr,Iend
-            DC(i,k)=wz(i,j,k,nnew)                                    !<-- rhs
-            BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1)) - FC(i,k) - FC(i,k-1) !<-- diagonal term
-          enddo
-        enddo  
-        do i=Istr,Iend            
-          BC(i,N)=0.5*Hz(i,j,N) - FC(i,N) - FC(i,N-1)    !<-- Hz contains rho.Hz
-          DC(i,N)=wz(i,j,N,nnew)
-        enddo 
-        
-! Gauss elimination
-        do i=Istr,Iend
-          cff=1./BC(i,1)
-          CF(i,1)=cff*FC(i,1)
-          DC(i,1)=cff*DC(i,1)
-        enddo
-        do k=2,N-1
-          do i=Istr,Iend
-            cff=1./(BC(i,k)-FC(i,k-1)*CF(i,k-1))
-            CF(i,k)=cff*FC(i,k)
-            DC(i,k)=cff*(DC(i,k)-FC(i,k-1)*DC(i,k-1))
-          enddo
-        enddo
-        do i=Istr,Iend
-          wz(i,j,N,nnew)=(DC(i,N)-FC(i,N-1)*DC(i,N-1))
-     &                  /(BC(i,N)-FC(i,N-1)*CF(i,N-1))
-        enddo
-        do k=N-1,1,-1
-          do i=Istr,Iend
-             wz(i,j,k,nnew)=DC(i,k)-CF(i,k)*wz(i,j,k+1,nnew)  !<-- wz in m.s-1
-          enddo
-        enddo      !--> discard FC,BC; keep DC,CF(:,0)
-
-      enddo      ! <-- j
-#else
-      do j=Jstr,Jend
-        do k=1,N-1
-          do i=Istr,Iend
-            wz(i,j,k,nnew)=2.*wz(i,j,k,nnew)/(Hz(i,j,k)+Hz(i,j,k+1))
-          enddo
-        enddo
-        do i=Istr,Iend
-          wz(i,j,N,nnew)=2.*wz(i,j,N,nnew)/Hz(i,j,N)
-        enddo
-      enddo
-#endif
 !
 !--------------------------------------------------------------------
 ! Set PHYSICAL lateral boundary conditions.

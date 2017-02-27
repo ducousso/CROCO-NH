@@ -1,0 +1,127 @@
+title:
+	Caldeira
+
+time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
+                2500      200     100       1
+
+S-coord: THETA_S,   THETA_B,    Hc (m)
+         1.0d0      4.0d0       10.d0
+
+initial: NRREC  filename
+          0 
+                          caldeira_his.00000.nc
+
+restart:          NRST, NRPFRST / filename
+                  10000      -1
+                          caldeira_rst.nc
+
+history: LDEFHIS, NWRT, NRPFHIS / filename 
+            T      5      1000 
+                          caldeira_his.nc
+
+averages: NTSAVG, NAVG, NRPFAVG / filename
+            1      100     1000
+                          caldeira_avg.nc
+
+
+primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                          T    T   T   T  T    30*T
+auxiliary_history_fields:   rho Omega W  Akv  Akt  Aks Visc3d Diff3d  HBL HBBL Bostr Wstr Ustr Vstr Shfl rsw rlw lat sen Hm HEL BIOL
+                             T   T    T   F    T    F   F      F       F   T    F     20*F
+
+gls_history_fields:   Akk Akp  TKE  GLS  Lscale
+                       T   T    T     T    T
+
+
+primary_averages: zeta UBAR VBAR  U  V   wrtT(1:NT)
+                   T    T    T    T  T   30*T
+auxiliary_averages: rho Omega  W  Akv  Akt  Aks  Visc3d Diff3d HBL HBBL Bostr Wstr Ustr Vstr Shfl Swfl rsw rlw lat sen HEL
+                     30*F
+
+rho0:
+      1025.d0
+
+lateral_visc:   VISC2,    VISC4    [m^2/sec for all]
+                 100.       0.
+
+tracer_diff2: TNU2(1:NT)           [m^2/sec for all]
+               30*0.d0 
+
+tracer_diff4: TNU4(1:NT)           [m^4/sec for all]
+               30*0.d11
+
+vertical_mixing: Akv_bak, Akt_bak [m^2/sec]
+                   0.d0    30*0.d0
+
+bottom_drag:     RDRG [m/s],  RDRG2,  Zob [m],  Cdb_min, Cdb_max
+                 0d-04      0.d-3    0.d-3     1.d-4    1.d-1 
+
+gamma2:
+                 1.d0
+
+sponge:          X_SPONGE [m],    V_SPONGE [m^2/sec]
+                  5000.               100.  
+
+nudg_cof:    TauT_in, TauT_out, TauM_in, TauM_out  [days for all]
+                1.       360.      1.      360.
+
+
+diagnostics:   ldefdia   nwrtdia    nrpfdia /filename
+                  T        100         1000
+                                 caldeira_dia.nc
+
+diag3D_history_fields:    diag_tracers3D(1:NT) 
+                            30*T
+
+diag2D_history_fields:    diag_tracers2D(1:NT)
+                            30*T
+
+
+
+diagnosticsM:   ldefdiaM   nwrtdiaM    nrpfdiaM /filename
+                   T          1          1000
+                                 caldeira_diaM.nc
+
+diagM_avg: ldefdiaM_avg  ntsdiaM_avg  nwrtdiaM_avg  nprfdiaM_avg /filename
+               T          1           1000            1000
+                                 caldeira_diaM_avg.nc
+
+diagM_history_fields: diag_momentum(1:2)
+                            T T
+
+diagM_average_fields: diag_momentum_avg(1:2)
+                            T T
+
+
+
+diags_vrt:   ldefdiags_vrt, nwrtdiags_vrt, nrpfdiags_vrt /filename
+                   T          0        1000
+                                 caldeira_diags_vrt.nc
+
+diags_vrt_avg: ldefdiags_vrt_avg  ntsdiags_vrt_avg  nwrtdiags_vrt_avg  nprfdiags_vrt_avg /filename 
+               T          1           0          1000
+                                 caldeira_diags_vrt_avg.nc
+
+diags_vrt_history_fields: diags_vrt
+                            T 
+
+diags_vrt_average_fields: diags_vrt_avg
+		            T 
+
+
+diags_ek:   ldefdiags_ek, nwrtdiags_ek, nrpfdiags_ek /filename
+                   T         0        1000
+                                 caldeira_diags_ek.nc
+
+diags_ek_avg: ldefdiags_ek_avg  ntsdiags_ek_avg  nwrtdiags_ek_avg  nprfdiags_ek_avg /filename
+               T          1           0          1000
+                                 caldeira_diags_ek_avg.nc
+
+diags_ek_history_fields: diags_ek
+                            T
+
+diags_ek_average_fields: diags_ek_avg
+                            T
+
+
+

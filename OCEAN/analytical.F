@@ -117,6 +117,9 @@
 #  include "forces.h"
 #  include "scalars.h"
       integer itrc, Istr,Iend,Jstr,Jend, i,j
+# if defined CALDEIRA 
+      real rr
+# endif
 !
 #  include "compute_auxiliary_bounds.h"
 !
@@ -129,6 +132,12 @@
         do j=JstrR,JendR
           do i=IstrR,IendR
             btflx(i,j,itemp)=0.
+# if defined CALDEIRA 
+            rr = sqrt((xr(i,j)-0.5*xl)**2+(yr(i,j)-0.5*el)**2)
+            if (rr.le.2.5e3) then
+              btflx(i,j,itemp)=0.0
+            endif
+# endif
           enddo
         enddo
 !
@@ -2032,10 +2041,19 @@ C$    integer  trd, omp_get_thread_num
 !
       implicit none          
       integer Istr,Iend,Jstr,Jend, i,j,k, itrc
+# if defined SEAMOUNT
+      real u0
+      parameter (u0=0.1)
+# endif
+# if defined CALDEIRA
+      real u0
+      parameter (u0=0.1)
+# endif
 # include "param.h"
 # include "grid.h"
+#include "ocean2d.h"
+#include "ocean3d.h"
 # include "scalars.h"
-# include "ocean3d.h"
 # include "boundary.h"
 !
 # include "compute_auxiliary_bounds.h"
@@ -2048,6 +2066,10 @@ C$    integer  trd, omp_get_thread_num
            zetabry_west(j)=0.2*sin(2*pi*time/20.)      ! long waves of 20 sec period
 !           zetabry_west(j)=0.07*sin(0.420*2*pi*time)   ! GLOBEX B3
 !     &                    +0.03*sin(0.462*2*pi*time)   ! but with 1rst order waves
+#   elif defined SEAMOUNT
+          zetabry_west(j)=-f(IstrR,j)/g*(yr(IstrR,j)-el/2.)*u0
+#   elif defined CALDEIRA
+          zetabry_west(j)=-f(IstrR,j)/g*(yr(IstrR,j)-el/2.)*u0
 #   else
           zetabry_west(j)=0.
 #   endif
@@ -2057,24 +2079,28 @@ C$    integer  trd, omp_get_thread_num
         enddo
 #  endif
 #  ifdef M2_FRC_BRY
-#   ifdef SEAMOUNT
         do j=JstrR,JendR
-          ubarbry_west(j)=0.01
+#   if defined SEAMOUNT
+          ubarbry_west(j)=u0
           vbarbry_west(j)=0.
-        enddo
+#   elif defined CALDEIRA
+          ubarbry_west(j)=u0
+          vbarbry_west(j)=0.
 #   else
-        do j=JstrR,JendR
           ubarbry_west(j)=0.
           vbarbry_west(j)=0.
-        enddo
 #   endif
+        enddo
 #  endif
 #  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
         do k=1,N
           do j=JstrR,JendR
 #   ifdef M3_FRC_BRY
-#    ifdef SEAMOUNT
-            ubry_west(j,k)=0.01
+#    if defined SEAMOUNT
+            ubry_west(j,k)=u0
+            vbry_west(j,k)=0.
+#    elif defined CALDEIRA
+            ubry_west(j,k)=u0
             vbry_west(j,k)=0.
 #    else
             ubry_west(j,k)=0.
@@ -2085,13 +2111,35 @@ C$    integer  trd, omp_get_thread_num
             do itrc=1,NT
               tbry_west(j,k,itrc)=0.
             enddo
-#    ifdef SEAMOUNT
-              tbry_west(j,k,itemp) =15. + 10./4500.*z_r(1,j,k)
+#    if defined SEAMOUNT
+            tbry_west(j,k,itemp) =15. + 10./4500.*z_r(IstrR,j,k)
+#    elif defined CALDEIRA
+            tbry_west(j,k,itemp)=15. + 10./1300.*z_r(IstrR,j,k)
+!            tbry_west(j,k,itemp)=min(3.+46.*exp(z_r(IstrR,j,k)/250.)
+!     &           ,28.)
+#    ifdef SALINITY
+            tbry_west(j,k,isalt)=34.54
+!            tbry_west(j,k,isalt)=34.54+3.5*exp(z_r(IstrR,j,k)/250.)
+!     &      * sin(-z_r(IstrR,j,k)/(1-z_r(IstrR,j,k)/6000.)*2*3.14/1000.)
+#    endif
 #    endif
 #   endif
           enddo
         enddo
-#  endif    /* SOLVE3D && (M3_FRC_BRY || T_FRC_BRY)*/
+#  endif
+#  if defined SOLVE3D && defined W_FRC_BRY
+        do k=1,N
+           do j=JstrR,JendR
+#    if defined SEAMOUNT
+              wbry_west(j,k)=0.
+#    elif defined CALDEIRA
+              wbry_west(j,k)=0.
+#    else
+              wbry_west(j,k)=0.
+#    endif
+           enddo
+        enddo
+#  endif
       endif
 # endif /* OBC_WEST */
 !
@@ -2099,31 +2147,41 @@ C$    integer  trd, omp_get_thread_num
       if (EASTERN_EDGE) then
 #  ifdef Z_FRC_BRY
         do j=JstrR,JendR
+#   if defined SEAMOUNT
+          zetabry_east(j)=-f(IendR,j)/g*(yr(IendR,j)-el/2.)*u0
+#   elif defined CALDEIRA
+          zetabry_east(j)=-f(IendR,j)/g*(yr(IendR,j)-el/2.)*u0
+#   else
           zetabry_east(j)=0.
+#   endif
 #   ifdef NBQ
      &                   +h(IendR,j)
 #   endif
         enddo
 #  endif
 #  ifdef M2_FRC_BRY
-#   ifdef SEAMOUNT
         do j=JstrR,JendR
-          ubarbry_east(j)=0.01
+#   if defined SEAMOUNT
+          ubarbry_east(j)=u0
           vbarbry_east(j)=0.
-        enddo
+#   elif defined CALDEIRA
+          ubarbry_east(j)=u0
+          vbarbry_east(j)=0.
 #   else
-        do j=JstrR,JendR
           ubarbry_east(j)=0.
           vbarbry_east(j)=0.
-        enddo
 #   endif
+        enddo
 #  endif
 #  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
         do k=1,N
           do j=JstrR,JendR
 #   ifdef M3_FRC_BRY
-#    ifdef SEAMOUNT
-            ubry_east(j,k)=0.01
+#    if defined SEAMOUNT
+            ubry_east(j,k)=u0
+            vbry_east(j,k)=0.
+#    elif defined CALDEIRA
+            ubry_east(j,k)=u0
             vbry_east(j,k)=0.
 #    else
             ubry_east(j,k)=0.
@@ -2134,13 +2192,34 @@ C$    integer  trd, omp_get_thread_num
             do itrc=1,NT
               tbry_east(j,k,itrc)=0.
             enddo
-#    ifdef SEAMOUNT
-              tbry_east(j,k,itemp)=15. + 10./4500.*z_r(1,j,k)
+#    if defined SEAMOUNT
+            tbry_east(j,k,itemp)=15. + 10./4500.*z_r(IendR,j,k)
+#    elif defined CALDEIRA
+           tbry_east(j,k,itemp)=15. + 10./1300.*z_r(IendR,j,k)
+!           tbry_east(j,k,itemp)=min(3.+46.*exp(z_r(IendR,j,k)/250.),28.)
+#    if defined SALINITY
+            tbry_east(j,k,isalt)=34.54
+!            tbry_east(j,k,isalt)=34.54+3.5*exp(z_r(IendR,j,k)/250.)
+!     &      * sin(-z_r(IendR,j,k)/(1-z_r(IendR,j,k)/6000.)*2*3.14/1000.)
+#    endif
 #    endif
 #   endif
           enddo
         enddo
-#  endif    /* SOLVE3D && (M3_FRC_BRY || T_FRC_BRY)*/
+#  endif
+#  if defined SOLVE3D && defined W_FRC_BRY
+        do k=1,N
+           do j=JstrR,JendR
+#    if defined SEAMOUNT
+              wbry_east(j,k)=0.
+#    elif defined CALDEIRA
+              wbry_east(j,k)=0.
+#    else
+              wbry_east(j,k)=0.
+#    endif
+           enddo
+        enddo
+#  endif
       endif
 # endif /* OBC_EAST */
 !
@@ -2148,7 +2227,11 @@ C$    integer  trd, omp_get_thread_num
       if (SOUTHERN_EDGE) then
 #  ifdef Z_FRC_BRY
         do i=IstrR,IendR
+#   if defined CALDEIRA
+          zetabry_south(i)=-f(i,JstrR)/g*(yr(i,JstrR)-el/2.)*u0
+#   else
           zetabry_south(i)=0.
+#  endif
 #   ifdef NBQ
      &                   +h(i,JstrR)
 #   endif
@@ -2156,25 +2239,55 @@ C$    integer  trd, omp_get_thread_num
 #  endif
 #  ifdef M2_FRC_BRY
         do i=IstrR,IendR
+#   if defined CALDEIRA
+          ubarbry_south(i)=u0
+          vbarbry_south(i)=0.
+#   else
           ubarbry_south(i)=0.
           vbarbry_south(i)=0.
+#  endif
         enddo
 #  endif
 #  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
         do k=1,N
           do i=IstrR,IendR
 #   ifdef M3_FRC_BRY
+#   if defined CALDEIRA
+            ubry_south(i,k)=u0
+            vbry_south(i,k)=0.
+#   else
             ubry_south(i,k)=0.
             vbry_south(i,k)=0.
+#   endif
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
               tbry_south(i,k,itrc)=0.
             enddo
+# if defined CALDEIRA
+         tbry_south(i,k,itemp)=min(3.+46.*exp(z_r(i,JstrR,k)/250.),28.)
+#   ifdef SALINITY
+         tbry_south(i,k,isalt)=34.54+3.5*exp(z_r(i,JstrR,k)/250.)
+     &      * sin(-z_r(i,JstrR,k)/(1-z_r(i,JstrR,k)/6000.)*2*3.14/1000.)
+# endif
+# endif
 #   endif
           enddo
         enddo
-#  endif    /* SOLVE3D && (M3_FRC_BRY || T_FRC_BRY)*/
+#  endif
+#  if defined SOLVE3D && defined W_FRC_BRY
+        do k=1,N
+          do i=IstrR,IendR
+#   if defined SEAMOUNT
+            wbry_south(i,k)=0.
+#   elif defined CALDEIRA
+            wbry_south(i,k)=0.
+#   else
+            wbry_south(i,k)=0.
+#   endif
+          enddo
+        enddo
+#  endif
       endif
 # endif /* OBC_SOUTH */
 !
@@ -2182,7 +2295,11 @@ C$    integer  trd, omp_get_thread_num
       if (NORTHERN_EDGE) then
 #  ifdef Z_FRC_BRY
         do i=IstrR,IendR
+#   if defined CALDEIRA
+          zetabry_north(i)=-f(i,JendR)/g*(yr(i,JendR)-el/2.)*u0
+#   else
           zetabry_north(i)=0.
+#  endif
 #   ifdef NBQ
      &                   +h(i,JendR)
 #   endif
@@ -2190,25 +2307,55 @@ C$    integer  trd, omp_get_thread_num
 #  endif
 #  ifdef M2_FRC_BRY
         do i=IstrR,IendR
+#   if defined CALDEIRA
+          ubarbry_north(i)=u0
+          vbarbry_north(i)=0.
+#   else
           ubarbry_north(i)=0.
           vbarbry_north(i)=0.
+#   endif
         enddo
 #  endif
 #  if defined SOLVE3D && (defined M3_FRC_BRY || defined T_FRC_BRY)
         do k=1,N
           do i=IstrR,IendR
 #   ifdef M3_FRC_BRY
+#   if defined CALDEIRA
+            ubry_north(i,k)=u0
+            vbry_north(i,k)=0.
+#   else
             ubry_north(i,k)=0.
             vbry_north(i,k)=0.
+#   endif
 #   endif
 #   ifdef T_FRC_BRY
             do itrc=1,NT
               tbry_north(i,k,itrc)=0.
             enddo
+# if defined CALDEIRA
+         tbry_north(i,k,itemp)=min(3.+46.*exp(z_r(i,JendR,k)/250.),28.)
+#   ifdef SALINITY
+         tbry_north(i,k,isalt)=34.54+3.5*exp(z_r(i,JendR,k)/250.)
+     &      * sin(-z_r(i,JendR,k)/(1-z_r(i,JendR,k)/6000.)*2*3.14/1000.)
+# endif
+# endif
 #   endif
           enddo
         enddo
-#  endif    /* SOLVE3D && (M3_FRC_BRY || T_FRC_BRY)*/
+#  endif
+#  if defined SOLVE3D && defined W_FRC_BRY
+        do k=1,N
+          do i=IstrR,IendR
+#   if defined SEAMOUNT
+            wbry_north(i,k)=0.
+#   elif defined CALDEIRA
+            wbry_north(i,k)=0.
+#   else
+            wbry_north(i,k)=0.
+#   endif
+          enddo
+        enddo
+#  endif
       endif
 # endif /* OBC_NORTH */
 !

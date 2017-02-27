@@ -77,6 +77,8 @@
 # ifdef VADV_ADAPT_IMP      
       real cu_adv(PRIVATE_1D_SCRATCH_ARRAY,0:N)
       real gamma,Cdt,cff,my_cu_adv,c_min,c_max,cu_cut,fcu
+
+      integer count
 #  ifdef VADV_ADAPT_PRED
       parameter(c_min=0.6,c_max=1.0,cu_cut=2.*c_max-c_min,
      &          fcu=4.*c_max*(c_max-c_min))
@@ -114,6 +116,7 @@
       else
         cdt = (1.-2*gamma)*dt        !<-- Predictor
       endif
+      count = 0
 # endif
 # ifdef MOVING_BATHY
       if(nrhs.eq.3) then
@@ -225,6 +228,7 @@
              elseif(my_cu_adv.lt.cu_cut) then      !<-- Mixed explicit
                  cff = (my_cu_adv-c_min)**2
                  cff = cff / (fcu+cff)
+                 count = count +1
              else                                  !<-- Fully implicit
                  cff = (my_cu_adv-c_max)/my_cu_adv
              endif
@@ -235,6 +239,12 @@
 #endif
 
       enddo  ! j loop
+#ifdef VADV_ADAPT_IMP
+      ! uncomment to see whether indeed there will some points with Wi neq 0
+
+!      if(count.gt.0)
+!     &write(*,*)( "nb grid point with semivertical implicit adv",count)
+#endif
 !
 !---------------------------------------------------------      
 !  Set lateral boundary conditions.

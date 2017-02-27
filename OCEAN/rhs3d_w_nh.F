@@ -64,11 +64,6 @@
         enddo
       enddo
 
-!important! otherwise blow up of the tank
-# ifdef NHMG 
-      rw(:,:,:)=0.
-# endif
-
 !# if defined UV_COR
 !!====================================================================
 !!  Add in Coriolis  FWcor = +e (U cos(angle) - V sin(angle) ) 
@@ -111,7 +106,7 @@
 
 #  define curv wrk1
 !==
-      do k=1,N           !<-- outer loop          
+      do k=1,N                  !<-- outer loop          
 !==
 #  ifdef EW_PERIODIC
 #   define I_EXT_RANGE Istr-1,Iend+2
@@ -240,7 +235,6 @@
             enddo
           enddo  
 
-
           kp   = min(k+1,N)    !<-- extrapolation at k=N    
           cff1 = 0.5          
           if(k.eq.N) cff1=0.25 !<-- at the surface the thickness of 
@@ -262,14 +256,14 @@
 !== Store horizontal advection in rw [units of rw : kg.m.s-2]
           do j=Jstr,Jend
             do i=Istr,Iend
-              rw(i,j,k)=-WFx(i+1,j)+WFx(i,j)-WFe(i,j+1)+WFe(i,j)    
+             rw(i,j,k)=rw(i,j,k)-WFx(i+1,j)+WFx(i,j)-WFe(i,j+1)+WFe(i,j)    
             enddo
           enddo
 !================
 !--> Comment: the computation of HVom_w and HUon_w assumes that rw must 
 !--  be divided by 0.5*(Hz(i,j,k)+Hz(i,j,k+1)) in pre_step3d and step3d_w2 
 !================
-       enddo          !<-- outer loop k
+      enddo                    !<-- outer loop k
 # endif /* W_HADV */
 
 

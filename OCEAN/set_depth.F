@@ -245,9 +245,7 @@ C$    integer omp_get_thread_num
       end
 
       subroutine set_HUV_tile (Istr,Iend,Jstr,Jend)
-#ifdef NHMG
-          USE nhmg, only : nhmg_fluxes
-#endif
+
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
 #  include "param.h"
@@ -259,8 +257,6 @@ C$    integer omp_get_thread_num
 #    include "forces.h"
 #  endif
 #  include "compute_auxiliary_bounds.h"
-!
-#  ifndef NHMG
 !
 #  ifdef EW_PERIODIC 
 #   define IU_RANGE Istr,Iend
@@ -321,18 +317,6 @@ C$    integer omp_get_thread_num
 #  undef JU_RANGE
 #  undef IV_RANGE
 #  undef JV_RANGE
-
-#  else
-
-      call nhmg_fluxes(
-     & Lm, Mm, N,
-     & u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     & v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     & wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
-     & Huon(1:Lm+1,0:Mm+1,1:N),
-     & Hvom(0:Lm+1,1:Mm+1,1:N) )
-
-#  endif
 !
 ! Exchange periodic boundaries, if so prescribed.
 !
@@ -467,11 +451,9 @@ C$    integer omp_get_thread_num
 
       subroutine set_HUV2_tile (Istr,Iend,Jstr,Jend,DC,FC)
 #ifdef NHMG
-          USE nhmg, only : nhmg_bbc
-          USE nhmg, only : nhmg_coupling
-          USE nhmg, only : nhmg_write_pred_out
-#else
-          USE nhmg, only : h_write_pred_out
+# ifdef NHMG_DEBUG
+      USE nhmg_debug, only : nhmg_write_pred_out
+# endif
 #endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
@@ -488,8 +470,6 @@ C$    integer omp_get_thread_num
 !
 #  include "compute_auxiliary_bounds.h"
 !
-#  ifndef NHMG
-!
 #  ifdef EW_PERIODIC
 #   define IU_RANGE Istr,Iend
 #   define IV_RANGE Istr,Iend
@@ -505,6 +485,13 @@ C$    integer omp_get_thread_num
 #   define JU_RANGE JstrR,JendR
 #   define JV_RANGE Jstr,JendR
 #  endif
+
+# ifdef NHMG_DEBUG
+      write(*,*) 'set_HUV2 : u,v,wz before coupling. [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+# endif
 
       do j=JU_RANGE
         do i=IU_RANGE
@@ -582,33 +569,6 @@ C$    integer omp_get_thread_num
 #  undef JU_RANGE
 #  undef IV_RANGE
 #  undef JV_RANGE
-
-#  else
-
-#   if defined MPI
-      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
-     &                        DU_avg2(START_2D_ARRAY))
-      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
-     &                        DV_avg2(START_2D_ARRAY))
-#   endif
-
-      call nhmg_bbc(
-     & Lm, Mm, N,
-     & u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     & v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     & wz(0:Lm+1,0:Mm+1,0:N,nrhs) )
-
-      call nhmg_coupling(
-     & Lm, Mm, N,
-     & DU_avg2(1:Lm+1,0:Mm+1),
-     & DV_avg2(0:Lm+1,1:Mm+1),
-     & u(1:Lm+1,0:Mm+1,1:N,nrhs),
-     & v(0:Lm+1,1:Mm+1,1:N,nrhs),
-     & wz(0:Lm+1,0:Mm+1,0:N,nrhs),
-     & Huon(1:Lm+1,0:Mm+1,1:N),
-     & Hvom(0:Lm+1,1:Mm+1,1:N) )
-
-#  endif
 !
 ! Exchange periodic boundaries, if so prescribed.
 !
@@ -621,14 +581,38 @@ C$    integer omp_get_thread_num
      &                                    Hvom(START_2D_ARRAY,1))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                                  v(START_2D_ARRAY,1,nrhs))
-#  if defined NHMG
+#  endif
+!
+! Coupling wz
+!
+# ifdef NHMG
+
+      do j=Jstr,Jend
+        do k=1,N          
+          do i=Istr,Iend
+            DC(i,0)=pm(i,j)*pn(i,j)
+            ! at this time, Huon and Hvom can used : they are 
+            ! defined at n+1/2
+            wz(i,j,k,nrhs)=wz(i,j,k-1,nrhs) 
+     &      - DC(i,0)*( Huon(i+1,j,k)-Huon(i,j,k)
+     &                 +Hvom(i,j+1,k)-Hvom(i,j,k) )
+          enddo
+        enddo
+      enddo
+
+#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                                  wz(START_2D_ARRAY,0,nrhs))     
-#  endif
+     &                                 wz(START_2D_ARRAY,0,nrhs)) 
 #  endif
 
+# endif
 
-#ifdef NHMG
+#ifdef NHMG_DEBUG
+
+      write(*,*) 'set_HUV2 : u,v,wz after coupling. u'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 
       call nhmg_write_pred_out(
      &     Lm, Mm, N,
@@ -636,15 +620,7 @@ C$    integer omp_get_thread_num
      &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
 
-# else
-
-      call h_write_pred_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs) )
-
-# endif
-
+#endif
 
 # endif /* SOLVE3D */
       return

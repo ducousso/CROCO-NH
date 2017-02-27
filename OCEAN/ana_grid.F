@@ -117,8 +117,14 @@ C$    integer omp_get_thread_num
                      beta=0.
 # elif defined SEAMOUNT
                      depth=4500.
+!                     f0=1.E-4
+                     f0=0.
                      beta=0.
-                     f0=1.E-4
+# elif defined CALDEIRA
+                     depth=1300.
+!                     f0=0.5E-4
+                     f0=0.
+                     beta=0.
 # elif defined SHELFRONT
                      depth=1660.
                      f0=1.E-4
@@ -219,6 +225,9 @@ C$    integer omp_get_thread_num
 # elif defined SEAMOUNT
                      Length_XI =512.0e+3
                      Length_ETA=512.0e+3
+# elif defined CALDEIRA
+                     Length_XI =100.0e+3
+                     Length_ETA=100.0e+3
 # elif defined SHELFRONT
                      Length_XI =20.0e+3
                      Length_ETA=200.0e+3
@@ -351,16 +360,9 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
 # if defined BASIN || defined EQUATOR || defined GRAV_ADJ \
                    || defined SOLITON || defined JET \
                    || defined ACOUSTIC
-!      do j=JstrR,JendR
-!        do i=IstrR,IendR
-!          h(i,j)=depth
-!        enddo
-!      enddo
-      cff=1./(2*(25)**2)
       do j=JstrR,JendR
         do i=IstrR,IendR
-!          h(i,j)=depth*(1-0.3*exp(-cff*((xr(i,j)-0.5*xl)**2))) 
-          h(i,j)=depth*(1-0.6*exp(-cff*((xr(i,j)-0.5*xl)**2)))
+          h(i,j)=depth
         enddo
       enddo
 # elif defined CANYON_A || defined CANYON_B
@@ -409,9 +411,27 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
       cff=(1./50.e3)**2
       do j=JstrR,JendR
         do i=IstrR,IendR
-          h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
-     &                                  (yr(i,j)-0.5*el)**2))) 
-!          h(i,j)=depth
+!          h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
+!     &                                  (yr(i,j)-0.5*el)**2))) 
+!          h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2)))
+          h(i,j)=depth
+        enddo
+      enddo
+# elif defined CALDEIRA
+      cff=(1./5.e3)**2
+      do j=JstrR,JendR
+        do i=IstrR,IendR 
+!          h(i,j)=depth*(1+0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
+!     &                                  (yr(i,j)-0.5*el)**2))) 
+!          h(i,j)=depth*(1-0.6*exp(-cff*((xr(i,j)-0.5*xl)**2+
+!     &                                  (yr(i,j)-0.5*el)**2))) 
+          h(i,j)=depth
+#  if defined MASKING || defined NH_MASKING
+          rmask(i,j)=1.0
+          if (h(i,j).lt.0.5*depth) then
+            rmask(i,j)=0.0
+          endif
+#  endif
         enddo
       enddo
 # elif defined SHELFRONT

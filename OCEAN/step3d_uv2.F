@@ -59,14 +59,14 @@
 !-------------------------------------------------------------------- 
 !
 #ifdef NHMG
-          USE nhmg, only : nhmg_solve
-          USE nhmg, only : nhmg_bbc
-          USE nhmg, only : nhmg_coupling
-          USE nhmg, only : nhmg_write_corr_inter
-          USE nhmg, only : nhmg_write_corr_out
-#else
-          USE nhmg, only : h_write_corr_inter
-          USE nhmg, only : h_write_corr_out
+      USE nhmg, only : nhmg_solve
+      USE mg_grids
+      USE mg_tictoc
+# ifdef NHMG_DEBUG
+      USE nhmg_debug, only : nhmg_write_corr_inter1
+      USE nhmg_debug, only : nhmg_write_corr_inter2
+      USE nhmg_debug, only : nhmg_write_corr_out
+# endif
 #endif
       implicit none
 # include "param.h"
@@ -115,6 +115,14 @@
        cfilt=csmooth            ! coefficient
       endif
 # endif
+
+#ifdef NHMG_DEBUG
+      write(*,*) 'step3d_uv2 : u,v,wz before imp vert visc. [h*u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+# endif
+
 !
 !--------------------------------------------------------------------
 ! Time step momentum equation in the XI-direction.
@@ -244,6 +252,7 @@
           DC(i,0)=(DC(i,0)*on_u(i,j)-DU_avg1(i,j,nnew))
      &                             /(CF(i,0)*on_u(i,j))
         enddo
+
         do k=1,N
           do i=IstrU,Iend
 # ifndef NHMG
@@ -378,6 +387,7 @@
             DC(i,0)=(DC(i,0)*om_v(i,j)-DV_avg1(i,j,nnew))
      &                               /(CF(i,0)*om_v(i,j))
           enddo
+
           do k=1,N
             do i=Istr,Iend
 # ifndef NHMG
@@ -394,50 +404,106 @@
             enddo
           enddo       !--> discard DC,CF(:,0)
         endif
+!
+# if defined NHMG
+!--------------------------------------------------------------------
+! Time step momentum equation in the s-direction.
+!
+# ifdef DIAGNOSTICS_UV
+        write(*,*)"DIAGNOSTICS_UV and NHMG cpp keys are incompatible"
+        stop
+!        do k=1,N
+!          do i=Istr,Iend
+!          enddo
+!        enddo
+# endif
+
+        do k=0,N-1 !<- starts at k=0
+          do i=Istr,Iend
+            !FC(i,k) sits above w(i,j,k) and connects
+            !w(i,j,k) with w(i,j,k+1) 
+            !FC(i,:) is defined for k=0,1...N-1
+            !FC(i,N) should not be used for w
+            FC(i,k)=-0.5*dt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k+1)
+# ifdef VADV_ADAPT_IMP
+            DC(i,0)=dt*pm(i,j)*pn(i,j)
+            WC(i,k)=DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
+# endif
+          enddo
+        enddo
+
+        do k=1,N-1 ! <= difference with u and v
+          do i=Istr,Iend
+            ! here we multiply wz by dz
+            DC(i,k)=wz(i,j,k,nnew)*0.5*(Hz(i,j,k)+Hz(i,j,k+1))
+            BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1))-FC(i,k)-FC(i,k-1)
+# ifdef VADV_ADAPT_IMP
+     &              +max(WC(i,k  ),0.)-min(WC(i,k-1),0.)
+# endif
+          enddo
+          ! this is the surface Dirichlet BC for vertical mixing
+        enddo      !--> discard DC(:,0); keep FC
+        k=N
+        ! Dirichlet condition = we keep the wz(:,:,N) identical
+        ! it is almost zero but not exactly, it differs from 0 by
+        ! the breathing term
+        ! since we don't update wz(:,:,N) we keep it as a velocity
+        DC(i,k)=wz(i,j,k,nnew)
+!
+! Apply wind forcing.
+!
+# ifndef BODYFORCE
+! the wind does not force W
+# endif
+        do i=Istr,Iend
+          CF(i,0) = 0.
+          DC(i,0) = 0. !<=Dirichlet BC, no flux
+        enddo
+        do k=1,N-1 !<= starts at 1, unlike for u and v (starts at 2)
+          do i=Istr,Iend
+# ifdef VADV_ADAPT_IMP
+              aa = FC(i,k-1)-max(WC(i,k-1),0.)   !<-- a = sub   (lower) diagonal
+              cc = FC(i,k  )+min(WC(i,k  ),0.)   !<-- c = super (upper) diagonal
+# else
+              aa = FC(i,k-1)
+              cc = FC(i,k  )
+# endif
+            cff=1./(BC(i,k)-aa*CF(i,k-1))        !<-- p    = 1/(b(k)-a(k)*q(k))
+            CF(i,k)=cff*cc
+            ! DC was a velocity * Hz, after this operation
+            ! it becomes a velocity (cff is one over a length)
+            DC(i,k)=cff*(DC(i,k)-aa*DC(i,k-1))          
+          enddo
+        enddo
+        do k=N-1,1,-1
+          do i=Istr,Iend
+! note that DC(i,N) is used here (even though wz(:,:,N) is not changed)
+! from the line below applied at k=N-1, it can be seen why DC(i,N) should
+! be a velocity and not a velocity * Hz 
+            DC(i,k)=DC(i,k)-CF(i,k)*DC(i,k+1)
+!- idem: three lines below are for the barotropic correction
+!            cff=0.5*(Hz(i,j,k)+Hz(i-1,j,k))
+!            CF(i,0)=CF(i,0)+cff
+!            DC(i,0)=DC(i,0)+cff*DC(i,k)
+            wz(i,j,k,nnew)=DC(i,k) SWITCH rmask(i,j)
+# ifdef DIAGNOSTICS_UV
+!todo            MVmix(i,j,k,1)=
+# endif 
+          enddo
+        enddo      !--> discard FC,BC; keep DC,CF(:,0)
+# endif
       enddo      ! <-- j
 
-!
-!--------------------------------------------------------------------
-! Non-hydro coupling
-!--------------------------------------------------------------------
-!
-# ifdef NHMG
-
-#  if defined MPI
-      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
-     &                        DU_avg1(START_2D_ARRAY,nnew))
-      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
-     &                        DV_avg1(START_2D_ARRAY,nnew))
-      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
-     &                        u(START_2D_ARRAY,1,nnew))
-      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
-     &                        v(START_2D_ARRAY,1,nnew))
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        wz(START_2D_ARRAY,0,nnew))
-
-#  endif
-
-      call nhmg_bbc(
-     & Lm, Mm, N,
-     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
-      call nhmg_coupling(
-     & Lm, Mm, N,
-     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
-     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
-     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
+#ifdef NHMG_DEBUG
+      write(*,*) 'step3d_uv2 : u,v,wz after imp vert visc. [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 # endif
 !
 !--------------------------------------------------------------------
-! Non-hydro coupling
+!  Diagnostics
 !--------------------------------------------------------------------
-!
-
 !
 # ifdef DIAGNOSTICS_UV
       do k=1,N
@@ -513,48 +579,116 @@
 ! Set PHYSICAL lateral boundary conditions.
 !--------------------------------------------------------------------
 !
-      call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
       call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+      call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)   
+# if defined NHMG
+      call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+# endif
 !
+# ifdef NHMG
 !--------------------------------------------------------------------
 ! Non-hydro projection of momentum
 !--------------------------------------------------------------------
 !
-# ifdef NHMG
 
-#  if defined MPI
-      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
-     &                        u(START_2D_ARRAY,1,nnew))
-      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
-     &                        v(START_2D_ARRAY,1,nnew))
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        wz(START_2D_ARRAY,0,nnew))
-#  endif
+#ifdef NHMG_DEBUG
 
-      call nhmg_solve(
-     &     Lm, Mm, N,
-     &     u(1:Lm+1,0:Mm+1,1:N,nnew),
-     &     v(0:Lm+1,1:Mm+1,1:N,nnew),
-     &     wz(0:Lm+1,0:Mm+1,0:N,nnew) )
+      write(*,*) 'step3d_uv2 : u,v,wz before projection . [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
-# endif   
-
-# ifdef NHMG
-
-      call nhmg_write_corr_inter(
+      call nhmg_write_corr_inter1(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
 
-# else
+# endif
 
-      call h_write_corr_inter(
+#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+     &                        u(START_2D_ARRAY,1,nnew))
+      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+     &                        v(START_2D_ARRAY,1,nnew))
+#  endif
+
+      call tic(1,'swap corrector')
+
+# if defined NH_MASKING
+         do k=1,N    
+            do j=Jstr,Jend
+               do i=IstrU,Iend
+                  u(i,j,k,nnew) = u(i,j,k,nnew)*umask(i,j)
+               enddo
+            enddo
+         enddo
+        do k=1,N    
+            do j=JstrV,Jend
+               do i=Istr,Iend
+                  v(i,j,k,nnew) = v(i,j,k,nnew)*vmask(i,j)
+               enddo
+            enddo
+         enddo
+         do k=1,N    
+            do j=Jstr,Jend
+               do i=Istr,Iend
+                  wz(i,j,k,nnew) = wz(i,j,k,nnew)*rmask(i,j)
+               enddo
+            enddo
+         enddo
+# endif
+
+      call nhmg_solve(u(:,:,:,nnew),
+     &                v(:,:,:,nnew),
+     &                wz(:,:,:,nnew),
+     &                Hz,.false.)
+
+      do k=1,N
+         do j=Jstr,Jend
+            do i=Istr,Iend+1
+               nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i)/dt !stored as a trend
+               u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
+     &              /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
+            enddo
+         enddo
+
+         do j=Jstr,Jend+1
+            do i=Istr,Iend
+               nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)/dt !stored as a trend
+               v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
+     &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
+            enddo
+         enddo
+
+         do j=Jstr,Jend
+            do i=Istr,Iend
+               nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)/dt !stored as a trend
+               wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
+     &              * (pm(i,j)*pn(i,j))
+            enddo
+         enddo
+      enddo
+
+      call toc(1,'swap corrector')
+
+# endif    /* NHMG */
+
+# ifdef NHMG_DEBUG
+
+      write(*,*) 'step3d_uv2 : u,v,wz after projection . [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+
+      call nhmg_write_corr_inter2(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
 
 # endif
+
 !
 !
 !--------------------------------------------------------------------
@@ -591,36 +725,11 @@
 !--------------------------------------------------------------------
 !
 
-# ifdef NHMG
-
-#  if defined MPI
-      call exchange_u2d_tile (Istr,Iend,Jstr,Jend,
-     &                        DU_avg1(START_2D_ARRAY,nnew))
-      call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
-     &                        DV_avg1(START_2D_ARRAY,nnew))
-      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
-     &                        u(START_2D_ARRAY,1,nnew))
-      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
-     &                        v(START_2D_ARRAY,1,nnew))
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        wz(START_2D_ARRAY,0,nnew))
-
-#  endif
-
-      call nhmg_bbc(
-     & Lm, Mm, N,
-     & u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
-      call nhmg_coupling(
-     & Lm, Mm, N,
-     & DU_avg1(1:Lm+1,0:Mm+1,nnew),
-     & DV_avg1(0:Lm+1,1:Mm+1,nnew),
-     & u(1:Lm+1,0:Mm+1,1:N,nnew),
-     & v(0:Lm+1,1:Mm+1,1:N,nnew),
-     & wz(0:Lm+1,0:Mm+1,0:N,nnew) )
-
+#ifdef NHMG_DEBUG
+      write(*,*) 'step3d_uv2 : u,v,wz before coupling . [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 # endif
 
 # ifdef EW_PERIODIC
@@ -676,11 +785,7 @@
         enddo
         do k=N,1,-1
           do i=IU_RANGE
-# ifndef NHMG
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
-# else
-            u(i,j,k,nnew)=u(i,j,k,nnew)
-# endif
 # ifdef MASKING
      &                                *umask(i,j)
 #  ifdef MRL_WCI
@@ -815,11 +920,7 @@
           enddo
           do k=N,1,-1
             do i=IV_RANGE
-# ifndef NHMG
               v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
-# else
-              v(i,j,k,nnew)=v(i,j,k,nnew)
-# endif
 # ifdef MASKING
      &                                  *vmask(i,j)
 #  ifdef MRL_WCI
@@ -929,6 +1030,10 @@
 ! coupling process (P. Marchesiello, 17 Jun 2004).
 !
 # ifdef PSOURCE
+# if defined NHMG
+        write(*,*)"PSOURCE and NHMG cpp keys are incompatible"
+        stop
+# endif 
       do is=1,Nsrc
 #  ifdef MPI
            i=Isrc_mpi(is,mynode)
@@ -967,6 +1072,10 @@
 !--------------------------------------------------------------------
 !
 # if defined M3NUDGING && defined M3CLIMATOLOGY
+# if defined NHMG
+        write(*,*)"M3NUDGING and NHMG cpp keys are incompatible"
+        stop
+# endif 
 
 #  ifdef ZONAL_NUDGING
       if (iic.eq.ntstart .or. mod(iic,10).eq.0) then
@@ -1035,10 +1144,6 @@
      &                                 u(START_2D_ARRAY,1,nnew))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                                 v(START_2D_ARRAY,1,nnew))
-#  if defined NHMG
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                                 wz(START_2D_ARRAY,0,nnew)) 
-#  endif
 
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend, 
      &                                   Huon(START_2D_ARRAY,1))
@@ -1049,26 +1154,53 @@
      &                                   ubar(START_2D_ARRAY,knew))
       call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
      &                                   vbar(START_2D_ARRAY,knew))
-#   if defined TS_MIX_ISO || defined TS_MIX_GEO
+#  if defined TS_MIX_ISO || defined TS_MIX_GEO
       call exchange_u3d_tile (istr,iend,jstr,jend, dRdx  )
       call exchange_v3d_tile (istr,iend,jstr,jend, dRde  )
 #  endif
 # endif
-
+!
+!--------------------------------------------------------------------
+! Coupling wz
+!--------------------------------------------------------------------
+!
 # ifdef NHMG
+
+      do j=Jstr,Jend
+        do k=1,N          
+          do i=Istr,Iend
+            DC(i,0)=pm(i,j)*pn(i,j)
+            ! at this time, Huon and Hvom CANNOT used : they are 
+            ! defined at n+1/2 instead of n+1
+            wz(i,j,k,nnew)=wz(i,j,k-1,nnew) 
+     &      - DC(i,0)*( 
+     &       +0.5*(Hz(i,j,k)+Hz(i+1,j,k))*on_u(i+1,j)*u(i+1,j,k,nnew)
+     &       -0.5*(Hz(i-1,j,k)+Hz(i,j,k))*on_u(i,j)*u(i,j,k,nnew)
+     &       +0.5*(Hz(i,j,k)+Hz(i,j+1,k))*om_v(i,j+1)*v(i,j+1,k,nnew)
+     &       -0.5*(Hz(i,j-1,k)+Hz(i,j,k))*om_v(i,j)*v(i,j,k,nnew) )
+          enddo
+        enddo
+      enddo
+
+#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                                 wz(START_2D_ARRAY,0,nnew)) 
+#  endif
+
+# endif
+
+# ifdef NHMG_DEBUG
+
+      write(*,*) 'step3d_uv2 : u,v,wz after coupling . [u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 
       call nhmg_write_corr_out(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-
-# else
-
-      call h_write_corr_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
 
 # endif
 

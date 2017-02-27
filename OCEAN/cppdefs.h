@@ -23,7 +23,8 @@
 #undef  INNERSHELF      /* Inner Shelf Example */
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
-#define  SEAMOUNT        /* Seamount Example */
+#undef  SEAMOUNT        /* Seamount Example */
+#undef  CALDEIRA        /* Caldeira Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -35,7 +36,7 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#undef  TANK            /* Tank Example */
+#define  TANK            /* Tank Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -692,10 +693,10 @@
 # undef OPENMP
 # define MPI
 # define UV_ADV
-# undef UV_COR
+# define UV_COR
 # define SOLVE3D
 # define NEW_S_COORD
-# undef NHMG
+# define NHMG
 # undef SALINITY
 # undef NONLIN_EOS
 # undef SPLIT_EOS
@@ -714,14 +715,98 @@
 # define Z_FRC_BRY
 # define M2_FRC_BRY
 # define M3_FRC_BRY
+# ifdef NHMG
 # define W_FRC_BRY
+# endif
 # define T_FRC_BRY
 # undef OBC_M2SPECIFIED
 # undef OBC_M2FLATHER
-# undef OBC_M2CHARACT
-# define OBC_M2ORLANSKI
+# define OBC_M2CHARACT
+# undef OBC_M2ORLANSKI
 # define OBC_M3ORLANSKI
 # define OBC_TORLANSKI
+# undef SPONGE
+
+#elif defined CALDEIRA
+/*
+!                       CALDEIRA Example
+!                       ======== =======
+*/
+# undef OPENMP
+# define MPI
+# define NHMG
+# undef NHMG_DEBUG
+# undef NH_MASKING
+# undef CLOSED
+# ifdef CLOSED
+#  undef OBC_EAST
+#  undef OBC_WEST
+#  undef OBC_NORTH
+#  undef OBC_SOUTH
+# else
+#  define OBC_EAST
+#  define OBC_WEST
+#  undef OBC_NORTH
+#  undef OBC_SOUTH
+# endif
+# define ANA_BRY
+# define FRC_BRY
+# ifdef FRC_BRY
+#  define Z_FRC_BRY
+#  define M2_FRC_BRY
+#  define M3_FRC_BRY
+#  define T_FRC_BRY
+#  ifdef NHMG
+#  define W_FRC_BRY
+#  endif
+# endif
+# define NEW_S_COORD
+# define ANA_GRID
+# define ANA_INITIAL
+# define ANA_SMFLUX
+# define ANA_STFLUX
+# define ANA_SSFLUX
+# define ANA_SRFLUX
+# define ANA_BSFLUX
+# define ANA_BTFLUX
+# define SOLVE3D
+# define UV_COR
+# define UV_ADV
+# define SALINITY
+# define NONLIN_EOS
+# define SPLIT_EOS
+# undef  OBC_M2SPECIFIED
+# undef  OBC_M2FLATHER
+# define  OBC_M2CHARACT
+# undef  OBC_M2ORLANSKI
+# define OBC_M3ORLANSKI
+# define OBC_TORLANSKI
+# define SPONGE
+                      /* Semi-implicit Vertical Tracer/Mom Advection */
+# undef  VADV_ADAPT_IMP
+                      /* Vertical Mixing */
+# undef  BODYFORCE
+# undef  BVF_MIXING
+# define LMD_MIXING
+# undef  GLS_MIXING
+# ifdef LMD_MIXING
+#  define LMD_SKPP
+#  define LMD_BKPP
+#  define LMD_RIMIX
+#  define LMD_CONVEC
+#  undef  LMD_DDMIX
+#  define LMD_NONLOCAL
+# endif
+# ifdef GLS_MIXING
+#  define GLS_KKL
+#  undef  GLS_KOMEGA
+#  undef  GLS_KEPSILON
+#  undef  GLS_GEN
+#  undef  KANTHA_CLAYSON
+#  undef  CRAIG_BANNER
+#  undef  CANUTO_A
+#  undef  ZOS_HSIG
+# endif
 
 # elif defined SHELFRONT
 /*
@@ -1101,6 +1186,7 @@
 #  undef  NBQ_IMP
 # endif
 # define NHMG
+# undef NHMG_DEBUG
 # define SOLVE3D
 # undef UV_ADV
 # define NEW_S_COORD

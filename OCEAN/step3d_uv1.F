@@ -19,21 +19,32 @@
 # include "compute_tile_bounds.h"
       trd=omp_get_thread_num()
       call step3d_uv1_tile (Istr,Iend,Jstr,Jend,  A3d(1,1,trd),
-     &                              A3d(1,2,trd), A2d(1,1,trd))
+     &                              A3d(1,2,trd), 
+#ifdef NHMG
+     &                              A3d(1,5,trd), !<- this is rw
+#endif
+     &                              A2d(1,1,trd))
       return
       end
 
-      subroutine step3d_uv1_tile (Istr,Iend,Jstr,Jend, ru,rv,DC)
+      subroutine step3d_uv1_tile (Istr,Iend,Jstr,Jend, ru,rv,
 #ifdef NHMG
-      USE nhmg, only : nhmg_write_corr_in
-#else
-      USE nhmg, only : h_write_corr_in
+     &                                           rw,
+#endif
+     &                                           DC)
+#ifdef NHMG
+# ifdef NHMG_DEBUG
+      USE nhmg_debug, only : nhmg_write_corr_in
+# endif
 #endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
 # include "param.h"
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),
+#ifdef NHMG
+     &     rw(PRIVATE_2D_SCRATCH_ARRAY,0:N),
+#endif
      &     DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff
 # include "grid.h"
 # include "ocean3d.h"
@@ -48,24 +59,30 @@
 # include "compute_auxiliary_bounds.h"
 !
 
+#ifdef NHMG_DEBUG
 
-# ifdef NHMG
+      write(*,*) 'step3d_uv1 : u,v,wz before applying rhs. [h*u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+      write(*,*) 'step3d_uv1 : ru,rv,rw.'
+      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
+      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
+      write(*,*) maxval(rw(1:Lm,1:Mm,:))
+      write(*,*) 'step3d_uv1 : wz before and rw [16,32,62:64]' 
+      write(*,*) wz(16,32,62:64,nnew)
+      write(*,*) rw(16,32,62:64)
 
       call nhmg_write_corr_in(
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
+     &     ru(-1:Lm+2,-1:Mm+2,1:N),
+     &     rv(-1:Lm+2,-1:Mm+2,1:N),
+     &     rw(-1:Lm+2,-1:Mm+2,0:N) )
 
-# else
-
-      call h_write_corr_in(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew) )
-      
-# endif
-
+#endif
 
       cff=0.25*dt
       do j=Jstr,Jend
@@ -108,7 +125,44 @@
             enddo
           enddo
         endif
+
+# if defined NHMG
+        do k=1,N
+          ! dt is hidden in DC(i,0)
+          if (k.eq.N)then
+             do i=Istr,Iend
+                DC(i,0)=dt*pm(i,j)*pn(i,j)*2./Hz(i,j,k)
+             enddo
+          else
+             do i=Istr,Iend
+                DC(i,0)=dt*pm(i,j)*pn(i,j)*2./(Hz(i,j,k)+Hz(i,j,k+1))
+             enddo
+          endif
+          do i=Istr,Iend
+             ! BIG difference between (u,v) and w:
+             ! on exit of step3d_uv1
+             ! u and v are velocity * Hz (expected on entry of step3d_uv2)
+             ! w is a velocity !!! no Hz factor
+             wz(i,j,k,nnew)=wz(i,j,k,nnew)+DC(i,0)*rw(i,j,k)
+#  if defined MASKING
+             ! MRL_WCI is not yet compatible with NHMG
+             ! TODO
+             wz(i,j,k,nnew)=wz(i,j,k,nnew)*rmask(i,j)
+#  endif
+          enddo
+        enddo
+# endif
       enddo 
+
+# if defined NHMG_DEBUG
+      write(*,*) 'step3d_uv1 : u,v,wz after applying rhs. [h*u]'
+      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
+      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
+      write(*,*) 'step3d_uv1 : wz after [16,32,62:64]' 
+      write(*,*) wz(16,32,62:64,nnew)
+# endif
+
 #else
       subroutine step3d_uv1_empty
 #endif
