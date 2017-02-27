@@ -105,6 +105,7 @@ AGRIF_SRC=${ROOT_DIR}/AGRIF
 /bin/cp -f ${ROOT_DIR}/Run/param_bimin_8x8.h   $SCRDIR/param.h
 /bin/cp -f ${ROOT_DIR}/Run/lmd_skpp2005_bimin.F $SCRDIR/lmd_skpp2005.F
 /bin/cp -f ${ROOT_DIR}/Run/lmd_bkpp2005_bimin.F $SCRDIR/lmd_bkpp2005.F
+/bin/cp -f ${ROOT_DIR}/Run/set_nudgcof_bimin.F $SCRDIR/set_nudgcof.F
 /bin/cp -f ${ROOT_DIR}/Run/put_global_atts_opt.F $SCRDIR/put_global_atts.F
 /bin/cp -f ${ROOT_DIR}/Run/partit_opt.F $SCRDIR/partit.F
 /bin/cp -f ${ROOT_DIR}/Run/ncjoin_opt.F $SCRDIR/ncjoin.F
@@ -126,8 +127,6 @@ if [[ $OS == Linux ]] ; then           # ===== LINUX =====
 	if [[ $LINUX_FC == mpiifort ]] ; then
 		CPP1="cpp -traditional -DLinux -DIfort"
 		CFT1="$LINUX_FC"
-#		FFLAGS1="-O3  -shared-intel -shared-libgcc -mcmodel=large -72 -fno-alias -i4 -r8 -fp-model precise -xHost $NETCDFINC"
-#		LDFLAGS1="$LDFLAGS1"
  		FFLAGS1="-i4 -r8 -fp-model precise -g -O0 -check all -traceback -warn unused -debug variable_locations $NETCDFINC"
  		LDFLAGS1="$LDFLAGS1 -g -O0 -check all -traceback -auto"
 	elif [[ $LINUX_FC == gfortran ]] ; then
