@@ -409,6 +409,9 @@
 !--------------------------------------------------------------------
 ! Time step momentum equation in the s-direction.
 !
+
+!--------------------------------------------------------------------
+!
 # ifdef DIAGNOSTICS_UV
         write(*,*)"DIAGNOSTICS_UV and NHMG cpp keys are incompatible"
         stop
@@ -418,6 +421,10 @@
 !        enddo
 # endif
 
+# define GR_CODE
+
+# ifdef GR_CODE 
+!Guillaume 's code
         do k=0,N-1 !<- starts at k=0
           do i=Istr,Iend
             !FC(i,k) sits above w(i,j,k) and connects
@@ -492,6 +499,55 @@
           enddo
         enddo      !--> discard FC,BC; keep DC,CF(:,0)
 # endif
+
+
+# else
+!F. Auclair's code
+       do k=1,N-1
+          do i=Istr,Iend
+            FC(i,k)=-0.5*dt*( Akv(i,j,k+1)+Akv(i,j,k) )
+     &                 /    ( z_w(i,j,k+1)-z_w(i,j,k) )
+          enddo
+        enddo
+        do i=Istr,Iend
+          FC(i,0)=0.
+          FC(i,N)=0.
+        enddo
+
+        do k=1,N-1
+          do i=Istr,Iend
+            DC(i,k)=wz(i,j,k,nnew) *0.5*(Hz(i,j,k)+Hz(i,j,k+1))
+            BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1)) - FC(i,k) - FC(i,k-1) 
+          enddo
+        enddo  
+        do i=Istr,Iend            
+          BC(i,N)=0.5*Hz(i,j,N) - FC(i,N) - FC(i,N-1)    
+          DC(i,N)=wz(i,j,N,nnew) *0.5*Hz(i,j,N)
+        enddo 
+        
+        do i=Istr,Iend
+          cff=1./BC(i,1)
+          CF(i,1)=cff*FC(i,1)
+          DC(i,1)=cff*DC(i,1)
+        enddo
+        do k=2,N-1
+          do i=Istr,Iend
+            cff=1./(BC(i,k)-FC(i,k-1)*CF(i,k-1))
+            CF(i,k)=cff*FC(i,k)
+            DC(i,k)=cff*(DC(i,k)-FC(i,k-1)*DC(i,k-1))
+          enddo
+        enddo
+        do i=Istr,Iend
+          wz(i,j,N,nnew)=(DC(i,N)-FC(i,N-1)*DC(i,N-1))
+     &                  /(BC(i,N)-FC(i,N-1)*CF(i,N-1))
+        enddo
+        do k=N-1,1,-1
+          do i=Istr,Iend
+             wz(i,j,k,nnew)=DC(i,k)-CF(i,k)*wz(i,j,k+1,nnew)  !<-- wz in m.s-1
+          enddo
+        enddo      !--> discard FC,BC; keep DC,CF(:,0)
+# endif
+
       enddo      ! <-- j
 
 #ifdef NHMG_DEBUG
