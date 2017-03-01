@@ -178,10 +178,11 @@
               ! 
               ! proposition: I rewrite this chunk of tridiag_pred.h
               ! exactly as it is in step3d_uv2.F and use BC(i,i)
-               FC(i,k)=-0.5*cdt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k+1)
+             FC(i,k)=-0.5*cdt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz_half(i,j,k+1)
 #  else
                FC(i,k)= 0.
 #  endif
+               DC(i,0)=pn(i,j)*pm(i,j)
                WC(i,k)=cdt*DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
             enddo
          enddo
@@ -197,11 +198,24 @@
           enddo
           ! this is the surface Dirichlet BC for vertical mixing
         enddo
-        k=N
-        DC(i,k)=wz(i,j,k,nnew)
+        k=N-1
         do i=Istr,Iend
-          CF(i,0) = 0.
-          DC(i,0) = 0. !<=Dirichlet BC, no flux
+#  ifdef VMIX_PREDICTOR
+              cc = FC(i,k  )+min(WC(i,k  ),0.)
+#  else
+              cc = +min(WC(i,k  ),0.)
+#  endif
+          DC(i,k)=DC(i,k) - cc * wz(i,j,N,nnew)
+        enddo
+        k=1
+        do i=Istr,Iend
+!#  ifdef VMIX_PREDICTOR
+!           CF(i,k) = (FC(i,k)+min(WC(i,k),0.))/BC(i,k) !<-- q(1) = c(1)/b(1)
+!#  else
+!           CF(i,k) = (        min(WC(i,k),0.))/BC(i,k) !<-- q(1) = c(1)/b(1)
+!#  endif
+           CF(i,0) = 0.
+           DC(i,0) = 0.         !<=Dirichlet BC, no flux
         enddo
         do k=1,N-1,+1
            do i=istr,iend
@@ -217,7 +231,11 @@
             DC(i,k)=cff*(DC(i,k)-aa*DC(i,k-1))          
           enddo
         enddo
-        do k=N-1,1,-1
+        k=N-1
+        do i=Istr,Iend
+           wz(i,j,k,nnew)=DC(i,k)
+        enddo
+        do k=N-2,1,-1
           do i=Istr,Iend
             DC(i,k)=DC(i,k)-CF(i,k)*DC(i,k+1)
             wz(i,j,k,nnew)=DC(i,k) SWITCH rmask(i,j)

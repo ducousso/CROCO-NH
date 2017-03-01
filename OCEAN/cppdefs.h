@@ -781,11 +781,11 @@
 # undef  OBC_M2ORLANSKI
 # define OBC_M3ORLANSKI
 # define OBC_TORLANSKI
-# define SPONGE
-# undef NHMG_VADV_AND_VMIX
+# undef SPONGE
+# define NHMG_VADV_AND_VMIX
 # ifdef NHMG_VADV_AND_VMIX
                       /* Semi-implicit Vertical Tracer/Mom Advection */
-# undef  VADV_ADAPT_IMP
+# define  VADV_ADAPT_IMP
                       /* Vertical Mixing */
 # undef  BODYFORCE
 # undef  BVF_MIXING
