@@ -106,6 +106,7 @@
       real cff3,cff4,cff5
 #  endif
       parameter (gamma=1./6., epsil=1.E-16)
+!      parameter (gamma=0., epsil=1.E-16)
 # include "grid.h"
 # include "ocean3d.h"
 # include "coupling.h"
@@ -1038,7 +1039,8 @@
 
 # ifdef NHMG
 
-      cff = 1./cdt
+      cff = 1./cdt*(1.-gamma)
+      cff1= 1.-gamma
 
       if (iic.ge.(ntstart+2)) then
 !      if (iic.lt.0) then
@@ -1052,11 +1054,11 @@
      &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1))*cdt
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
 !                  rufrc(i,j) = rufrc(i,j) 
-!     &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1)) 
-!     &                 * om_u(i,j)
+!     &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1))
+!     &                 * om_u(i,j)*cff1
                   rufrc(i,j) = rufrc(i,j) 
      &                 + (nhdu(i,j,k,iprec2)) 
-     &                 * om_u(i,j)
+     &                 * om_u(i,j) *cff1
                enddo
             enddo
             
@@ -1067,10 +1069,10 @@
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
 !                  rvfrc(i,j) = rvfrc(i,j)
 !     &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1)) 
-!     &                 * on_v(i,j)
+!     &                 * on_v(i,j)*cff1
                   rvfrc(i,j) = rvfrc(i,j)
      &                 + (nhdv(i,j,k,iprec2)) 
-     &                 * on_v(i,j)
+     &                 * on_v(i,j)*cff1
                enddo
             enddo
             
@@ -1078,7 +1080,7 @@
                do i=Istr,Iend
                   wz(i,j,k,nnew) = wz(i,j,k,nnew) 
      &                 + (1.5*nhdw(i,j,k,iprec2)-0.5*nhdw(i,j,k,iprec1))*cdt
-     &                 * (pm(i,j)*pn(i,j))
+     &                 * (pm(i,j)*pn(i,j))*cff1
                enddo
             enddo
          enddo
