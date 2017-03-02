@@ -66,7 +66,8 @@
       real nhdu(GLOBAL_2D_ARRAY,1:N,2)
       real nhdv(GLOBAL_2D_ARRAY,1:N,2)
       real nhdw(GLOBAL_2D_ARRAY,0:N,2)
-      common /ocean_wz/ wz,nhdu,nhdv,nhdw
+      real ssh( GLOBAL_2D_ARRAY)
+      common /ocean_wz/ wz,nhdu,nhdv,nhdw,ssh
 # endif
 
 # if defined UV_VIS4 && defined UV_MIX_GEO
