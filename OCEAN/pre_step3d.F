@@ -1040,7 +1040,7 @@
 # ifdef NHMG
 
       cff = 1./cdt*(1.-gamma)
-      cff1= 1.-gamma
+      cff1= 1.!-gamma
 
       if (iic.ge.(ntstart+2)) then
 !      if (iic.lt.0) then
@@ -1080,7 +1080,7 @@
                do i=Istr,Iend
                   wz(i,j,k,nnew) = wz(i,j,k,nnew) 
      &                 + (1.5*nhdw(i,j,k,iprec2)-0.5*nhdw(i,j,k,iprec1))*cdt
-     &                 * (pm(i,j)*pn(i,j))*cff1
+     &                 * (pm(i,j)*pn(i,j))
                enddo
             enddo
          enddo
