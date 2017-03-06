@@ -226,8 +226,12 @@ C$    integer omp_get_thread_num
                      Length_XI =512.0e+3
                      Length_ETA=512.0e+3
 # elif defined CALDEIRA
-                     Length_XI =100.0e+3
-                     Length_ETA=100.0e+3
+!                     Length_XI =100.0e+3
+!                     Length_ETA=100.0e+3
+!                     Length_XI =10.0e+3
+!                     Length_ETA=10.0e+3
+                     Length_XI =2.0e+3
+                     Length_ETA=2.0e+3
 # elif defined SHELFRONT
                      Length_XI =20.0e+3
                      Length_ETA=200.0e+3
@@ -418,14 +422,16 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
         enddo
       enddo
 # elif defined CALDEIRA
-      cff=(1./5.e3)**2
+!      cff=(1./5.e3)**2
+!      cff=(1./5.e2)**2
+      cff=(1./1.e2)**2
       do j=JstrR,JendR
         do i=IstrR,IendR 
 !          h(i,j)=depth*(1+0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
 !     &                                  (yr(i,j)-0.5*el)**2))) 
-!          h(i,j)=depth*(1-0.6*exp(-cff*((xr(i,j)-0.5*xl)**2+
-!     &                                  (yr(i,j)-0.5*el)**2))) 
-          h(i,j)=depth
+          h(i,j)=depth*(1-0.6*exp(-cff*((xr(i,j)-0.5*xl)**2+
+     &                                  (yr(i,j)-0.5*el)**2))) 
+!          h(i,j)=depth
 #  if defined MASKING || defined NHMG_MASKING
           rmask(i,j)=1.0
           if (h(i,j).lt.0.5*depth) then

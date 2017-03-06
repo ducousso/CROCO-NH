@@ -2,7 +2,7 @@ title:
 	Caldeira
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                2500      200     100       1
+                3000      2      100       1
 
 S-coord: THETA_S,   THETA_B,    Hc (m)
          1.0d0      4.0d0       10.d0
@@ -16,11 +16,11 @@ restart:          NRST, NRPFRST / filename
                           caldeira_rst.nc
 
 history: LDEFHIS, NWRT, NRPFHIS / filename 
-            T      5      1000 
+            T      20      5000 
                           caldeira_his.nc
 
 averages: NTSAVG, NAVG, NRPFAVG / filename
-            1      100     1000
+            1     5000     1000
                           caldeira_avg.nc
 
 
@@ -60,7 +60,7 @@ gamma2:
                  1.d0
 
 sponge:          X_SPONGE [m],    V_SPONGE [m^2/sec]
-                  5000.               100.  
+                   200.               0.5  
 
 nudg_cof:    TauT_in, TauT_out, TauM_in, TauM_out  [days for all]
                 1.       360.      1.      360.
