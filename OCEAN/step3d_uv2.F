@@ -405,7 +405,7 @@
           enddo       !--> discard DC,CF(:,0)
         endif
 !
-# if defined NHMG
+# ifdef NHMG
 !--------------------------------------------------------------------
 ! Time step momentum equation in the s-direction.
 !
@@ -517,12 +517,10 @@
 # endif 
           enddo
         enddo      !--> discard FC,BC; keep DC,CF(:,0)
-# endif
-
 
 # else
 !F. Auclair's code
-       do k=1,N-1
+        do k=1,N-1
           do i=Istr,Iend
             FC(i,k)=-0.5*dt*( Akv(i,j,k+1)+Akv(i,j,k) )
      &                 /    ( z_w(i,j,k+1)-z_w(i,j,k) )
@@ -565,6 +563,8 @@
              wz(i,j,k,nnew)=DC(i,k)-CF(i,k)*wz(i,j,k+1,nnew)  !<-- wz in m.s-1
           enddo
         enddo      !--> discard FC,BC; keep DC,CF(:,0)
+# endif
+
 # endif
 
       enddo      ! <-- j
