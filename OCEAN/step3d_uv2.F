@@ -433,8 +433,8 @@
             !FC(i,N) should not be used for w
             FC(i,k)=-0.5*dt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k+1)
 # ifdef VADV_ADAPT_IMP
-            DC(i,0)=dt*pm(i,j)*pn(i,j)
-            WC(i,k)=DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
+            DC(i,0)=pm(i,j)*pn(i,j)
+            WC(i,k)=dt*DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
 # endif
           enddo
         enddo
@@ -443,29 +443,44 @@
           do i=Istr,Iend
             ! here we multiply wz by dz
             DC(i,k)=wz(i,j,k,nnew)*0.5*(Hz(i,j,k)+Hz(i,j,k+1))
-            BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1))-FC(i,k)-FC(i,k-1)
+            BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1))
+     &              -FC(i,k)-FC(i,k-1)
 # ifdef VADV_ADAPT_IMP
      &              +max(WC(i,k  ),0.)-min(WC(i,k-1),0.)
 # endif
           enddo
-          ! this is the surface Dirichlet BC for vertical mixing
         enddo      !--> discard DC(:,0); keep FC
-        k=N
         ! Dirichlet condition = we keep the wz(:,:,N) identical
         ! it is almost zero but not exactly, it differs from 0 by
         ! the breathing term
         ! since we don't update wz(:,:,N) we keep it as a velocity
-        DC(i,k)=wz(i,j,k,nnew)
+        k=N-1
+        ! this is the surface Dirichlet BC for vertical mixing
+        do i=Istr,Iend
+#  ifdef VADV_ADAPT_IMP
+              cc = FC(i,k  )+min(WC(i,k  ),0.)
+#  else
+              cc = FC(i,k  )
+#  endif
+           DC(i,k)=DC(i,k)- cc* wz(i,j,N,nnew)
+        enddo
+        k=1
+        do i=Istr,Iend
+!#  ifdef VADV_ADAPT_IMP
+!           CF(i,k) = (FC(i,k)+min(WC(i,k),0.))/BC(i,k) !<-- q(1) = c(1)/b(1)
+!#  else
+!           CF(i,k) = (FC(i,k)                )/BC(i,k) !<-- q(1) = c(1)/b(1)
+!#  endif
+           CF(i,0) = 0.
+           DC(i,0) = 0.         !<=Dirichlet BC, no flux
+        enddo
+
 !
 ! Apply wind forcing.
 !
 # ifndef BODYFORCE
 ! the wind does not force W
 # endif
-        do i=Istr,Iend
-          CF(i,0) = 0.
-          DC(i,0) = 0. !<=Dirichlet BC, no flux
-        enddo
         do k=1,N-1 !<= starts at 1, unlike for u and v (starts at 2)
           do i=Istr,Iend
 # ifdef VADV_ADAPT_IMP
@@ -482,7 +497,11 @@
             DC(i,k)=cff*(DC(i,k)-aa*DC(i,k-1))          
           enddo
         enddo
-        do k=N-1,1,-1
+        k=N-1
+        do i=Istr,Iend
+           wz(i,j,k,nnew)=DC(i,k)
+        enddo
+        do k=N-2,1,-1
           do i=Istr,Iend
 ! note that DC(i,N) is used here (even though wz(:,:,N) is not changed)
 ! from the line below applied at k=N-1, it can be seen why DC(i,N) should
