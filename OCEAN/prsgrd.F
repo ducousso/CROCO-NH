@@ -185,7 +185,7 @@ c********************************************************************
         enddo
 
         do i=IstrU-1,Iend
-#ifdef NHMG
+#if defined NHMG && defined NHMG_NHSSH
           P(i,j,N)=g*nhssh(i,j) + GRho*( rho(i,j,N)
 #else
           P(i,j,N)=g*z_w(i,j,N) + GRho*( rho(i,j,N)
@@ -680,10 +680,9 @@ c********************************************************************
      &     ru(-1:Lm+2,-1:Mm+2,1:N),
      &     rv(-1:Lm+2,-1:Mm+2,1:N),
      &     rw(-1:Lm+2,-1:Mm+2,0:N))
+!      rw(:,:,:)=0.
 # endif
 !
-c$$$      write(*,*) 'prsgrd : rw [16,32,60]'
-c$$$      write(*,*) rw(16,32,61:64)
    
 !
 !  add in wave effect using POM-Jacobian
