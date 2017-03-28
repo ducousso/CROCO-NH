@@ -2048,6 +2048,8 @@ C$    integer  trd, omp_get_thread_num
 # if defined CALDEIRA
       real u0
       parameter (u0=0.1)
+!      parameter (u0=0.3)
+!      parameter (u0=1.)
 # endif
 # include "param.h"
 # include "grid.h"
@@ -2114,6 +2116,7 @@ C$    integer  trd, omp_get_thread_num
 #    if defined SEAMOUNT
             tbry_west(j,k,itemp) =15. + 10./4500.*z_r(IstrR,j,k)
 #    elif defined CALDEIRA
+!            tbry_west(j,k,itemp)=15.
             tbry_west(j,k,itemp)=15. + 10./1300.*z_r(IstrR,j,k)
 !            tbry_west(j,k,itemp)=min(3.+46.*exp(z_r(IstrR,j,k)/250.)
 !     &           ,28.)
@@ -2195,6 +2198,7 @@ C$    integer  trd, omp_get_thread_num
 #    if defined SEAMOUNT
             tbry_east(j,k,itemp)=15. + 10./4500.*z_r(IendR,j,k)
 #    elif defined CALDEIRA
+!           tbry_east(j,k,itemp)=15.
            tbry_east(j,k,itemp)=15. + 10./1300.*z_r(IendR,j,k)
 !           tbry_east(j,k,itemp)=min(3.+46.*exp(z_r(IendR,j,k)/250.),28.)
 #    if defined SALINITY
