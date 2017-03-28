@@ -178,8 +178,8 @@
 #   endif
         enddo
       enddo
-#   endif /* JET */
-#  endif /* ROBUST_DIAG */
+#  endif /* JET */
+# endif /* ROBUST_DIAG */
 
 # ifdef SPONGE
 !
@@ -195,6 +195,7 @@
         do i=IstrR,IendR
 !          visc2_sponge_r(i,j)=(0.01/(pm(i,j)*pn(i,j)*dt))*wrk(i,j)
           visc2_sponge_r(i,j)=v_sponge*wrk(i,j)
+!          visc2_sponge_r(i,j)=0.*wrk(i,j)
 #   ifdef UV_VIS4
           visc4_sponge_r(i,j)=visc2_sponge_r(i,j)/(pm(i,j)*pn(i,j))
 #   endif
@@ -207,6 +208,7 @@
         do i=Istr,IendR
 !          visc2_sponge_p(i,j)=0.25*(0.01/(pm(i,j)*pn(i,j)*dt))*
           visc2_sponge_p(i,j)=0.25*(v_sponge)*
+!          visc2_sponge_p(i,j)=0.*(v_sponge)*
      &                              ( wrk(i,j  )+wrk(i-1,j  )
      &                               +wrk(i,j-1)+wrk(i-1,j-1) ) 
 #   ifdef UV_VIS4
@@ -223,7 +225,9 @@
        do itrc=1,NT
         do j=JstrR,JendR
           do i=IstrR,IendR
-            diff2_sponge(i,j)=(0.01/(pm(i,j)*pn(i,j)*dt))*wrk(i,j)
+!            diff2_sponge(i,j)=(0.01/(pm(i,j)*pn(i,j)*dt))*wrk(i,j)
+            diff2_sponge(i,j)=v_sponge*wrk(i,j)
+!            diff2_sponge(i,j)=0.*wrk(i,j)
 #   ifdef TS_DIF4
             diff4_sponge(i,j)=diff2_sponge(i,j)/(pm(i,j)*pn(i,j))
 #   endif
