@@ -2,7 +2,7 @@ title:
 	Caldeira
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                3000      2      100       1
+                6000      20     100       1
 
 S-coord: THETA_S,   THETA_B,    Hc (m)
          1.0d0      4.0d0       10.d0
@@ -41,6 +41,9 @@ auxiliary_averages: rho Omega  W  Akv  Akt  Aks  Visc3d Diff3d HBL HBBL Bostr Ws
 rho0:
       1025.d0
 
+lin_EOS_cff:  R0 [kg/m3], T0 [Celsius], S0 [PSU], TCOEF [1/Celsius], SCOEF [1/PSU]
+              30.         5.            0.        -1.                0.
+
 lateral_visc:   VISC2,    VISC4    [m^2/sec for all]
                  100.       0.
 
@@ -60,7 +63,7 @@ gamma2:
                  1.d0
 
 sponge:          X_SPONGE [m],    V_SPONGE [m^2/sec]
-                   200.               0.5  
+                  1000.              10.  
 
 nudg_cof:    TauT_in, TauT_out, TauM_in, TauM_out  [days for all]
                 1.       360.      1.      360.

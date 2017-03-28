@@ -735,6 +735,8 @@
 # undef OPENMP
 # define MPI
 # define NHMG
+# undef NHMG_AB2
+# undef NHMG_NHSSH
 # undef NHMG_DEBUG
 # undef NHMG_MASKING
 # undef CLOSED
@@ -775,17 +777,19 @@
 # define SALINITY
 # define NONLIN_EOS
 # define SPLIT_EOS
-# undef  OBC_M2SPECIFIED
+# define  OBC_M2SPECIFIED
 # undef  OBC_M2FLATHER
-# define  OBC_M2CHARACT
+# undef  OBC_M2CHARACT
 # undef  OBC_M2ORLANSKI
-# define OBC_M3ORLANSKI
-# define OBC_TORLANSKI
+# define OBC_M3SPECIFIED
+# undef OBC_M3ORLANSKI
+# define OBC_TSPECIFIED
+# undef OBC_TORLANSKI
 # define SPONGE
-# undef NHMG_VADV_AND_VMIX
-# ifdef NHMG_VADV_AND_VMIX
+# define VADV_AND_VMIX_IMP
+# ifdef VADV_AND_VMIX_IMP
                       /* Semi-implicit Vertical Tracer/Mom Advection */
-# undef  VADV_ADAPT_IMP
+# define  VADV_ADAPT_IMP
                       /* Vertical Mixing */
 # undef  BODYFORCE
 # undef  BVF_MIXING
@@ -1189,6 +1193,8 @@
 #  undef  NBQ_IMP
 # endif
 # define NHMG
+# undef NHMG_AB2
+# undef NHMG_NHSSH
 # undef NHMG_DEBUG
 # define SOLVE3D
 # undef UV_ADV
