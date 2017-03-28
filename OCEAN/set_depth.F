@@ -312,14 +312,14 @@ C$    integer omp_get_thread_num
           enddo
         enddo
       enddo
-#ifdef NHMG
+
+#if defined NHMG && defined NHMG_NHSSH
       do j=Jstr-1,Jend
          do i=Istr-1,Iend
             nhssh(i,j)=z_w(i,j,N) ! for the predictor stage
          enddo
       enddo
 #endif
-
 
 #  undef IU_RANGE
 #  undef JU_RANGE
@@ -344,6 +344,27 @@ C$    integer omp_get_thread_num
      &                                         dz_v(START_2D_ARRAY,1))
 #   endif
 #  endif
+!
+! initialize wz variable from Huon and Hvom
+!
+# ifdef NHMG
+      if (iic.eq.0) then
+       do j=Jstr,Jend
+         do k=1,N
+           do i=Istr,Iend
+             wz(i,j,k,1)=wz(i,j,k-1,1)
+     &       - pm(i,j)*pn(i,j)*( Huon(i+1,j,k)-Huon(i,j,k)
+     &                          +Hvom(i,j+1,k)-Hvom(i,j,k) )
+             wz(i,j,k,2)=0.
+           enddo
+         enddo
+       enddo
+      endif 
+#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+     &                                 wz(START_2D_ARRAY,0,1))
+#  endif
+# endif
       return
       end
 !
@@ -572,7 +593,7 @@ C$    integer omp_get_thread_num
           enddo
         enddo
       enddo
-#ifdef NHMG
+#if defined NHMG && defined NHMG_NHSSH
         do j=Jstr-1,Jend
            do i=Istr-1,Iend
               nhssh(i,j)=0.5*(nhssh(i,j)+z_w(i,j,N)) ! for the corrector

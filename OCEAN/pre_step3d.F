@@ -613,6 +613,7 @@
 !
 !======================================================================
 !
+
       do j=Jstr,Jend
         do i=IstrU,Iend
           DC(i,0)=pm_u(i,j)*pn_u(i,j)
@@ -1049,36 +1050,55 @@
             do j=Jstr,Jend
                do i=IstrU,Iend
                   u(i,j,k,nnew) = u(i,j,k,nnew)
+# ifdef NHMG_AB2
      &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1))*cdt
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
-!                  rufrc(i,j) = rufrc(i,j) 
-!     &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1)) 
-!     &                 * om_u(i,j)
+# else
+     &                 + nhdu(i,j,k,iprec2)*cdt
+     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
+# endif
                   rufrc(i,j) = rufrc(i,j) 
-     &                 + (nhdu(i,j,k,iprec2)) 
+# ifdef NHMG_AB2
+     &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1)) 
      &                 * om_u(i,j)
+# else
+     &                 + nhdu(i,j,k,iprec2) 
+     &                 * om_u(i,j)
+# endif
                enddo
             enddo
             
             do j=JstrV,Jend
                do i=Istr,Iend
                   v(i,j,k,nnew) = v(i,j,k,nnew)
+# ifdef NHMG_AB2
      &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1))*cdt
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
-!                  rvfrc(i,j) = rvfrc(i,j)
-!     &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1)) 
-!     &                 * on_v(i,j)
+# else
+     &                 + nhdv(i,j,k,iprec2)*cdt
+     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
+# endif
                   rvfrc(i,j) = rvfrc(i,j)
-     &                 + (nhdv(i,j,k,iprec2)) 
+# ifdef NHMG_AB2
+     &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1)) 
      &                 * on_v(i,j)
+# else
+     &                 + nhdv(i,j,k,iprec2) 
+     &                 * on_v(i,j)
+# endif
                enddo
             enddo
             
             do j=Jstr,Jend
                do i=Istr,Iend
                   wz(i,j,k,nnew) = wz(i,j,k,nnew) 
+# ifdef NHMG_AB2
      &                 + (1.5*nhdw(i,j,k,iprec2)-0.5*nhdw(i,j,k,iprec1))*cdt
      &                 * (pm(i,j)*pn(i,j))
+# else
+     &                 + nhdw(i,j,k,iprec2)*cdt
+     &                 * (pm(i,j)*pn(i,j))
+# endif
                enddo
             enddo
          enddo
@@ -1133,8 +1153,7 @@
                   u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
      &                 * pn_u(i,j)
-!instab comes from rufrc
-                  rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff 
+                  rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
                enddo
             enddo
             
@@ -1143,7 +1162,6 @@
                   v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
      &                 * pm_v(i,j)
-!instab comes from rvfrc
                   rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
                enddo
             enddo
