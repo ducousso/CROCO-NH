@@ -1,0 +1,116 @@
+#!/bin/csh
+#PBS -N CROC-Caldeira
+#PBS -q mpi_1
+#PBS -l walltime=00:30:00
+
+set echo
+
+###################################################
+##           CROCO in MPI mode on CapArmor       ##
+###################################################
+## Nicolas.Grima@univ-brest.fr ##
+pwd
+uname -n
+
+############################
+# get the path for mpirun ##
+############################
+source /usr/share/Modules/3.2.10/init/csh
+module load intel-comp/17
+module load impi/2017.2.174 
+module load NetCDF/4.4.1.1__intel-cc-17.0.2.174__nop
+
+module list
+
+#################################
+# get the path for library MKL ##
+#################################
+setenv MKL_SERIAL YES
+
+#########################################
+##         Number of processes         ##
+## HAVE TO BE EQUAL TO -PBS -l select- ##
+##   at the begining of this script    ##
+#########################################
+set NB_PROC=4
+
+#################################
+#  Define environment variables #
+#################################
+unalias cp
+set CP=/bin/cp
+
+##################################
+# get the path for library NHMG ##
+##################################
+setenv LD_LIBRARY_PATH $HOME/CROCO-NH/NHMG/lib:$LD_LIBRARY_PATH
+
+####################################
+#  Define files and run parameters #
+####################################
+set SRC_DIR=$HOME/CROCO-NH/CROCO-NH/Run
+set CODFILE=./croco_caldeira_2x2
+set MODEL=croco.in.Caldeira
+set RUNEXP=Caldeira_2x2_128x128x64_v0
+set EXEC_DIR=$DATAWORK/CROCO-NH
+
+##########################
+# Move to the Scratchdir #
+##########################
+mkdir -p $EXEC_DIR/$RUNEXP
+cd $EXEC_DIR/$RUNEXP
+
+##########################
+# Link to the input data #
+##########################
+#ln -s ${INPUT_DATA} INPUT
+
+##################################
+# Get the executable code (roms) #
+##################################
+echo "Getting $CODFILE from $SRC_DIR"
+$CP -f $SRC_DIR/$CODFILE $EXEC_DIR/$RUNEXP/.
+## to be an unix executable ##
+chmod u+x $CODFILE
+
+#####################################
+# Get the input arguments (croco.in) #
+#####################################
+echo "Getting $MODEL from $SRC_DIR"
+$CP -f $SRC_DIR/$MODEL $EXEC_DIR/$RUNEXP/.
+
+#####################################
+# Get the nhmg namelist             #
+#####################################
+echo "Getting nhmg namelist from $SRC_DIR"
+$CP -f $SRC_DIR/nhmg_namelist $EXEC_DIR/$RUNEXP/.
+
+######################################################
+###########  HERE CROCO IS STARTING TO RUN ###########
+###########            ON CAPARMOR         ###########
+######################################################
+    ls -rtl
+    date
+    time mpirun -np ${NB_PROC} ${CODFILE}  ${MODEL} > ${MODEL}.out
+    date
+    ls -rtl
+#####################################################
+#####################################################
+#####################################################
+
+
+###################################################
+## This is the end ... my only friend...the end. ##
+###################################################
+
+
+
+
+
+
+
+
+
+
+
+
