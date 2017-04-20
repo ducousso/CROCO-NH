@@ -344,10 +344,11 @@ C$    integer omp_get_thread_num
      &                                         dz_v(START_2D_ARRAY,1))
 #   endif
 #  endif
+
+# ifdef NHMG
 !
 ! initialize wz variable from Huon and Hvom
 !
-# ifdef NHMG
       if (iic.eq.0) then
        do j=Jstr,Jend
          do k=1,N
@@ -355,15 +356,70 @@ C$    integer omp_get_thread_num
              wz(i,j,k,1)=wz(i,j,k-1,1)
      &       - pm(i,j)*pn(i,j)*( Huon(i+1,j,k)-Huon(i,j,k)
      &                          +Hvom(i,j+1,k)-Hvom(i,j,k) )
-             wz(i,j,k,2)=0.
            enddo
          enddo
        enddo
-      endif 
+! set lateral boundary conditions
+# ifndef EW_PERIODIC
+      if (WESTERN_EDGE) then
+        do k=1,N
+          do j=Jstr,Jend
+            wz(0,j,k,1)=wz(1,j,k,1)
+          enddo
+        enddo
+      endif
+      if (EASTERN_EDGE) then
+        do k=1,N
+          do j=Jstr,Jend
+            wz(LOCALLM+1,j,k,1)=wz(LOCALLM,j,k,1)           
+          enddo
+        enddo
+      endif
+# endif
+# ifndef NS_PERIODIC
+      if (SOUTHERN_EDGE) then
+        do k=1,N
+          do i=Istr,Iend
+            wz(i,0,k,1)=wz(i,1,k,1)             
+          enddo
+        enddo
+      endif
+      if (NORTHERN_EDGE) then
+        do k=1,N
+          do i=Istr,Iend
+            wz(i,LOCALMM+1,k,1)=wz(i,LOCALMM,k,1)
+          enddo
+        enddo
+      endif
+#  ifndef EW_PERIODIC
+      if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
+        do k=1,N
+          wz(0,0,k,1)=wz(1,1,k,1)           
+        enddo
+      endif
+      if (WESTERN_EDGE .and. NORTHERN_EDGE) then
+        do k=1,N
+          wz(0,LOCALMM+1,k,1)=wz(1,LOCALMM,k,1)           
+        enddo
+      endif
+      if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
+        do k=1,N
+          wz(LOCALLM+1,0,k,1)=wz(LOCALLM,1,k,1) 
+        enddo
+      endif
+      if (EASTERN_EDGE .and. NORTHERN_EDGE) then
+        do k=1,N
+          wz(LOCALLM+1,LOCALMM+1,k,1)=wz(LOCALLM,LOCALMM,k,1)        
+        enddo
+      endif
+#  endif
+# endif
+! exchange
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,1))
 #  endif
+      endif 
 # endif
       return
       end
@@ -593,6 +649,7 @@ C$    integer omp_get_thread_num
           enddo
         enddo
       enddo
+
 #if defined NHMG && defined NHMG_NHSSH
         do j=Jstr-1,Jend
            do i=Istr-1,Iend
@@ -621,29 +678,83 @@ C$    integer omp_get_thread_num
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                                  v(START_2D_ARRAY,1,nrhs))
 #  endif
+
+# ifdef NHMG
 !
 ! Coupling wz
 !
-# ifdef NHMG
-
       do j=Jstr,Jend
         do k=1,N          
           do i=Istr,Iend
             DC(i,0)=pm(i,j)*pn(i,j)
-            ! at this time, Huon and Hvom can used : they are 
-            ! defined at n+1/2
+            ! at this time, Huon and Hvom can used : 
+            ! they are defined at n+1/2
             wz(i,j,k,nrhs)=wz(i,j,k-1,nrhs) 
      &      - DC(i,0)*( Huon(i+1,j,k)-Huon(i,j,k)
      &                 +Hvom(i,j+1,k)-Hvom(i,j,k) )
           enddo
         enddo
       enddo
-
+! set lateral boundary conditions
+# ifndef EW_PERIODIC
+      if (WESTERN_EDGE) then
+        do k=1,N
+          do j=Jstr,Jend
+            wz(0,j,k,nrhs)=wz(1,j,k,nrhs)
+          enddo
+        enddo
+      endif
+      if (EASTERN_EDGE) then
+        do k=1,N
+          do j=Jstr,Jend
+            wz(LOCALLM+1,j,k,nrhs)=wz(LOCALLM,j,k,nrhs)
+          enddo
+        enddo
+      endif
+# endif
+# ifndef NS_PERIODIC
+      if (SOUTHERN_EDGE) then
+        do k=1,N
+          do i=Istr,Iend
+            wz(i,0,k,nrhs)=wz(i,1,k,nrhs)
+          enddo
+        enddo
+      endif
+      if (NORTHERN_EDGE) then
+        do k=1,N
+          do i=Istr,Iend
+            wz(i,LOCALMM+1,k,nrhs)=wz(i,LOCALMM,k,nrhs)
+          enddo
+        enddo
+      endif
+#  ifndef EW_PERIODIC
+      if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
+        do k=1,N
+          wz(0,0,k,nrhs)=wz(1,1,k,nrhs)
+        enddo
+      endif
+      if (WESTERN_EDGE .and. NORTHERN_EDGE) then
+        do k=1,N
+          wz(0,LOCALMM+1,k,nrhs)=wz(1,LOCALMM,k,nrhs)
+        enddo
+      endif
+      if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
+        do k=1,N
+          wz(LOCALLM+1,0,k,nrhs)=wz(LOCALLM,1,k,nrhs)
+        enddo
+      endif
+      if (EASTERN_EDGE .and. NORTHERN_EDGE) then
+        do k=1,N
+          wz(LOCALLM+1,LOCALMM+1,k,nrhs)=wz(LOCALLM,LOCALMM,k,nrhs)
+        enddo
+      endif
+#  endif
+# endif
+! exchange
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,nrhs)) 
 #  endif
-
 # endif
 
 #ifdef NHMG_DEBUG
