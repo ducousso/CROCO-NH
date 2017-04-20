@@ -251,25 +251,6 @@
         write(stdout,1) vname(1,indxV)(1:lvar), ininame(1:lstr)
         goto 99                                           !--> ERROR
       endif
-# ifdef NHMG
-!
-! 3D momentum component in the s-direction.
-!
-      lvar=lenstr(vname(1,indxW))
-      ierr=nf_inq_varid (ncid, vname(1,indxW)(1:lvar), varid)
-      if (ierr .eq. nf_noerr) then
-        ierr=nf_fread (wz(START_2D_ARRAY,0,1), ncid, varid,
-     &                                        indx, w3dvar)
-        if (ierr .ne. nf_noerr) then
-          write(stdout,2) vname(1,indxW)(1:lvar), indx,
-     &                                       ininame(1:lstr)
-          goto 99                                        !--> ERROR
-        endif
-      else
-        write(stdout,1) vname(1,indxW)(1:lvar), ininame(1:lstr)
-        goto 99                                           !--> ERROR
-      endif
-# endif
 !
 ! Tracer variables.
 !
