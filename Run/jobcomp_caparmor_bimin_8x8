@@ -102,6 +102,7 @@ AGRIF_SRC=${ROOT_DIR}/AGRIF
 # BIMIN special copy
 #
 /bin/cp -f ${ROOT_DIR}/Run/cppdefs_bimin.h $SCRDIR/cppdefs.h
+/bin/cp -f ${ROOT_DIR}/Run/cppdefs_dev_bimin.h $SCRDIR/cppdefs_dev.h
 /bin/cp -f ${ROOT_DIR}/Run/param_bimin_8x8.h   $SCRDIR/param.h
 /bin/cp -f ${ROOT_DIR}/Run/lmd_skpp2005_bimin.F $SCRDIR/lmd_skpp2005.F
 /bin/cp -f ${ROOT_DIR}/Run/lmd_bkpp2005_bimin.F $SCRDIR/lmd_bkpp2005.F

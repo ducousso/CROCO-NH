@@ -223,7 +223,8 @@
        do itrc=1,NT
         do j=JstrR,JendR
           do i=IstrR,IendR
-            diff2_sponge(i,j)=(0.01/(pm(i,j)*pn(i,j)*dt))*wrk(i,j)
+!            diff2_sponge(i,j)=(0.01/(pm(i,j)*pn(i,j)*dt))*wrk(i,j)
+            diff2_sponge(i,j)=v_sponge*wrk(i,j)
 #   ifdef TS_DIF4
             diff4_sponge(i,j)=diff2_sponge(i,j)/(pm(i,j)*pn(i,j))
 #   endif

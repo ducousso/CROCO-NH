@@ -77,7 +77,7 @@
      &     Ri_inv, C_Ek, eps, invrho, Kv0, Kt0, Ks0
 !======================================================================
       parameter (
-     &   lmd_nu0c=0.1*10.,    ! convective adjustment for viscosity
+     &   lmd_nu0c=0.1,    ! convective adjustment for viscosity
                           !              and diffusivity [m^2/s].
                           !
      &   Ricr=0.45,       ! Critical bulk Richardson number (0.3).
@@ -329,21 +329,6 @@
               Ks(i,j,k)=Ks0
 #  endif
 
-
-# if defined MLCONVEC
-!
-!  Add convective adjustment in the ML for unresolved convective cells
-!
-            if (bvf(i,j,k).lt.0.) then
-                  Kv(i,j,k)=Kv(i,j,k)+lmd_nu0c
-                  Kt(i,j,k)=Kt(i,j,k)+lmd_nu0c
-#  ifdef SALINITY
-                  Ks(i,j,k)=Ks(i,j,k)+lmd_nu0c
-#  endif
-            endif
-# endif
-
-
 # ifdef LMD_CONVEC
 !
 !-----------------------------------------------------------------
@@ -365,7 +350,9 @@
 #  endif
                   Kv(i,j,k)=Kv(i,j,k)+lmd_nu0c
                   Kt(i,j,k)=Kt(i,j,k)+lmd_nu0c
+#  ifdef SALINITY
                   Ks(i,j,k)=Ks(i,j,k)+lmd_nu0c
+#  endif
 #  ifdef LMD_SKPP
                 endif
 #  endif

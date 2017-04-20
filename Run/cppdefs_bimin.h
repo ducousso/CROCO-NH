@@ -76,9 +76,13 @@
 # define  NEW_S_COORD
                       /* Model dynamics */
 # define SOLVE3D
-# define NHMG
 # define UV_COR
 # define UV_ADV
+                      /* NHMG */
+# undef NHMG
+# undef NHMG_AB2
+# undef NHMG_NHSSH
+# undef NHMG_MASKING
                       /* Equation of State */
 # define SALINITY
 # define NONLIN_EOS
@@ -184,15 +188,15 @@
 #  define TIDERAMP
 #  define OBC_M2FLATHER
 # else
-#  undef  OBC_M2SPECIFIED
+#  define  OBC_M2SPECIFIED
 #  undef  OBC_M2FLATHER
-#  define OBC_M2CHARACT
+#  undef  OBC_M2CHARACT
 #  undef  OBC_M2ORLANSKI
 # endif
-# define OBC_M3ORLANSKI
-# define OBC_TORLANSKI
-# undef  OBC_M3SPECIFIED
-# undef  OBC_TSPECIFIED
+# undef OBC_M3ORLANSKI
+# undef OBC_TORLANSKI
+# define  OBC_M3SPECIFIED
+# define  OBC_TSPECIFIED
                       /* Input/Output & Diagnostics */
 # define AVERAGES
 # define AVERAGES_K
