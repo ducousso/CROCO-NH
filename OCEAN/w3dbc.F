@@ -167,10 +167,10 @@
          enddo
         enddo
 #   else
-        do k=1,N
-          do j=Jstr,Jend
 !                                            Western edge gradient BC
 !                                            ======= ==== ======== ==
+        do k=1,N
+          do j=Jstr,Jend
             wz(Istr-1,j,k,nnew)=wz(Istr,j,k,nnew)
 #    ifdef MASKING
      &                         *rmask(Istr-1,j)
