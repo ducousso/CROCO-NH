@@ -324,7 +324,7 @@
 ======================================================================
 */
 #ifdef SPONGE
-# undef SPONGE_GRID
+# define SPONGE_GRID
 # define SPONGE_DIF2
 # define SPONGE_VIS2
 #endif

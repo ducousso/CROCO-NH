@@ -1,7 +1,7 @@
 title:
         BIMIN 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                600      4     20      10
+                1000      4     20      10
 S-coord: THETA_S,   THETA_B,    Hc (m)
            6.0d0      6.0d0     300.0d0
 grid:  filename
@@ -30,7 +30,7 @@ averages: NTSAVG, NAVG, NRPFAVG / filename
 primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
                           T    T   T   T  T    30*T
 auxiliary_history_fields:   rho Omega  W  Akv  Akt  Aks Visc3d Diff3d  HBL HBBL Bostr Wstr Ustr Vstr Shfl Swfl rsw rlw lat sen  HEL
-                             F   T     T   T    T    F    F     F       F   F    T     T    T    T    F    F   10*F             
+                             F   T     T   T    T    F    F     F       T   T    T     T    T    T    F    F   10*F             
 gls_history_fields:   Akk Akp  TKE  GLS  Lscale
                        T   T    T     T    T
 
