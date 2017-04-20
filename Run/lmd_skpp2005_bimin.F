@@ -108,7 +108,7 @@
                        !                surface layer.
      &   Cstar=10.,    ! Proportionality coefficient 
                        ! parameterizing nonlocal transport.
-     &   nu0c=0.1*10.,     ! Maximum interior convective
+     &   nu0c=0.1,     ! Maximum interior convective
                        ! viscosity and  diffusivity due
                        ! to shear instability, [m^2/s];     
      &   C_Ek=258.,    ! constant for computating stabilization term 
@@ -450,10 +450,9 @@
 !  Add convective adjustment in the ML for unresolved convective cells
 !
             if (bvf(i,j,k).lt.0.) then
-              Kv(i,j,k)=Kv(i,j,k) + nu0c
-              Kt(i,j,k)=Kt(i,j,k) + nu0c
+              Kt(i,j,k)=Kt(i,j,k) + nu0c*10.
 #  ifdef SALINITY
-              Ks(i,j,k)=Ks(i,j,k) + nu0c
+              Ks(i,j,k)=Ks(i,j,k) + nu0c*10.
 #  endif
             endif
 # endif
