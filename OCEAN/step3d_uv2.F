@@ -1258,6 +1258,62 @@
         enddo
       enddo
 
+! set lateral boundary conditions
+# ifndef EW_PERIODIC
+      if (WESTERN_EDGE) then
+        do k=1,N
+          do j=Jstr,Jend
+            wz(0,j,k,nnew)=wz(1,j,k,nnew)
+          enddo
+        enddo
+      endif
+      if (EASTERN_EDGE) then
+        do k=1,N
+          do j=Jstr,Jend
+            wz(LOCALLM+1,j,k,nnew)=wz(LOCALLM,j,k,nnew)
+          enddo
+        enddo
+      endif
+# endif
+# ifndef NS_PERIODIC
+      if (SOUTHERN_EDGE) then
+        do k=1,N
+          do i=Istr,Iend
+            wz(i,0,k,nnew)=wz(i,1,k,nnew)
+          enddo
+        enddo
+      endif
+      if (NORTHERN_EDGE) then
+        do k=1,N
+          do i=Istr,Iend
+            wz(i,LOCALMM+1,k,nnew)=wz(i,LOCALMM,k,nnew)
+          enddo
+        enddo
+      endif
+#  ifndef EW_PERIODIC
+      if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
+        do k=1,N
+          wz(0,0,k,nnew)=wz(1,1,k,nnew)
+        enddo
+      endif
+      if (WESTERN_EDGE .and. NORTHERN_EDGE) then
+        do k=1,N
+          wz(0,LOCALMM+1,k,nnew)=wz(1,LOCALMM,k,nnew)
+        enddo
+      endif
+      if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
+        do k=1,N
+          wz(LOCALLM+1,0,k,nnew)=wz(LOCALLM,1,k,nnew)
+        enddo
+      endif
+      if (EASTERN_EDGE .and. NORTHERN_EDGE) then
+        do k=1,N
+          wz(LOCALLM+1,LOCALMM+1,k,nnew)=wz(LOCALLM,LOCALMM,k,nnew)
+        enddo
+      endif
+#  endif
+# endif
+
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,nnew)) 
