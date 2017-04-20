@@ -1062,8 +1062,8 @@
      &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1)) 
      &                 * om_u(i,j)
 # else
-     &                 + nhdu(i,j,k,iprec2) 
-     &                 * om_u(i,j)
+!     &                 + nhdu(i,j,k,iprec2) 
+!     &                 * om_u(i,j)
 # endif
                enddo
             enddo
@@ -1083,8 +1083,8 @@
      &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1)) 
      &                 * on_v(i,j)
 # else
-     &                 + nhdv(i,j,k,iprec2) 
-     &                 * on_v(i,j)
+!     &                 + nhdv(i,j,k,iprec2) 
+!     &                 * on_v(i,j)
 # endif
                enddo
             enddo
@@ -1153,7 +1153,7 @@
                   u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
      &                 * pn_u(i,j)
-                  rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
+!                  rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
                enddo
             enddo
             
@@ -1162,7 +1162,7 @@
                   v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
      &                 * pm_v(i,j)
-                  rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
+!                  rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
                enddo
             enddo
             
