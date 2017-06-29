@@ -632,6 +632,7 @@
      &                      )*cff
               u(i,j,k,indx)=u(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                         Hz(i-1,j,k))
+
 # ifdef NBQ
               qdm_u(i,j,k,1) = 0.
               qdm_u(i,j,k,2) = u(i,j,k,nstp)*0.5*(Hz(i,j,k)+Hz(i-1,j,k))
@@ -904,58 +905,94 @@
 !==
 # endif /* NBQ */
      
-# if defined NHMG
+# ifdef NHMG
 !----------------------------------------------------------
 !<-- at this point 
 !<-- rw            contains internal 3D advection + Coriolis
 !----------------------------------------------------------
       do j=Jstr,Jend
-!==
+
       if (FIRST_TIME_STEP) then
-!==        
+
         do k=1,N-1
           do i=Istr,Iend
+#  ifdef NHMG_W_VOL
+             wz(i,j,k,nnew)=( wz(i,j,k,nstp)*0.5*(Hz(i,j,k)+Hz(i,j,k+1))
+     &                                 +cdt*pn(i,j)*pm(i,j)*rw(i,j,k)
+     &                     ) / (0.5*(Hz_half(i,j,k)+Hz_half(i,j,k+1)))
+             wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+Hz(i,j,k+1))
+#  else
              ! rw is a tendency*horizontal area
              ! wz(:,:,:,nstp) and wz(:,:,:,indx) are velocity
              ! wz(:,:,:,nnew) is velocity 
              cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
              wz(i,j,k,nnew)=wz(i,j,k,nstp) + cdt * rw(i,j,k)*cff
              wz(i,j,k,indx)=wz(i,j,k,nstp)
+#  endif
           enddo
         enddo
+        !surface special treatment
         do i=Istr,Iend
-           cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,N)))
-           wz(i,j,N,nnew)=wz(i,j,N,nstp) + cdt * rw(i,j,N)*cff
-           wz(i,j,N,indx)=wz(i,j,N,nstp)
+#  ifdef NHMG_W_VOL
+             wz(i,j,N,nnew)=( wz(i,j,N,nstp)*0.5*Hz(i,j,N)
+     &                            +cdt*pn(i,j)*pm(i,j)*rw(i,j,N)
+     &                     ) / (0.5*Hz_half(i,j,N))
+            wz(i,j,N,indx)=wz(i,j,N,nstp)*0.5*Hz(i,j,N)
+#  else
+            cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,N)))
+            wz(i,j,N,nnew)=wz(i,j,N,nstp) + cdt * rw(i,j,N)*cff
+            wz(i,j,N,indx)=wz(i,j,N,nstp)
+#  endif
         enddo
-!==        
+        
       else  ! NOT FIRST_TIME_STEP
-!==      
+      
         cff1=0.5+gamma
-        cff2=0.5-gamma
-!==        
+        cff2=0.5-gamma       
         do k=1,N-1
            do i=Istr,Iend
+#  ifdef NHMG_W_VOL
+              wz(i,j,k,nnew)=( cff1*wz(i,j,k,nstp)*(Hz(i,j,k  )+         ! n      
+     &                                             Hz(i,j,k+1))         !
+     &                       +cff2*wz(i,j,k,indx)*(Hz_bak(i,j,k  )+     ! n - 1
+     &                                             Hz_bak(i,j,k+1))     !
+     &                       +2.*cdt*pn(i,j)*pm(i,j)                    ! n - 1/2
+     &                              *(rw(i,j,k))     !
+     &                      ) / (Hz_half(i,j,k)+Hz_half(i,j,k+1))  !<-- wz has units m.s-1
+              wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+
+     &                                          Hz(i,j,k+1)) !<-- wz(indx) has units kg.m-1.s-1
+#  else
               cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
               wz(i,j,k,nnew)= 
      &             (cff1*wz(i,j,k,nstp) + cff2*wz(i,j,k,indx)) 
      &             +cdt*rw(i,j,k)*cff
               wz(i,j,k,indx)=wz(i,j,k,nstp)
+#  endif
            enddo
         enddo     
+        !surface special treatment
         do i=Istr,Iend
-           cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,N)))
-           wz(i,j,N,nnew)= 
-     &          (cff1*wz(i,j,N,nstp) + cff2*wz(i,j,N,indx)) 
-     &          +cdt*rw(i,N,k)*cff
-           wz(i,j,N,indx)=wz(i,j,N,nstp)
+#  ifdef NHMG_W_VOL
+             wz(i,j,N,nnew)=( cff1*wz(i,j,N,nstp)*Hz    (i,j,N)
+     &                       +cff2*wz(i,j,N,indx)*Hz_bak(i,j,N)
+     &                       +2.*cdt*pn(i,j)*pm(i,j)
+     &                          *(rw(i,j,N))
+     &                      )/ Hz_half(i,j,N)              
+             wz(i,j,N,indx)=wz(i,j,N,nstp)*0.5*Hz(i,j,N)   
+#  else
+             cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,N)))
+             wz(i,j,N,nnew)= 
+     &            (cff1*wz(i,j,N,nstp) + cff2*wz(i,j,N,indx)) 
+     &            +cdt*rw(i,j,N)*cff
+             wz(i,j,N,indx)=wz(i,j,N,nstp)
+#  endif
         enddo
-!==   
+  
       endif
+!
       do i=Istr,Iend
          DC(i,0)=pm(i,j)*pn(i,j)
       enddo
-
 !
 !======================================================================
 !
@@ -975,13 +1012,6 @@
 !==
 
 # endif /* NHMG */
-
-# ifdef NHMG_DEBUG
-      write(*,*) 'pre_step3d : u,v,wz after applying rhs. [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-# endif
 
 !
 !======================================================================
@@ -1041,7 +1071,11 @@
 
       cff = 1./cdt
 
+# ifdef NHMG_AB2
       if (iic.ge.(ntstart+2)) then
+# else
+      if (iic.ge.(ntstart+1)) then
+# endif
 !      if (iic.lt.0) then
 
          call tic(1,'AB2 del q')
@@ -1062,9 +1096,12 @@
      &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1)) 
      &                 * om_u(i,j)
 # else
-!     &                 + nhdu(i,j,k,iprec2) 
-!     &                 * om_u(i,j)
+     &                 + nhdu(i,j,k,iprec2) 
+     &                 * om_u(i,j)
 # endif
+!!
+!     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
+!!
                enddo
             enddo
             
@@ -1083,9 +1120,12 @@
      &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1)) 
      &                 * on_v(i,j)
 # else
-!     &                 + nhdv(i,j,k,iprec2) 
-!     &                 * on_v(i,j)
+     &                 + nhdv(i,j,k,iprec2) 
+     &                 * on_v(i,j)
 # endif
+!!
+!     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
+!!
                enddo
             enddo
             
@@ -1153,7 +1193,10 @@
                   u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
      &                 * pn_u(i,j)
-!                  rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
+                  rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
+!!
+!     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
+!!
                enddo
             enddo
             
@@ -1162,7 +1205,10 @@
                   v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
      &                 * pm_v(i,j)
-!                  rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
+                  rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
+!!
+!     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
+!!
                enddo
             enddo
             

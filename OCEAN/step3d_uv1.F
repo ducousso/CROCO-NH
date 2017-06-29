@@ -91,7 +91,7 @@
         enddo
         do k=1,N
           do i=IstrU,Iend
-# ifdef NBQ
+#ifdef NBQ
             u(i,j,k,nnew)=u(i,j,k,nnew)+DC(i,0)*(ru(i,j,k)+
      &                                           ru_nbq_avg2(i,j,k))
 
@@ -131,11 +131,19 @@
           ! dt is hidden in DC(i,0)
           if (k.eq.N)then
              do i=Istr,Iend
+#  ifdef NHMG_W_VOL
+                DC(i,0)=dt*pm(i,j)*pn(i,j)
+#  else
                 DC(i,0)=dt*pm(i,j)*pn(i,j)*2./Hz(i,j,k)
+#  endif
              enddo
           else
              do i=Istr,Iend
+#  ifdef NHMG_W_VOL
+                DC(i,0)=dt*pm(i,j)*pn(i,j)
+#  else
                 DC(i,0)=dt*pm(i,j)*pn(i,j)*2./(Hz(i,j,k)+Hz(i,j,k+1))
+#  endif
              enddo
           endif
           do i=Istr,Iend

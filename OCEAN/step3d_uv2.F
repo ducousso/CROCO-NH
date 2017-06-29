@@ -62,12 +62,12 @@
       USE nhmg, only : nhmg_solve
       USE mg_grids
       USE mg_tictoc
+#endif
 # ifdef NHMG_DEBUG
       USE nhmg_debug, only : nhmg_write_corr_inter1
       USE nhmg_debug, only : nhmg_write_corr_inter2
       USE nhmg_debug, only : nhmg_write_corr_out
 # endif
-#endif
       implicit none
 # include "param.h"
 # include "grid.h"
@@ -88,6 +88,15 @@
 # ifdef PSOURCE
      &       ,is
 # endif
+
+# ifdef NHMG_CORR_SINH
+      real L_dom, H_dom, k_wave
+      parameter (L_dom=10.)
+      parameter (H_dom=10.)
+      parameter (k_wave=2*3.14/L_dom)
+      real ND(PRIVATE_1D_SCRATCH_ARRAY,0:N)
+# endif
+
       real BC(PRIVATE_1D_SCRATCH_ARRAY,0:N),
      &     CF(PRIVATE_1D_SCRATCH_ARRAY,0:N),
      &     FC(PRIVATE_1D_SCRATCH_ARRAY,0:N), cff,
@@ -421,7 +430,7 @@
 !        enddo
 # endif
 
-# define GR_CODE
+# undef GR_CODE
 
 # ifdef GR_CODE 
 !Guillaume 's code
@@ -533,13 +542,21 @@
 
         do k=1,N-1
           do i=Istr,Iend
+#  ifdef NHMG_W_VOL
+            DC(i,k)=wz(i,j,k,nnew)
+#  else
             DC(i,k)=wz(i,j,k,nnew) *0.5*(Hz(i,j,k)+Hz(i,j,k+1))
+#  endif
             BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1)) - FC(i,k) - FC(i,k-1) 
           enddo
         enddo  
         do i=Istr,Iend            
-          BC(i,N)=0.5*Hz(i,j,N) - FC(i,N) - FC(i,N-1)    
+#  ifdef NHMG_W_VOL
+          DC(i,N)=wz(i,j,N,nnew)
+#  else
           DC(i,N)=wz(i,j,N,nnew) *0.5*Hz(i,j,N)
+#  endif
+          BC(i,N)=0.5*Hz(i,j,N) - FC(i,N) - FC(i,N-1)    
         enddo 
         
         do i=Istr,Iend
@@ -560,7 +577,7 @@
         enddo
         do k=N-1,1,-1
           do i=Istr,Iend
-             wz(i,j,k,nnew)=DC(i,k)-CF(i,k)*wz(i,j,k+1,nnew)  !<-- wz in m.s-1
+             wz(i,j,k,nnew)=DC(i,k)-CF(i,k)*wz(i,j,k+1,nnew)
           enddo
         enddo      !--> discard FC,BC; keep DC,CF(:,0)
 # endif
@@ -665,8 +682,7 @@
 ! Non-hydro projection of momentum
 !--------------------------------------------------------------------
 !
-
-#ifdef NHMG_DEBUG
+# ifdef NHMG_DEBUG
 
       write(*,*) 'step3d_uv2 : u,v,wz before projection . [u]'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
@@ -741,6 +757,11 @@
                nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)/dt !stored as a trend
                wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
      &              * (pm(i,j)*pn(i,j))
+
+!wz(i,j,k,nnew) = 
+!wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)*pm*pn/(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
+!if grid(1)%dw(k+1,j,i) is indeed as a trend vol*dt(wz)
+
             enddo
          enddo
       enddo
@@ -760,7 +781,10 @@
      &     Lm, Mm, N,
      &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
+     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
+     &     DU_avg1(-1:Lm+2,-1:Mm+2,nnew),
+     &     DV_avg1(-1:Lm+2,-1:Mm+2,nnew) )
 
 # endif
 
@@ -840,9 +864,25 @@
             CF(i,0)=CF(i,0)+DC(i,k)*u(i,j,k,nnew)
           enddo
         enddo
+# ifdef NHMG_CORR_SINH
+        do i=IU_RANGE
+          ND(i,0)=0.
+        enddo
+        do k=1,N
+          do i=IU_RANGE
+            ND(i,k)=cosh(k_wave*(0.5*(z_r(i,j,k)+z_r(i-1,j,k))+H_dom))
+     &              *DC(i,k)
+            ND(i,0)=ND(i,0)+ND(i,k)
+          enddo
+        enddo
+# endif
         do i=IU_RANGE
           DC(i,0)=1./DC(i,0)
+# ifdef NHMG_CORR_SINH
+          CF(i,0)=(CF(i,0)-DU_avg1(i,j,nnew))/ND(i,0)
+# else
           CF(i,0)=DC(i,0)*(CF(i,0)-DU_avg1(i,j,nnew))
+# endif
 # ifdef MRL_WCI
      &                               +ust2d(i,j)
 # endif
@@ -860,7 +900,11 @@
         enddo
         do k=N,1,-1
           do i=IU_RANGE
+# ifdef NHMG_CORR_SINH
+            u(i,j,k,nnew)=(u(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
+# else
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
+# endif
 # ifdef MASKING
      &                                *umask(i,j)
 #  ifdef MRL_WCI
@@ -899,11 +943,19 @@
           enddo
         enddo
         do i=IU_RANGE
+# ifdef NHMG_CORR_SINH
+          FC(i,0)=(FC(i,0)-DU_avg2(i,j))/ND(i,0)
+# else
           FC(i,0)=DC(i,0)*(FC(i,0)-DU_avg2(i,j))
+# endif
         enddo
         do k=1,N,+1
           do i=IU_RANGE
+# ifdef NHMG_CORR_SINH
+            Huon(i,j,k)=FC(i,k)-ND(i,k)*FC(i,0)
+# else
             Huon(i,j,k)=FC(i,k)-DC(i,k)*FC(i,0)
+# endif
           enddo
         enddo
 !
@@ -975,9 +1027,25 @@
               CF(i,0)=CF(i,0)+DC(i,k)*v(i,j,k,nnew)
             enddo
           enddo
+# ifdef NHMG_CORR_SINH
+          do i=IV_RANGE
+             ND(i,0)=0.
+          enddo
+          do k=1,N
+             do i=IV_RANGE
+                ND(i,k)=cosh(k_wave*(0.5*(z_r(i,j,k)+z_r(i,j-1,k))+H_dom))
+     &               *DC(i,k)
+                ND(i,0)=ND(i,0)+ND(i,k)
+             enddo
+          enddo
+# endif
           do i=IV_RANGE
             DC(i,0)=1./DC(i,0)
+# ifdef NHMG_CORR_SINH
+            CF(i,0)=(CF(i,0)-DV_avg1(i,j,nnew))/ND(i,0)
+# else
             CF(i,0)=DC(i,0)*(CF(i,0)-DV_avg1(i,j,nnew))
+# endif
 # ifdef MRL_WCI
      &                                 +vst2d(i,j)
 # endif
@@ -995,7 +1063,11 @@
           enddo
           do k=N,1,-1
             do i=IV_RANGE
-              v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
+# ifdef NHMG_CORR_SINH
+              v(i,j,k,nnew)=(v(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
+# else
+              v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0))
+# endif
 # ifdef MASKING
      &                                  *vmask(i,j)
 #  ifdef MRL_WCI
@@ -1033,11 +1105,19 @@
             enddo
           enddo
           do i=IV_RANGE
+# ifdef NHMG_CORR_SINH
+            FC(i,0)=(FC(i,0)-DV_avg2(i,j))/ND(i,0)
+# else
             FC(i,0)=DC(i,0)*(FC(i,0)-DV_avg2(i,j))
+# endif
           enddo
           do k=1,N,+1
             do i=IV_RANGE
+# ifdef NHMG_CORR_SINH
+              Hvom(i,j,k)=FC(i,k)-ND(i,k)*FC(i,0)
+# else
               Hvom(i,j,k)=FC(i,k)-DC(i,k)*FC(i,0)
+# endif
             enddo
           enddo
 !

@@ -543,6 +543,15 @@ C$    integer omp_get_thread_num
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
 #  include "param.h"
+
+#ifdef NHMG_CORR_SINH
+      real L_dom, H_dom, k_wave
+      parameter (L_dom=10.)
+      parameter (H_dom=10.)
+      parameter (k_wave=2*3.14/L_dom)
+      real ND(PRIVATE_1D_SCRATCH_ARRAY,0:N)
+#endif
+
       real DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),
      &     FC(PRIVATE_1D_SCRATCH_ARRAY,0:N)
 #  include "grid.h"
@@ -575,8 +584,10 @@ C$    integer omp_get_thread_num
       write(*,*) 'set_HUV2 : u,v,wz before coupling. [u]'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 # endif
+
+      write(*,*) 'DU_avg2 ', DU_avg2(16,32)
 
       do j=JU_RANGE
         do i=IU_RANGE
@@ -590,6 +601,41 @@ C$    integer omp_get_thread_num
             FC(i,0)=FC(i,0)+DC(i,k)*u(i,j,k,nrhs)
           enddo
         enddo
+
+# ifdef NHMG_CORR_SINH
+! sinh coupling
+        do i=IU_RANGE
+          ND(i,0)=0.
+        enddo
+        do k=1,N
+          do i=IU_RANGE
+            ND(i,k)=cosh(k_wave*(0.5*(z_r(i,j,k)+z_r(i-1,j,k))+H_dom))
+     &              *DC(i,k)
+            ND(i,0)=ND(i,0)+ND(i,k)
+          enddo
+        enddo
+        do i=IU_RANGE
+          FC(i,0)=(FC(i,0)-DU_avg2(i,j))/ND(i,0)
+        enddo
+        do k=1,N
+          do i=IU_RANGE
+             u(i,j,k,nrhs)=(u(i,j,k,nrhs)-ND(i,k)/DC(i,k)*FC(i,0))
+#  ifdef MASKING
+     &                                *umask(i,j)
+#    ifdef MRL_WCI
+     &               +ust(i,j,k)*(umask(i,j)-1.0)
+#    endif
+#  endif
+            Huon(i,j,k)=DC(i,k)*( u(i,j,k,nrhs)
+#  ifdef MRL_WCI
+     &                             + ust(i,j,k)
+#  endif
+     &                                        )
+          enddo
+        enddo
+
+# else
+! original coupling
         do i=IU_RANGE
           FC(i,0)=(FC(i,0)-DU_avg2(i,j))/DC(i,0)
 #  ifdef MRL_WCI
@@ -612,8 +658,14 @@ C$    integer omp_get_thread_num
      &                                        )
           enddo
         enddo
+# endif
+
       enddo
-         
+      
+# ifdef NHMG_DEBUG
+      write(*,*) 'Huon ', sum(Huon(16,32,:))
+# endif
+   
       do j=JV_RANGE
         do i=IV_RANGE
           DC(i,0)=0.
@@ -626,6 +678,41 @@ C$    integer omp_get_thread_num
             FC(i,0)=FC(i,0)+DC(i,k)*v(i,j,k,nrhs)
           enddo
         enddo
+
+# ifdef NHMG_CORR_SINH
+! sinh coupling
+        do i=IV_RANGE
+          ND(i,0)=0.
+        enddo
+        do k=1,N
+          do i=IV_RANGE
+            ND(i,k)=cosh(k_wave*(0.5*(z_r(i,j,k)+z_r(i,j-1,k))+H_dom))
+     &              *DC(i,k)
+            ND(i,0)=ND(i,0)+ND(i,k)
+          enddo
+        enddo
+        do i=IV_RANGE
+          FC(i,0)=(FC(i,0)-DV_avg2(i,j))/ND(i,0)
+        enddo
+        do k=1,N
+          do i=IV_RANGE
+            v(i,j,k,nrhs)=(v(i,j,k,nrhs)-ND(i,k)/DC(i,k)*FC(i,0))
+#  ifdef MASKING
+     &                                *vmask(i,j)
+#    ifdef MRL_WCI
+     &               +vst(i,j,k)*(vmask(i,j)-1.0)
+#    endif
+#  endif
+            Hvom(i,j,k)=DC(i,k)*( v(i,j,k,nrhs)
+#  ifdef MRL_WCI
+     &                             + vst(i,j,k)
+#  endif
+     &                                        )
+          enddo
+        enddo
+
+# else
+! original coupling
         do i=IV_RANGE
           FC(i,0)=(FC(i,0)-DV_avg2(i,j))/DC(i,0)
 #  ifdef MRL_WCI
@@ -648,6 +735,7 @@ C$    integer omp_get_thread_num
      &                                        )
           enddo
         enddo
+
       enddo
 
 #if defined NHMG && defined NHMG_NHSSH
@@ -757,7 +845,7 @@ C$    integer omp_get_thread_num
 #  endif
 # endif
 
-#ifdef NHMG_DEBUG
+# ifdef NHMG_DEBUG
 
       write(*,*) 'set_HUV2 : u,v,wz after coupling. u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
@@ -770,7 +858,7 @@ C$    integer omp_get_thread_num
      &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
 
-#endif
+# endif
 
 # endif /* SOLVE3D */
       return
