@@ -1194,6 +1194,8 @@
 #  undef  NBQ_IMP
 # endif
 # define NHMG
+# undef NHMG_W_VOL
+# undef NHMG_CORR_SINH
 # undef NHMG_AB2
 # undef NHMG_NHSSH
 # undef NHMG_DEBUG
