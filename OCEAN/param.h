@@ -132,6 +132,8 @@
 # else
       parameter (LLm0=4000,   MMm0=1,  N=30)  !  1 mm resolution
 # endif
+#elif defined TANKINT
+      parameter (LLm0=64,   MMm0=64,    N=64) ! NHMG test
 #elif defined REGIONAL
 #  if   defined USWC0
       parameter (LLm0=62,   MMm0=126,  N=40)   ! US_West grid15 L0

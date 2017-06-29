@@ -24,7 +24,7 @@
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
 #undef  SEAMOUNT        /* Seamount Example */
-#define  CALDEIRA        /* Caldeira Example */
+#undef  CALDEIRA        /* Caldeira Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -37,6 +37,7 @@
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
 #undef  TANK            /* Tank Example */
+#define  TANKINT            /* Tank internal Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -1197,7 +1198,30 @@
 # undef NHMG_NHSSH
 # undef NHMG_DEBUG
 # define SOLVE3D
-# undef UV_ADV
+# define UV_ADV
+# define NEW_S_COORD
+# define ANA_GRID
+# define ANA_INITIAL
+# define ANA_BTFLUX
+# define ANA_SMFLUX
+# define ANA_SRFLUX
+# define ANA_STFLUX
+
+#elif defined TANKINT
+/*
+!                       
+!                       ===== ====== ===== =======
+!
+*/
+# define MPI
+# define SOLVE3D
+# define NHMG
+# undef NHMG_W_VOL
+# undef NHMG_CORR_SINH
+# undef NHMG_AB2
+# undef NHMG_NHSSH
+# undef NHMG_DEBUG
+# define UV_ADV
 # define NEW_S_COORD
 # define ANA_GRID
 # define ANA_INITIAL

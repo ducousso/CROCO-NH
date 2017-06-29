@@ -70,6 +70,9 @@ C$    integer omp_get_thread_num
 #ifdef TANK
       real ETA0, depth, Lt,cff
 #endif
+#ifdef TANKINT
+      real drho, thickn, cff, amp, Lt
+#endif
 #ifdef RIP
       integer iper
       real xper,yper,xx,yy,xs,db,eps
@@ -173,19 +176,16 @@ C$    integer omp_get_thread_num
         enddo
 
 # elif defined TANK
-        ETA0=0.0015
+!        ETA0=0.0015
 !        ETA0=0.015
-!        ETA0=0.15
-!        ETA0=1.5
-        Lt=10.
+        ETA0=0.15
+        Lt=100.
         do j=JR_RANGE
           do i=IR_RANGE
 #  ifndef MOVING_BATHY       
 #   ifndef TANKY
 !            zeta(i,j,1)=ETA0*cos(pi*xr(i,j)/Lt)
-!            zeta(i,j,1)=ETA0*cos(pi*yr(i,j)/Lt)
             zeta(i,j,1)=ETA0*cos(2.*pi*xr(i,j)/Lt)
-!            zeta(i,j,1)=ETA0*cos(2.*pi*yr(i,j)/Lt)
 !            zeta(i,j,1)=ETA0*cos(4.*pi*xr(i,j)/Lt)
 #   else
             zeta(i,j,1)=ETA0*cos(pi*yr(i,j)/Lt)
@@ -472,6 +472,23 @@ C$    integer omp_get_thread_num
           enddo
         enddo
 #   endif
+
+#  elif defined TANKINT
+        drho=10
+        thickn=1.
+        cff=2.*(log((0.99+1.)/(-0.99+1.))/2.)/thickn
+        amp=0.15
+        Lt=10.
+        do k=1,N
+          do j=JR_RANGE
+            do i=IR_RANGE
+              t(i,j,k,1,itemp)=rho0-0.5*drho*
+     &        tanh(cff*(z_r(i,j,k)+h(i,j)/2-amp*cos(pi*xr(i,j)/Lt)))
+     &        - 1000.
+              t(i,j,k,2,itemp)=t(i,j,k,1,itemp)
+            enddo
+          enddo
+        enddo
 
 #  elif defined EQUATOR
         do k=1,N
