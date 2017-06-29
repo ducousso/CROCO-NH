@@ -194,7 +194,7 @@ C$    trd=omp_get_thread_num()
 ! momentum equations.
 !
 #ifdef M2FILTER_NONE
-# ifdef TANK
+# if defined TANK || defined TANKINT
          myalpha   = 0.01
 # else
          myalpha   = 0.5
@@ -460,6 +460,9 @@ C$OMP END MASTER
           Dnew(i,j)=zeta_new(i,j)+h(i,j)
           zwrk(i,j)=cff0*zeta_new(i,j) +cff1*zeta(i,j,kstp)
      &             +cff2*zeta(i,j,kbak)+cff3*zeta(i,j,kold)
+!!! dissipation on divergence
+     &             + 2.*(zeta_new(i,j)-zeta(i,j,kbak))
+!!!
 # if defined VAR_RHO_2D && defined SOLVE3D
           rzeta(i,j)=(1.+rhoS(i,j))*zwrk(i,j)
           rzeta2(i,j)=rzeta(i,j)*zwrk(i,j)
