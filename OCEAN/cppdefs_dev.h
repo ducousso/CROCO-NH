@@ -188,6 +188,12 @@
 # undef  UV_HADV_C4        /* 4th-order centered lateral advection */
 # undef  UV_HADV_C2        /* 2nd-order centered lateral advection */
 #endif
+
+#ifdef UV_HADV_UP3 
+# undef OBC_MODIF_C2
+# undef OBC_MODIF_UP1
+#endif
+
 /* 
    UV DIFFUSION: set default orientation
 */
