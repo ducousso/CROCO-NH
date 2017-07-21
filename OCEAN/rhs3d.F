@@ -22,14 +22,26 @@
       trd=omp_get_thread_num()
       call rhs3d_tile (Istr,Iend,Jstr,Jend,
      &                                    A3d(1,1,trd), A3d(1,2,trd),
+# ifdef NHMG
+     &                                    A3d(1,5,trd),
+# endif
      &                      A2d(1,1,trd), A2d(1,2,trd), A2d(1,3,trd),
      &                      A2d(1,1,trd), A2d(1,2,trd), A2d(1,3,trd),
      &                      A2d(1,4,trd), A2d(1,5,trd), A2d(1,6,trd))
       return
       end
 
-      subroutine rhs3d_tile (Istr,Iend,Jstr,Jend, ru,rv, CF,FC,DC,
+      subroutine rhs3d_tile (Istr,Iend,Jstr,Jend, ru,rv, 
+# ifdef NHMG
+     &                                                   rw,
+# endif
+     &                                                   CF,FC,DC,
      &                                 wrk1,wrk2, UFx,UFe, VFx,VFe)
+!
+# ifdef NHMG
+      USE nhmg, only : nhmg_comp_rw
+# endif
+!
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
 # ifdef MPI
@@ -50,6 +62,9 @@
      &      UFe(PRIVATE_2D_SCRATCH_ARRAY),
      &      VFx(PRIVATE_2D_SCRATCH_ARRAY), 
      &      VFe(PRIVATE_2D_SCRATCH_ARRAY),    gamma 
+# ifdef NHMG
+     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,0:N)
+# endif
       parameter (gamma = -0.25)
 # include "grid.h"
 # include "ocean3d.h"
@@ -264,6 +279,19 @@
         enddo
 # endif /* UV_COR || (CURVGRID && UV_ADV) */
 
+# ifdef NHMG
+!
+!      enddo
+!
+!      call nhmg_comp_rw(
+!     &     Lm, Mm, N,
+!     &     ru(-1:Lm+2,-1:Mm+2,1:N),
+!     &     rv(-1:Lm+2,-1:Mm+2,1:N),
+!     &     rw(-1:Lm+2,-1:Mm+2,0:N))
+!
+!      do k=1,N
+!
+# endif
 
 # ifdef UV_ADV
 !
@@ -288,7 +316,6 @@
 !
 #   define uxx wrk1
 #   define Huxx wrk2
-!
 #   ifdef EW_PERIODIC
 #    define IU_EXT_RANGE IstrU-1,Iend+1
 #   else
@@ -308,7 +335,6 @@
 #     define IU_EXT_RANGE max(IstrU-1,2),min(Iend+1,Lm)
 #    endif
 #   endif
-
         do j=Jstr,Jend
           do i=IU_EXT_RANGE
             uxx(i,j)=(u(i-1,j,k,nrhs)-2.*u(i,j,k,nrhs)
@@ -321,25 +347,48 @@
 #   ifndef EW_PERIODIC
         if (WESTERN_EDGE) then
           do j=Jstr,Jend
+#    if defined OBC_MODIF_UP1
+            uxx(1,j)=(u(1,j,k,nrhs)-u(2,j,k,nrhs))/gamma
+            Huxx(1,j)=-Huxx(2,j)
+#    elif defined OBC_MODIF_C2
+            uxx(1,j)=0.
+            Huxx(1,j)=-Huxx(2,j)
+#    else
             uxx(1,j)=uxx(2,j)
             Huxx(1,j)=Huxx(2,j)
+#    endif
           enddo
         endif
         if (EASTERN_EDGE) then
 #    ifdef MPI        
           do j=Jstr,Jend
+#    if defined OBC_MODIF_UP1
+            uxx(Lmmpi+1,j)=(u(Lmmpi+1,j,k,nrhs)-u(Lmmpi,j,k,nrhs))/gamma
+            Huxx(Lmmpi+1,j)=-Huxx(Lmmpi,j)
+#    elif defined OBC_MODIF_C2
+            uxx(Lmmpi+1,j)=0.
+            Huxx(Lmmpi+1,j)=-Huxx(Lmmpi,j)
+#    else
             uxx(Lmmpi+1,j)=uxx(Lmmpi,j)
             Huxx(Lmmpi+1,j)=Huxx(Lmmpi,j)
+#    endif
           enddo
 #    else
           do j=Jstr,Jend
+#    if defined OBC_MODIF_UP1
+            uxx(Lm+1,j)=(u(Lm+1,j,k,nrhs)-u(Lm,j,k,nrhs))/gamma
+            Huxx(Lm+1,j)=-Huxx(Lm,j)
+#    elif defined OBC_MODIF_C2
+            uxx(Lm+1,j)=0.
+            Huxx(Lm+1,j)=-Huxx(Lm,j)
+#    else
             uxx(Lm+1,j)=uxx(Lm,j)
             Huxx(Lm+1,j)=Huxx(Lm,j)
+#    endif
           enddo
 #    endif          
         endif
 #   endif
-
         do j=Jstr,Jend
           do i=IstrU-1,Iend
 #   ifdef UV_HADV_C4
@@ -361,9 +410,9 @@
         enddo
 #   undef Huxx
 #   undef uxx
+
 #   define vee wrk1
-#   define Hvee wrk2
-      
+#   define Hvee wrk2      
 #   ifdef NS_PERIODIC
 #    define JV_EXT_RANGE JstrV-1,Jend+1
 #   else
@@ -383,7 +432,6 @@
 #     define JV_EXT_RANGE max(JstrV-1,2),min(Jend+1,Mm)
 #    endif
 #   endif
-
         do j=JV_EXT_RANGE
           do i=Istr,Iend
             vee(i,j)=(v(i,j-1,k,nrhs)-2.*v(i,j,k,nrhs)
@@ -396,20 +444,44 @@
 #   ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
           do i=Istr,Iend
+#    if defined OBC_MODIF_UP1
+            vee(i,1)=(v(i,1,k,nrhs)-v(i,2,k,nrhs))/gamma
+            Hvee(i,1)=-Hvee(i,2)
+#    elif defined OBC_MODIF_C2
+            vee(i,1)=0.
+            Hvee(i,1)=-Hvee(i,2)
+#    else
             vee(i,1)=vee(i,2)
             Hvee(i,1)=Hvee(i,2)
+#    endif
           enddo
         endif
         if (NORTHERN_EDGE) then
 #    ifdef MPI
           do i=Istr,Iend
+#    if defined OBC_MODIF_UP1
+            vee(i,Mmmpi+1)=(v(i,Mmmpi+1,k,nrhs)-v(i,Mmmpi,k,nrhs))/gamma
+            Hvee(i,Mmmpi+1)=-Hvee(i,Mmmpi)
+#    elif defined OBC_MODIF_C2
+            vee(i,Mmmpi+1)=0.
+            Hvee(i,Mmmpi+1)=-Hvee(i,Mmmpi)
+#    else
             vee(i,Mmmpi+1)=vee(i,Mmmpi)
             Hvee(i,Mmmpi+1)=Hvee(i,Mmmpi)
+#    endif
           enddo
 #    else        
           do i=Istr,Iend
+#    if defined OBC_MODIF_UP1
+            vee(i,Mm+1)=(v(i,Mm+1,k,nrhs)-v(i,Mm,k,nrhs))/gamma
+            Hvee(i,Mm+1)=-Hvee(i,Mm)
+#    elif defined OBC_MODIF_C2
+            vee(i,Mm+1)=0.
+            Hvee(i,Mm+1)=-Hvee(i,Mm)
+#    else
             vee(i,Mm+1)=vee(i,Mm)
             Hvee(i,Mm+1)=Hvee(i,Mm)
+#    endif
           enddo
 #    endif          
         endif
@@ -435,9 +507,9 @@
         enddo
 #   undef Hvee
 #   undef vee
+
 #   define uee wrk1
 #   define Hvxx wrk2
-
 #   ifdef NS_PERIODIC
 #    define JU_EXT_RANGE Jstr-1,Jend+1
 #   else
@@ -457,7 +529,6 @@
 #     define JU_EXT_RANGE max(Jstr-1,1),min(Jend+1,Mm)
 #    endif
 #   endif
-
         do j=JU_EXT_RANGE
           do i=IstrU,Iend
             uee(i,j)=(u(i,j-1,k,nrhs)-u(i,j,k,nrhs)) SWITCH pmask(i,j  )
@@ -468,17 +539,35 @@
 #   ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
           do i=IstrU,Iend
+#    if defined OBC_MODIF_UP1
+            uee(i,0)=(u(i,0,k,nrhs)-u(i,1,k,nrhs))/gamma
+#    elif defined OBC_MODIF_C2
+            uee(i,0)=0.
+#    else
             uee(i,0)=uee(i,1)
+#    endif
           enddo
         endif
         if (NORTHERN_EDGE) then
 #    ifdef MPI
           do i=IstrU,Iend
+#    if defined OBC_MODIF_UP1
+            uee(i,Mmmpi+1)=(u(i,Mmmpi+1,k,nrhs)-u(i,Mmmpi,k,nrhs))/gamma
+#    elif defined OBC_MODIF_C2
+            uee(i,Mmmpi+1)=0.
+#    else
             uee(i,Mmmpi+1)=uee(i,Mmmpi)
+#    endif
           enddo
 #    else        
           do i=IstrU,Iend
+#    if defined OBC_MODIF_UP1
+            uee(i,Mm+1)=(u(i,Mm+1,k,nrhs)-u(i,Mm,k,nrhs))/gamma
+#    elif defined OBC_MODIF_C2
+            uee(i,Mm+1)=0.
+#    else
             uee(i,Mm+1)=uee(i,Mm)
+#    endif
           enddo
 #    endif          
         endif
@@ -510,9 +599,9 @@
         enddo
 #   undef Hvxx
 #   undef uee
+
 #   define vxx wrk1
 #   define Huee wrk2
-
 #   ifdef EW_PERIODIC 
 #    define IV_EXT_RANGE Istr-1,Iend+1
 #   else
@@ -532,7 +621,6 @@
 #     define IV_EXT_RANGE max(Istr-1,1),min(Iend+1,Lm)
 #    endif
 #   endif
-
         do j=JstrV,Jend
           do i=IV_EXT_RANGE
             vxx(i,j)=(v(i-1,j,k,nrhs)-v(i,j,k,nrhs)) SWITCH pmask(i  ,j)
@@ -543,21 +631,38 @@
 #   ifndef EW_PERIODIC
         if (WESTERN_EDGE) then
           do j=JstrV,Jend
+#    if defined OBC_MODIF_UP1
+            vxx(0,j)=(v(0,j,k,nrhs)-v(1,j,k,nrhs))/gamma
+#    elif defined OBC_MODIF_C2
+            vxx(0,j)=0.
+#    else
             vxx(0,j)=vxx(1,j)
+#    endif
           enddo
         endif
         if (EASTERN_EDGE) then
 #    ifdef MPI
           do j=JstrV,Jend
+#    if defined OBC_MODIF_UP1
+            vxx(Lmmpi+1,j)=(v(Lmmpi+1,j,k,nrhs)-v(Lmmpi,j,k,nrhs))/gamma
+#    elif defined OBC_MODIF_C2
+            vxx(Lmmpi+1,j)=0.
+#    else
             vxx(Lmmpi+1,j)=vxx(Lmmpi,j)
+#    endif
           enddo
 #    else        
           do j=JstrV,Jend
+#    if defined OBC_MODIF_UP1
+            vxx(Lm+1,j)=(v(Lm+1,j,k,nrhs)-v(Lm,j,k,nrhs))/gamma
+#    elif defined OBC_MODIF_C2
+            vxx(Lm+1,j)=0.
+#    else
             vxx(Lm+1,j)=vxx(Lm,j)
+#    endif
           enddo
 #    endif          
         endif
-        
 #   endif
         do j=JstrV-1,Jend
           do i=Istr,Iend+1
