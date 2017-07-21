@@ -632,7 +632,6 @@
      &                      )*cff
               u(i,j,k,indx)=u(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                         Hz(i-1,j,k))
-
 # ifdef NBQ
               qdm_u(i,j,k,1) = 0.
               qdm_u(i,j,k,2) = u(i,j,k,nstp)*0.5*(Hz(i,j,k)+Hz(i-1,j,k))
@@ -641,7 +640,6 @@
 # endif
             enddo
           enddo
-
 # ifdef NBQ
           do k=1,N
             do i=IstrU,Iend
@@ -663,7 +661,6 @@
 # else
               cff = 2./(Hz_half(i,j,k)+Hz_half(i-1,j,k))
 # endif 
-
               u(i,j,k,nnew)=( cff1*u(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                                Hz(i-1,j,k))
      &                       +cff2*u(i,j,k,indx)*0.5*(Hz_bak(i,j,k)+
@@ -675,7 +672,6 @@
      &                                    ) )*cff
               u(i,j,k,indx)=u(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                         Hz(i-1,j,k))
-
 # ifdef NBQ
               qdm_u(i,j,k,1) = qdm_u(i,j,k,2)
               qdm_u(i,j,k,2) = u(i,j,k,nstp)*0.5*(Hz(i,j,k)+
@@ -686,7 +682,6 @@
 # endif
             enddo
           enddo  
-
 # ifdef NBQ
           do k=1,N
             do i=IstrU,Iend
@@ -717,6 +712,7 @@
           do i=Istr,Iend
             DC(i,0)=pm_v(i,j)*pn_v(i,j)
           enddo
+
           if (FIRST_TIME_STEP) then
             do k=1,N
               do i=Istr,Iend
@@ -739,7 +735,6 @@
 # endif
               enddo
             enddo
-
 # ifdef NBQ
             do k=1,N
               do i=Istr,Iend
@@ -756,13 +751,11 @@
             cff2=0.5-gamma
             do k=1,N
               do i=Istr,Iend
-              
 # ifdef VADV_ADAPT_IMP              
                 cff = 1.
 # else
                 cff = 2./(Hz_half(i,j,k)+Hz_half(i,j-1,k))
 # endif              
-
                 v(i,j,k,nnew)=( cff1*v(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                                  Hz(i,j-1,k))
      &                         +cff2*v(i,j,k,indx)*0.5*(Hz_bak(i,j,k)+
@@ -774,7 +767,6 @@
      &                                  )  )*cff
                 v(i,j,k,indx)=v(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                           Hz(i,j-1,k))
-
 # ifdef NBQ
                 qdm_v(i,j,k,1) = qdm_v(i,j,k,2)
                 qdm_v(i,j,k,2) = v(i,j,k,nstp)*0.5*(Hz(i,j,k)+
@@ -785,7 +777,6 @@
 # endif
               enddo
             enddo               !--> discard DC(:,0)
-
 # ifdef NBQ
             do k=1,N
               do i=Istr,Iend
@@ -1100,6 +1091,7 @@
      &                 * om_u(i,j)
 # endif
 !!
+     &                 * 0.9
 !     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
 !!
                enddo
@@ -1124,6 +1116,7 @@
      &                 * on_v(i,j)
 # endif
 !!
+     &                 * 0.9
 !     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
 !!
                enddo
@@ -1195,6 +1188,7 @@
      &                 * pn_u(i,j)
                   rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
 !!
+     &                 * 0.9
 !     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
 !!
                enddo
@@ -1207,6 +1201,7 @@
      &                 * pm_v(i,j)
                   rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
 !!
+     &                 * 0.9
 !     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
 !!
                enddo
