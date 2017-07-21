@@ -584,10 +584,12 @@ C$    integer omp_get_thread_num
       write(*,*) 'set_HUV2 : u,v,wz before coupling. [u]'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
-!      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
+      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 # endif
 
+# ifdef NHMG_DEBUG
       write(*,*) 'DU_avg2 ', DU_avg2(16,32)
+# endif
 
       do j=JU_RANGE
         do i=IU_RANGE
