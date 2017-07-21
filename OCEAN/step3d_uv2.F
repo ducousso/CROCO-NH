@@ -62,12 +62,12 @@
       USE nhmg, only : nhmg_solve
       USE mg_grids
       USE mg_tictoc
-#endif
 # ifdef NHMG_DEBUG
       USE nhmg_debug, only : nhmg_write_corr_inter1
       USE nhmg_debug, only : nhmg_write_corr_inter2
       USE nhmg_debug, only : nhmg_write_corr_out
 # endif
+#endif
       implicit none
 # include "param.h"
 # include "grid.h"
@@ -430,9 +430,7 @@
 !        enddo
 # endif
 
-# undef GR_CODE
-
-# ifdef GR_CODE 
+# if defined NHMG_WMIX_GR
 !Guillaume 's code
         do k=0,N-1 !<- starts at k=0
           do i=Istr,Iend
@@ -527,17 +525,17 @@
           enddo
         enddo      !--> discard FC,BC; keep DC,CF(:,0)
 
-# else
+# elif defined NHMG_WMIX_FA
 !F. Auclair's code
         do k=1,N-1
-          do i=Istr,Iend
-            FC(i,k)=-0.5*dt*( Akv(i,j,k+1)+Akv(i,j,k) )
-     &                 /    ( z_w(i,j,k+1)-z_w(i,j,k) )
-          enddo
+           do i=Istr,Iend
+              FC(i,k)=-0.5*dt*( Akv(i,j,k+1)+Akv(i,j,k) )
+     &             /    ( z_w(i,j,k+1)-z_w(i,j,k) )
+           enddo
         enddo
         do i=Istr,Iend
-          FC(i,0)=0.
-          FC(i,N)=0.
+           FC(i,0)=0.
+           FC(i,N)=0.
         enddo
 
         do k=1,N-1
@@ -579,7 +577,88 @@
           do i=Istr,Iend
              wz(i,j,k,nnew)=DC(i,k)-CF(i,k)*wz(i,j,k+1,nnew)
           enddo
-        enddo      !--> discard FC,BC; keep DC,CF(:,0)
+        enddo      
+
+# else
+!Nico Jr code
+        do k=1,N
+          do i=Istr,Iend
+            FC(i,k)=-0.5*dt*( Akv(i,j,k)+Akv(i,j,k-1) )
+     &                 /    ( z_w(i,j,k)-z_w(i,j,k-1) )
+# ifdef VADV_ADAPT_IMP
+            DC(i,0)=pm(i,j)*pn(i,j)
+            WC(i,k)=dt*DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k-1))
+# endif
+          enddo
+        enddo
+        do i=Istr,Iend
+          FC(i,0)=0.
+# ifdef VADV_ADAPT_IMP
+          WC(i,0)=0.
+# endif
+        enddo
+        do k=1,N-1
+          do i=Istr,Iend
+#  ifdef NHMG_W_VOL
+            DC(i,k)=wz(i,j,k,nnew)
+#  else
+            DC(i,k)=wz(i,j,k,nnew) *0.5*(Hz(i,j,k)+Hz(i,j,k+1))
+#  endif
+            BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1)) - FC(i,k) - FC(i,k+1)
+# ifdef VADV_ADAPT_IMP
+     &              +max(WC(i,k+1),0.)-min(WC(i,k),0.)
+# endif
+          enddo
+        enddo  
+        do i=Istr,Iend            
+#  ifdef NHMG_W_VOL
+          DC(i,N)=wz(i,j,N,nnew)
+#  else
+          DC(i,N)=wz(i,j,N,nnew) *0.5*Hz(i,j,N)
+#  endif
+          BC(i,N)=0.5*Hz(i,j,N) - FC(i,N)
+# ifdef VADV_ADAPT_IMP
+     &              -min(WC(i,N),0.)
+# endif
+        enddo 
+        
+        do i=Istr,Iend
+          cff=1./BC(i,1)
+          CF(i,2)=cff*(FC(i,2)
+# ifdef VADV_ADAPT_IMP
+     &              +min(WC(i,2),0.)
+# endif
+     &                                 )
+          DC(i,1)=cff*DC(i,1)
+        enddo
+        do k=2,N-1
+          do i=Istr,Iend
+# ifdef VADV_ADAPT_IMP
+              aa = FC(i,k)-max(WC(i,k),0.)
+              cc = FC(i,k+1)+min(WC(i,k+1),0.)
+# else
+              aa = FC(i,k)
+              cc = FC(i,k+1)
+# endif
+            cff=1./(BC(i,k)-aa*CF(i,k))
+            CF(i,k+1)=cff*cc
+            DC(i,k)=cff*(DC(i,k)-aa*DC(i,k-1))
+          enddo
+        enddo
+        do i=Istr,Iend
+# ifdef VADV_ADAPT_IMP
+              aa = FC(i,N)-max(WC(i,N),0.)
+# else
+              aa = FC(i,N)
+# endif
+          wz(i,j,N,nnew)=(DC(i,N)-aa*DC(i,N-1))
+     &                  /(BC(i,N)-aa*CF(i,N))
+        enddo
+        do k=N-1,1,-1
+          do i=Istr,Iend
+             wz(i,j,k,nnew)=DC(i,k)-CF(i,k+1)*wz(i,j,k+1,nnew)
+          enddo
+        enddo 
 # endif
 
 # endif
@@ -757,11 +836,6 @@
                nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)/dt !stored as a trend
                wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
      &              * (pm(i,j)*pn(i,j))
-
-!wz(i,j,k,nnew) = 
-!wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)*pm*pn/(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
-!if grid(1)%dw(k+1,j,i) is indeed as a trend vol*dt(wz)
-
             enddo
          enddo
       enddo
