@@ -100,7 +100,6 @@ C$    trd=omp_get_thread_num()
       use module_nh
       use module_nbq
 #endif
-
       implicit none
 #include "param.h"
       integer Istr,Iend,Jstr,Jend, i,j, kbak, kold,
@@ -460,9 +459,9 @@ C$OMP END MASTER
           Dnew(i,j)=zeta_new(i,j)+h(i,j)
           zwrk(i,j)=cff0*zeta_new(i,j) +cff1*zeta(i,j,kstp)
      &             +cff2*zeta(i,j,kbak)+cff3*zeta(i,j,kold)
-!!! dissipation on divergence
+# ifdef NHMG_DIV_DAMPING
      &             + 2.*(zeta_new(i,j)-zeta(i,j,kbak))
-!!!
+# endif
 # if defined VAR_RHO_2D && defined SOLVE3D
           rzeta(i,j)=(1.+rhoS(i,j))*zwrk(i,j)
           rzeta2(i,j)=rzeta(i,j)*zwrk(i,j)
@@ -762,28 +761,52 @@ C$OMP END MASTER
 
         do j=Jstr,Jend
           do i=IU_EXT_RANGE
-            uxx(i,j)=urhs(i-1,j)-2.*urhs(i,j)+urhs(i+1,j)
-            Huxx(i,j)=Duon(i-1,j)-2.*Duon(i,j)+Duon(i+1,j)
+            uxx(i,j)=(urhs(i-1,j)-2.*urhs(i,j)+urhs(i+1,j))  SWITCH umask(i,j)
+            Huxx(i,j)=(Duon(i-1,j)-2.*Duon(i,j)+Duon(i+1,j))  SWITCH umask(i,j)
           enddo
         enddo
 #   undef IU_EXT_RANGE
 #  ifndef EW_PERIODIC
         if (WESTERN_EDGE) then
           do j=Jstr,Jend
+#    if defined OBC_MODIF_UP1
+            uxx(1,j)=(urhs(1,j)-urhs(2,j))/gamma
+            Huxx(1,j)=-Huxx(2,j)
+#    elif defined OBC_MODIF_C2
+            uxx(1,j)=0.
+            Huxx(1,j)=-Huxx(2,j)
+#    else
             uxx(1,j)=uxx(2,j)
             Huxx(1,j)=Huxx(2,j)
+#    endif
           enddo
         endif
         if (EASTERN_EDGE) then
 #   ifdef MPI        
           do j=Jstr,Jend
+#    if defined OBC_MODIF_UP1
+            uxx(Lmmpi+1,j)=(urhs(Lmmpi+1,j)-urhs(Lmmpi,j))/gamma
+            Huxx(Lmmpi+1,j)=-Huxx(Lmmpi,j)
+#    elif defined OBC_MODIF_C2
+            uxx(Lmmpi+1,j)=0.
+            Huxx(Lmmpi+1,j)=-Huxx(Lmmpi,j)
+#    else
             uxx(Lmmpi+1,j)=uxx(Lmmpi,j)
             Huxx(Lmmpi+1,j)=Huxx(Lmmpi,j)
+#    endif
           enddo
 #   else
           do j=Jstr,Jend
+#    if defined OBC_MODIF_UP1
+            uxx(Lm+1,j)=(urhs(Lm+1,j)-urhs(Lm,j))/gamma
+            Huxx(Lm+1,j)=-Huxx(Lm,j)
+#    elif defined OBC_MODIF_C2
+            uxx(Lm+1,j)=0.
+            Huxx(Lm+1,j)=-Huxx(Lm,j)
+#    else
             uxx(Lm+1,j)=uxx(Lm,j)
             Huxx(Lm+1,j)=Huxx(Lm,j)
+#    endif
           enddo
 #   endif          
         endif
@@ -828,28 +851,52 @@ C$OMP END MASTER
 
         do j=JV_EXT_RANGE
           do i=Istr,Iend
-            vee(i,j) =vrhs(i,j-1)-2.*vrhs(i,j)+vrhs(i,j+1)
-            Hvee(i,j)=Dvom(i,j-1)-2.*Dvom(i,j)+Dvom(i,j+1)
+            vee(i,j) =(vrhs(i,j-1)-2.*vrhs(i,j)+vrhs(i,j+1))  SWITCH  vmask(i,j)
+            Hvee(i,j)=(Dvom(i,j-1)-2.*Dvom(i,j)+Dvom(i,j+1))  SWITCH  vmask(i,j)
           enddo
         enddo
 #   undef JV_EXT_RANGE
 #  ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
           do i=Istr,Iend
+#    if defined OBC_MODIF_UP1
+            vee(i,1)=(vrhs(i,1)-vrhs(i,2))/gamma
+            Hvee(i,1)=-Hvee(i,2)
+#    elif defined OBC_MODIF_C2
+            vee(i,1)=0.
+            Hvee(i,1)=-Hvee(i,2)
+#    else
             vee(i,1)=vee(i,2)
             Hvee(i,1)=Hvee(i,2)
+#    endif
           enddo
         endif
         if (NORTHERN_EDGE) then
 #   ifdef MPI
           do i=Istr,Iend
+#    if defined OBC_MODIF_UP1
+            vee(i,Mmmpi+1)=(vrhs(i,Mmmpi+1)-vrhs(i,Mmmpi))/gamma
+            Hvee(i,Mmmpi+1)=-Hvee(i,Mmmpi)
+#    elif defined OBC_MODIF_C2
+            vee(i,Mmmpi+1)=0.
+            Hvee(i,Mmmpi+1)=-Hvee(i,Mmmpi)
+#    else
             vee(i,Mmmpi+1)=vee(i,Mmmpi)
             Hvee(i,Mmmpi+1)=Hvee(i,Mmmpi)
+#    endif
           enddo
 #   else        
           do i=Istr,Iend
+#    if defined OBC_MODIF_UP1
+            vee(i,Mm+1)=(vrhs(i,Mm+1)-vrhs(i,Mm))/gamma
+            Hvee(i,Mm+1)=-Hvee(i,Mm)
+#    elif defined OBC_MODIF_C2
+            vee(i,Mm+1)=0.
+            Hvee(i,Mm+1)=-Hvee(i,Mm)
+#    else
             vee(i,Mm+1)=vee(i,Mm)
             Hvee(i,Mm+1)=Hvee(i,Mm)
+#    endif
           enddo
 #   endif          
         endif
@@ -893,24 +940,43 @@ C$OMP END MASTER
 
         do j=JU_EXT_RANGE
           do i=IstrU,Iend
-            uee(i,j)=urhs(i,j-1)-2.*urhs(i,j)+urhs(i,j+1)
+            uee(i,j)=(urhs(i,j-1)-urhs(i,j)) SWITCH pmask(i,j  )
+     &              +(urhs(i,j+1)-urhs(i,j)) SWITCH pmask(i,j+1)
           enddo
         enddo
 #   undef JU_EXT_RANGE
 #  ifndef NS_PERIODIC
         if (SOUTHERN_EDGE) then
           do i=IstrU,Iend
+#    if defined OBC_MODIF_UP1
+            uee(i,0)=(urhs(i,0)-urhs(i,1))/gamma
+#    elif defined OBC_MODIF_C2
+            uee(i,0)=0.
+#    else
             uee(i,0)=uee(i,1)
+#    endif
           enddo
         endif
         if (NORTHERN_EDGE) then
 #   ifdef MPI
           do i=IstrU,Iend
+#    if defined OBC_MODIF_UP1
+            uee(i,Mmmpi+1)=(urhs(i,Mmmpi+1)-urhs(i,Mmmpi))/gamma
+#    elif defined OBC_MODIF_C2
+            uee(i,Mmmpi+1)=0.
+#    else
             uee(i,Mmmpi+1)=uee(i,Mmmpi)
+#    endif
           enddo
 #   else        
           do i=IstrU,Iend
+#    if defined OBC_MODIF_UP1
+            uee(i,Mm+1)=(urhs(i,Mm+1)-urhs(i,Mm))/gamma
+#    elif defined OBC_MODIF_C2
+            uee(i,Mm+1)=0.
+#    else
             uee(i,Mm+1)=uee(i,Mm)
+#    endif
           enddo
 #   endif          
         endif
@@ -960,24 +1026,43 @@ C$OMP END MASTER
 
         do j=JstrV,Jend
           do i=IV_EXT_RANGE
-            vxx(i,j)=vrhs(i-1,j)-2.*vrhs(i,j)+vrhs(i+1,j)
+            vxx(i,j)=(vrhs(i-1,j)-vrhs(i,j)) SWITCH pmask(i  ,j)
+     &              +(vrhs(i+1,j)-vrhs(i,j)) SWITCH pmask(i+1,j)
           enddo
         enddo
-#   undef IV_EXT_RANGE
+#  undef IV_EXT_RANGE
 #  ifndef EW_PERIODIC
         if (WESTERN_EDGE) then
           do j=JstrV,Jend
+#    if defined OBC_MODIF_UP1
+            vxx(0,j)=(vrhs(0,j)-vrhs(1,j))/gamma
+#    elif defined OBC_MODIF_C2
+            vxx(0,j)=0.
+#    else
             vxx(0,j)=vxx(1,j)
+#    endif
           enddo
         endif
         if (EASTERN_EDGE) then
 #   ifdef MPI
           do j=JstrV,Jend
+#    if defined OBC_MODIF_UP1
+            vxx(Lmmpi+1,j)=(vrhs(Lmmpi+1,j)-vrhs(Lmmpi,j))/gamma
+#    elif defined OBC_MODIF_C2
+            vxx(Lmmpi+1,j)=0.
+#    else
             vxx(Lmmpi+1,j)=vxx(Lmmpi,j)
+#    endif
           enddo
 #   else        
           do j=JstrV,Jend
+#    if defined OBC_MODIF_UP1
+            vxx(Lm+1,j)=(vrhs(Lm+1,j)-vrhs(Lm,j))/gamma
+#    elif defined OBC_MODIF_C2
+            vxx(Lm+1,j)=0.
+#    else
             vxx(Lm+1,j)=vxx(Lm,j)
+#    endif
           enddo
 #   endif          
         endif
@@ -1001,8 +1086,8 @@ C$OMP END MASTER
      &                             Huee(i,j)+Huee(i,j-1) ))
           enddo
         enddo
-#undef Huee
-#undef vxx
+#  undef Huee
+#  undef vxx
         do j=Jstr,Jend
           do i=IstrU,Iend
             rubar(i,j)=rubar(i,j)-UFx(i,j  )+UFx(i-1,j)
@@ -1803,8 +1888,7 @@ ccc          dvde = 0.5*( vrhs(i,j-1)-vrhs(i,j+1) )
 # endif
      &                                              )*om_v(Istr-1,j)
         enddo
-      endif
-        
+      endif  
       if (EASTERN_EDGE) then
         do j=JstrR,JendR
           DU_avg1(Iend+1,j,nnew)=DU_avg1(Iend+1,j,nnew)
