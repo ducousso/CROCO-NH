@@ -117,13 +117,11 @@ C$    integer omp_get_thread_num
                      beta=0.
 # elif defined SEAMOUNT
                      depth=4500.
-!                     f0=1.E-4
-                     f0=0.
+                     f0=1.E-4
                      beta=0.
 # elif defined CALDEIRA
                      depth=1300.
-!                     f0=0.5E-4
-                     f0=0.
+                     f0=0.5E-4
                      beta=0.
 # elif defined SHELFRONT
                      depth=1660.

@@ -24,7 +24,7 @@
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
 #undef  SEAMOUNT        /* Seamount Example */
-#undef  CALDEIRA        /* Caldeira Example */
+#define  CALDEIRA        /* Caldeira Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -37,7 +37,7 @@
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
 #undef  TANK            /* Tank Example */
-#define  TANKINT            /* Tank internal Example */
+#undef  TANKINT            /* Tank internal Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -735,11 +735,18 @@
 */
 # undef OPENMP
 # define MPI
-# define NHMG
-# undef NHMG_AB2
-# undef NHMG_NHSSH
-# undef NHMG_DEBUG
-# undef NHMG_MASKING
+# undef NHMG
+# ifdef NHMG
+#  undef NHMG_DIV_DAMPING
+#  define NHMG_W_VOL
+#  define NHMG_WMIX_GR
+#  undef NHMG_WMIX_FA
+#  undef NHMG_CORR_SINH
+#  undef NHMG_AB2
+#  undef NHMG_NHSSH
+#  undef NHMG_MASKING
+#  define NHMG_DEBUG
+# endif
 # undef CLOSED
 # ifdef CLOSED
 #  undef OBC_EAST
@@ -749,8 +756,8 @@
 # else
 #  define OBC_EAST
 #  define OBC_WEST
-#  undef OBC_NORTH
-#  undef OBC_SOUTH
+#  define OBC_NORTH
+#  define OBC_SOUTH
 # endif
 # define ANA_BRY
 # define FRC_BRY
@@ -778,7 +785,8 @@
 # define SALINITY
 # define NONLIN_EOS
 # define SPLIT_EOS
-# define  OBC_M2SPECIFIED
+                      /* OBCs algo */
+# define OBC_M2SPECIFIED
 # undef  OBC_M2FLATHER
 # undef  OBC_M2CHARACT
 # undef  OBC_M2ORLANSKI
@@ -786,15 +794,14 @@
 # undef OBC_M3ORLANSKI
 # define OBC_TSPECIFIED
 # undef OBC_TORLANSKI
-# define SPONGE
-# define VADV_AND_VMIX_IMP
-# ifdef VADV_AND_VMIX_IMP
+                      /* Sponge */
+# undef SPONGE
                       /* Semi-implicit Vertical Tracer/Mom Advection */
-# define  VADV_ADAPT_IMP
+# undef  VADV_ADAPT_IMP
                       /* Vertical Mixing */
 # undef  BODYFORCE
 # undef  BVF_MIXING
-# define LMD_MIXING
+# undef LMD_MIXING
 # undef  GLS_MIXING
 # ifdef LMD_MIXING
 #  define LMD_SKPP
@@ -813,7 +820,6 @@
 #  undef  CRAIG_BANNER
 #  undef  CANUTO_A
 #  undef  ZOS_HSIG
-# endif
 # endif
 
 # elif defined SHELFRONT
@@ -1218,7 +1224,7 @@
 # define MPI
 # define SOLVE3D
 # define NHMG
-# undef NHMG_W_VOL
+# define NHMG_W_VOL
 # undef NHMG_CORR_SINH
 # undef NHMG_AB2
 # undef NHMG_NHSSH

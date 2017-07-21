@@ -85,10 +85,9 @@ C$    integer omp_get_thread_num
       parameter (u0=0.1)
 #endif
 #ifdef CALDEIRA
-      real u0
-      parameter (u0=0.1)
-!      parameter (u0=0.3)
-!      parameter (u0=1.)
+      real u0,v0
+      parameter (u0=1.5)
+      parameter (v0=1.2)
 #endif
 !
 #include "compute_auxiliary_bounds.h"
@@ -216,10 +215,11 @@ C$    integer omp_get_thread_num
 # elif defined CALDEIRA
         do j=JR_RANGE
           do i=IR_RANGE
-            zeta(i,j,1)=-f(i,j)/g*(yr(i,j)-el/2.)*u0
+            zeta(i,j,1)=-f(i,j)/g*((yr(i,j)-el/2.)*u0
+     &                            -(xr(i,j)-xl/2.)*v0)
             zeta(i,j,2)=zeta(i,j,1)
             ubar(i,j,1)=u0
-            vbar(i,j,1)=0.
+            vbar(i,j,1)=v0
             ubar(i,j,2)=ubar(i,j,1)
             vbar(i,j,2)=vbar(i,j,1)
           enddo
@@ -322,9 +322,9 @@ C$    integer omp_get_thread_num
           do j=JR_RANGE
             do i=IR_RANGE
               u(i,j,k,1)=u0
-              v(i,j,k,1)=0.
+              v(i,j,k,1)=v0
               u(i,j,k,2)=u0
-              v(i,j,k,2)=0.
+              v(i,j,k,2)=v0
             enddo
           enddo
         enddo
