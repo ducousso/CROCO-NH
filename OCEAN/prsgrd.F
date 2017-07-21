@@ -668,19 +668,21 @@ c********************************************************************
 !
 
 # ifdef NHMG
-      rw(:,:,:)=0.
 !
 !--------------------------------------------------------------------
-! Add hydrostatic pressure gradient for the vertical flux
+! hydrostatic pressure gradient for the vertical flux
 !       dpdz = -zx*dpdx - zy*dpdy (See paper)
 !--------------------------------------------------------------------
 !
-!      call nhmg_comp_rw(
-!     &     Lm, Mm, N,
-!     &     ru(-1:Lm+2,-1:Mm+2,1:N),
-!     &     rv(-1:Lm+2,-1:Mm+2,1:N),
-!     &     rw(-1:Lm+2,-1:Mm+2,0:N))
-
+      call nhmg_comp_rw(
+     &     Lm, Mm, N,
+     &     ru(-1:Lm+2,-1:Mm+2,1:N),
+     &     rv(-1:Lm+2,-1:Mm+2,1:N),
+     &     rw(-1:Lm+2,-1:Mm+2,0:N))
+!
+! caution : if the call to nhmg_comp_rw is commented, initialise rw 
+!      rw(:,:,:)=0.
+!
 # endif
    
 !
