@@ -31,7 +31,12 @@
 !====================================================================           
       subroutine rhs3d_w_tile (istr,iend,jstr,jend, rw,
      &                                         CF,FC,DC,
-     &                              wrk1,wrk2, WFx,WFe)      
+     &                              wrk1,wrk2, WFx,WFe)
+   !
+# ifdef NHMG
+      USE nhmg, only : nhmg_rw_time
+# endif
+!   
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k,kp
 # ifdef MPI
@@ -58,11 +63,6 @@
 !
 # include "compute_auxiliary_bounds.h"
 !
-      do j=JstrV-1,jend
-        do i=IstrU-1,iend
-          rw(i,j,0)=0.
-        enddo
-      enddo
 
 !# if defined UV_COR
 !!====================================================================
@@ -97,6 +97,22 @@
 !!====================================================================         
 !# endif
 
+!====================================================================      
+!  Pseudo forces due to time dependency
+!==================================================================== 
+# if defined NHMG
+!
+!      call nhmg_rw_time(
+!     &     Lm, Mm, N,
+!     &     Huon(-1:Lm+2,-1:Mm+2,1:N),
+!     &     Hvom(-1:Lm+2,-1:Mm+2,1:N),
+!     &     z_w(-1:Lm+2,-1:Mm+2,0:N),
+!     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+!     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+!     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
+!     &     rw(-1:Lm+2,-1:Mm+2,0:N))
+!
+# endif
 
 !====================================================================      
 !  Horizontal advection
@@ -185,8 +201,7 @@
           kp   = min(k+1,N)    !<-- extrapolation at k=N    
           cff1 = 0.5          
           if(k.eq.N) cff1=0.25 !<-- at the surface the thickness of 
-                               !<-- the control volume is Hz/2.  
-         
+                               !<-- the control volume is Hz/2.           
           do j=Jstr,Jend
             do i=Istr,Iend+1
               HUon_w = cff1*(Huon(i,j,k)+Huon(i,j,kp))         
@@ -239,7 +254,6 @@
           cff1 = 0.5          
           if(k.eq.N) cff1=0.25 !<-- at the surface the thickness of 
                                !<-- the control volume is Hz/2. 
-          
           do j=Jstr,Jend+1
             do i=Istr,Iend
               HVom_w = cff1*(Hvom(i,j,k)+Hvom(i,j,kp))  !<-- Hvom on w-levels
