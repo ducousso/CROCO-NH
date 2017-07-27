@@ -540,8 +540,12 @@
 #   ifdef W_FRC_BRY
           do k=1,N
             do j=JstrR,JendR
+#    ifdef NHMG_WBRY_ZERO
+              wbry_west(j,k)=0.
+#    else
               wbry_west(j,k)=cff1*wbry_west_dt(j,k,it1)
      &                      +cff2*wbry_west_dt(j,k,it2)
+#    endif
             enddo
           enddo
 #   endif
@@ -592,8 +596,12 @@
 #   ifdef W_FRC_BRY
           do k=1,N
             do j=JstrR,JendR
+#    ifdef NHMG_WBRY_ZERO
+              wbry_east(j,k)=0.
+#    else
               wbry_east(j,k)=cff1*wbry_east_dt(j,k,it1)
      &                      +cff2*wbry_east_dt(j,k,it2)
+#    endif
             enddo
           enddo
 #   endif
@@ -644,8 +652,12 @@
 #   ifdef W_FRC_BRY
           do k=1,N
             do i=IstrR,IendR
+#    ifdef NHMG_WBRY_ZERO
+              wbry_south(i,k)=0.
+#    else
               wbry_south(i,k)=cff1*wbry_south_dt(i,k,it1)
      &                       +cff2*wbry_south_dt(i,k,it2)
+#    endif
             enddo
           enddo
 #   endif
@@ -696,8 +708,12 @@
 #   ifdef W_FRC_BRY
           do k=1,N
             do i=IstrR,IendR
+#    ifdef NHMG_WBRY_ZERO
+              wbry_north(i,k)=0.
+#    else
               wbry_north(i,k)=cff1*wbry_north_dt(i,k,it1)
      &                       +cff2*wbry_north_dt(i,k,it2)
+#    endif
             enddo
           enddo
 #   endif

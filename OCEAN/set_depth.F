@@ -364,14 +364,22 @@ C$    integer omp_get_thread_num
       if (WESTERN_EDGE) then
         do k=1,N
           do j=Jstr,Jend
+#  if defined NHMG_WBRY_ZERO
+            wz(0,j,k,1)=0.
+#  elif defined NHMG_WBRY_COPY
             wz(0,j,k,1)=wz(1,j,k,1)
+#  endif
           enddo
         enddo
       endif
       if (EASTERN_EDGE) then
         do k=1,N
           do j=Jstr,Jend
+#  if defined NHMG_WBRY_ZERO
+            wz(LOCALLM+1,j,k,1)=0.
+#  elif defined NHMG_WBRY_COPY
             wz(LOCALLM+1,j,k,1)=wz(LOCALLM,j,k,1)           
+#  endif
           enddo
         enddo
       endif
@@ -380,36 +388,60 @@ C$    integer omp_get_thread_num
       if (SOUTHERN_EDGE) then
         do k=1,N
           do i=Istr,Iend
+#  if defined NHMG_WBRY_ZERO
+            wz(i,0,k,1)=0.
+#  elif defined NHMG_WBRY_COPY
             wz(i,0,k,1)=wz(i,1,k,1)             
+#  endif
           enddo
         enddo
       endif
       if (NORTHERN_EDGE) then
         do k=1,N
           do i=Istr,Iend
+#  if defined NHMG_WBRY_ZERO
+            wz(i,LOCALMM+1,k,1)=0.
+#  elif defined NHMG_WBRY_COPY
             wz(i,LOCALMM+1,k,1)=wz(i,LOCALMM,k,1)
+#  endif
           enddo
         enddo
       endif
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
         do k=1,N
+#  if defined NHMG_WBRY_ZERO
+          wz(0,0,k,1)=0.
+#  elif defined NHMG_WBRY_COPY
           wz(0,0,k,1)=wz(1,1,k,1)           
+#  endif
         enddo
       endif
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
         do k=1,N
+#  if defined NHMG_WBRY_ZERO
+          wz(0,LOCALMM+1,k,1)=0.
+#  elif defined NHMG_WBRY_COPY
           wz(0,LOCALMM+1,k,1)=wz(1,LOCALMM,k,1)           
+#  endif
         enddo
       endif
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
         do k=1,N
+#  if defined NHMG_WBRY_ZERO
+          wz(LOCALLM+1,0,k,1)=0.
+#  elif defined NHMG_WBRY_COPY
           wz(LOCALLM+1,0,k,1)=wz(LOCALLM,1,k,1) 
+#  endif
         enddo
       endif
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
         do k=1,N
+#  if defined NHMG_WBRY_ZERO
+          wz(LOCALLM+1,LOCALMM+1,k,1)=0.
+#  elif defined NHMG_WBRY_COPY
           wz(LOCALLM+1,LOCALMM+1,k,1)=wz(LOCALLM,LOCALMM,k,1)        
+#  endif
         enddo
       endif
 #  endif
@@ -587,10 +619,6 @@ C$    integer omp_get_thread_num
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
 # endif
 
-# ifdef NHMG_DEBUG
-      write(*,*) 'DU_avg2 ', DU_avg2(16,32)
-# endif
-
       do j=JU_RANGE
         do i=IU_RANGE
           DC(i,0)=0.
@@ -663,11 +691,7 @@ C$    integer omp_get_thread_num
 # endif
 
       enddo
-      
-# ifdef NHMG_DEBUG
-      write(*,*) 'Huon ', sum(Huon(16,32,:))
-# endif
-   
+         
       do j=JV_RANGE
         do i=IV_RANGE
           DC(i,0)=0.
@@ -786,18 +810,28 @@ C$    integer omp_get_thread_num
         enddo
       enddo
 ! set lateral boundary conditions
+# undef NHMG_WBRY_COUPLING
+# ifdef NHMG_WBRY_COUPLING
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
         do k=1,N
           do j=Jstr,Jend
+#  if defined NHMG_WBRY_ZERO
+            wz(0,j,k,nrhs)=0.
+#  elif defined NHMG_WBRY_COPY
             wz(0,j,k,nrhs)=wz(1,j,k,nrhs)
+#  endif
           enddo
         enddo
       endif
       if (EASTERN_EDGE) then
         do k=1,N
           do j=Jstr,Jend
+#  if defined NHMG_WBRY_ZERO
+            wz(LOCALLM+1,j,k,nrhs)=0.
+#  elif defined NHMG_WBRY_COPY
             wz(LOCALLM+1,j,k,nrhs)=wz(LOCALLM,j,k,nrhs)
+#  endif
           enddo
         enddo
       endif
@@ -806,48 +840,74 @@ C$    integer omp_get_thread_num
       if (SOUTHERN_EDGE) then
         do k=1,N
           do i=Istr,Iend
+#  if defined NHMG_WBRY_ZERO
+            wz(i,0,k,nrhs)=0.
+#  elif defined NHMG_WBRY_COPY
             wz(i,0,k,nrhs)=wz(i,1,k,nrhs)
+#  endif
           enddo
         enddo
       endif
       if (NORTHERN_EDGE) then
         do k=1,N
           do i=Istr,Iend
+#  if defined NHMG_WBRY_ZERO
+            wz(i,LOCALMM+1,k,nrhs)=0.
+#  elif defined NHMG_WBRY_COPY
             wz(i,LOCALMM+1,k,nrhs)=wz(i,LOCALMM,k,nrhs)
+#  endif
           enddo
         enddo
       endif
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
         do k=1,N
+#  if defined NHMG_WBRY_ZERO
+          wz(0,0,k,nrhs)=0.
+#  elif defined NHMG_WBRY_COPY
           wz(0,0,k,nrhs)=wz(1,1,k,nrhs)
+#  endif
         enddo
       endif
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
         do k=1,N
+#  if defined NHMG_WBRY_ZERO
+          wz(0,LOCALMM+1,k,nrhs)=0.
+#  elif defined NHMG_WBRY_COPY
           wz(0,LOCALMM+1,k,nrhs)=wz(1,LOCALMM,k,nrhs)
+#  endif
         enddo
       endif
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
         do k=1,N
+#  if defined NHMG_WBRY_ZERO
+          wz(LOCALLM+1,0,k,nrhs)=0.
+#  elif defined NHMG_WBRY_COPY
           wz(LOCALLM+1,0,k,nrhs)=wz(LOCALLM,1,k,nrhs)
+#  endif
         enddo
       endif
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
         do k=1,N
+#  if defined NHMG_WBRY_ZERO
+          wz(LOCALLM+1,LOCALMM+1,k,nrhs)=0.
+#  elif defined NHMG_WBRY_COPY
           wz(LOCALLM+1,LOCALMM+1,k,nrhs)=wz(LOCALLM,LOCALMM,k,nrhs)
+#  endif
         enddo
       endif
 #  endif
 # endif
+# endif
 ! exchange
-#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+# if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,nrhs)) 
-#  endif
 # endif
 
-# ifdef NHMG_DEBUG
+# endif
+
+#ifdef NHMG_DEBUG
 
       write(*,*) 'set_HUV2 : u,v,wz after coupling. u'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
@@ -860,7 +920,7 @@ C$    integer omp_get_thread_num
      &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
 
-# endif
+#endif
 
 # endif /* SOLVE3D */
       return

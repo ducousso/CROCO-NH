@@ -148,7 +148,7 @@
 #    endif
           enddo
         enddo
-#   elif defined OBC_COM_WSPECIFIED
+#   elif defined OBC_COM_M3SPECIFIED
 !                                            Western edge Specified BC
 !                                            ======= ==== ========= ==
         do k=1,N
@@ -264,7 +264,7 @@
 #    endif
           enddo
         enddo
-#   elif defined OBC_COM_WSPECIFIED
+#   elif defined OBC_COM_M3SPECIFIED
 !                                            Eastern edge Specified BC
 !                                            ======= ==== ========= ==
         do k=1,N
@@ -382,7 +382,7 @@
 #    endif
           enddo
         enddo
-#   elif defined OBC_COM_WSPECIFIED
+#   elif defined OBC_COM_M3SPECIFIED
 !                                           Southern edge Specified BC
 !                                           ======== ==== ========= ==
         do k=1,N
@@ -496,7 +496,7 @@
 #    endif
           enddo
         enddo
-#   elif defined OBC_COM_WSPECIFIED
+#   elif defined OBC_COM_M3SPECIFIED
 !                                           Northern edge Specified BC
 !                                           ======== ==== ========= ==
         do k=1,N
