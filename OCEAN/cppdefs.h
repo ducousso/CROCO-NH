@@ -735,10 +735,10 @@
 */
 # undef OPENMP
 # define MPI
-# undef NHMG
+# define NHMG
 # ifdef NHMG
 #  undef NHMG_W_VOL
-#  define NHMG_2D_DAMPING
+#  undef NHMG_2D_DAMPING
 #  define NHMG_WMIX_GR
 #  undef NHMG_WMIX_FA
 #  undef NHMG_MASKING
@@ -785,14 +785,14 @@
 # define NONLIN_EOS
 # define SPLIT_EOS
                       /* OBCs algo */
-# define OBC_M2SPECIFIED
+# undef OBC_M2SPECIFIED
 # undef  OBC_M2FLATHER
-# undef  OBC_M2CHARACT
+# define  OBC_M2CHARACT
 # undef  OBC_M2ORLANSKI
-# define OBC_M3SPECIFIED
-# undef OBC_M3ORLANSKI
-# define OBC_TSPECIFIED
-# undef OBC_TORLANSKI
+# undef OBC_M3SPECIFIED
+# define OBC_M3ORLANSKI
+# undef OBC_TSPECIFIED
+# define OBC_TORLANSKI
                       /* Sponge */
 # undef SPONGE
                       /* Semi-implicit Vertical Tracer/Mom Advection */
