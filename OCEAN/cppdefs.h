@@ -697,7 +697,7 @@
 # define UV_COR
 # define SOLVE3D
 # define NEW_S_COORD
-# define NHMG
+# undef NHMG
 # undef SALINITY
 # undef NONLIN_EOS
 # undef SPLIT_EOS
@@ -737,15 +737,14 @@
 # define MPI
 # undef NHMG
 # ifdef NHMG
-#  undef NHMG_DIV_DAMPING
-#  define NHMG_W_VOL
+#  undef NHMG_W_VOL
+#  define NHMG_2D_DAMPING
 #  define NHMG_WMIX_GR
 #  undef NHMG_WMIX_FA
-#  undef NHMG_CORR_SINH
+#  undef NHMG_MASKING
 #  undef NHMG_AB2
 #  undef NHMG_NHSSH
-#  undef NHMG_MASKING
-#  define NHMG_DEBUG
+#  undef NHMG_DEBUG
 # endif
 # undef CLOSED
 # ifdef CLOSED
@@ -801,7 +800,7 @@
                       /* Vertical Mixing */
 # undef  BODYFORCE
 # undef  BVF_MIXING
-# undef LMD_MIXING
+# define LMD_MIXING
 # undef  GLS_MIXING
 # ifdef LMD_MIXING
 #  define LMD_SKPP
@@ -1200,13 +1199,16 @@
 #  undef  NBQ_IMP
 # endif
 # define NHMG
-# undef NHMG_W_VOL
-# undef NHMG_CORR_SINH
-# undef NHMG_AB2
-# undef NHMG_NHSSH
-# undef NHMG_DEBUG
+# ifdef NHMG
+#  undef NHMG_W_VOL
+#  undef NHMG_2D_DAMPING
+#  undef NHMG_CORR_SINH
+#  undef NHMG_AB2
+#  undef NHMG_NHSSH
+#  undef NHMG_DEBUG
+# endif
 # define SOLVE3D
-# define UV_ADV
+# undef UV_ADV
 # define NEW_S_COORD
 # define ANA_GRID
 # define ANA_INITIAL
@@ -1224,11 +1226,13 @@
 # define MPI
 # define SOLVE3D
 # define NHMG
-# define NHMG_W_VOL
-# undef NHMG_CORR_SINH
-# undef NHMG_AB2
-# undef NHMG_NHSSH
-# undef NHMG_DEBUG
+# ifdef NHMG
+#  undef NHMG_W_VOL
+#  undef NHMG_2D_DAMPING
+#  undef NHMG_AB2
+#  undef NHMG_NHSSH
+#  undef NHMG_DEBUG
+# endif
 # define UV_ADV
 # define NEW_S_COORD
 # define ANA_GRID
