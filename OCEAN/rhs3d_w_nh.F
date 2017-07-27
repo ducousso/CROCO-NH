@@ -33,9 +33,9 @@
      &                                         CF,FC,DC,
      &                              wrk1,wrk2, WFx,WFe)
    !
-# ifdef NHMG
-      USE nhmg, only : nhmg_rw_time
-# endif
+!# ifdef NHMG
+!      USE nhmg, only : nhmg_rw_time
+!# endif
 !   
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k,kp
@@ -100,7 +100,7 @@
 !====================================================================      
 !  Pseudo forces due to time dependency
 !==================================================================== 
-# if defined NHMG
+!# if defined NHMG
 !
 !      call nhmg_rw_time(
 !     &     Lm, Mm, N,
@@ -112,7 +112,7 @@
 !     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
 !     &     rw(-1:Lm+2,-1:Mm+2,0:N))
 !
-# endif
+!# endif
 
 !====================================================================      
 !  Horizontal advection
