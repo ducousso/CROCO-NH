@@ -943,15 +943,15 @@
         do k=1,N-1
            do i=Istr,Iend
 #  ifdef NHMG_W_VOL
-              wz(i,j,k,nnew)=( cff1*wz(i,j,k,nstp)*(Hz(i,j,k  )+         ! n      
-     &                                             Hz(i,j,k+1))         !
-     &                       +cff2*wz(i,j,k,indx)*(Hz_bak(i,j,k  )+     ! n - 1
-     &                                             Hz_bak(i,j,k+1))     !
-     &                       +2.*cdt*pn(i,j)*pm(i,j)                    ! n - 1/2
-     &                              *(rw(i,j,k))     !
-     &                      ) / (Hz_half(i,j,k)+Hz_half(i,j,k+1))  !<-- wz has units m.s-1
+              wz(i,j,k,nnew)=(cff1*wz(i,j,k,nstp)*(Hz(i,j,k  )+     
+     &                                             Hz(i,j,k+1))   
+     &                       +cff2*wz(i,j,k,indx)*(Hz_bak(i,j,k  )+ 
+     &                                             Hz_bak(i,j,k+1)) 
+     &                       +2.*cdt*pn(i,j)*pm(i,j)                
+     &                              *(rw(i,j,k))    
+     &                      ) / (Hz_half(i,j,k)+Hz_half(i,j,k+1)) 
               wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+
-     &                                          Hz(i,j,k+1)) !<-- wz(indx) has units kg.m-1.s-1
+     &                                          Hz(i,j,k+1)) 
 #  else
               cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
               wz(i,j,k,nnew)= 
