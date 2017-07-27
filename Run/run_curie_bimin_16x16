@@ -27,7 +27,7 @@ export INPUT_DIR=${WORKDIR}/CROCO-NH/BIMIN/INPUT/INPUT_16x16
 ######################################
 ## Create and move to the run directory
 
-export RUN_DIR=EXP_NHMG_NEAR_dt8_nft50_M2SPEC_INTSPEC_wbuffer0_SPGGRD25_test
+export RUN_DIR=EXP_NHMG_NEW0.5_dt8_nft50_M2SPEC_INTSPEC_wbuffer0_SPGGRD25_test
 mkdir -p $EXEC_DIR/$RUN_DIR
 cd $EXEC_DIR/$RUN_DIR
 
@@ -53,6 +53,7 @@ cp -f $SRC_DIR/$NHMGNAMEL .
 cp -f $SRC_DIR/$NAMELSKEL .
 cat $NAMELSKEL | sed -e "s/<NTIMES>/2250/" \
                      -e "s/<dt>/8/" \
+                     -e "s/<NDTFAST>/50/" \
                      -e "s/<NRREC>/1/" \
                      -e "s/<ini>/INPUT\/bimin_ini.nc/" \
                      -e "s/<LDEFHIS>/T/" \

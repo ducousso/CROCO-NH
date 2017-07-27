@@ -53,6 +53,7 @@ cp -f $SRC_DIR/$NHMGNAMEL .
 cp -f $SRC_DIR/$NAMELSKEL .
 cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
                      -e "s/<dt>/4/" \
+                     -e "s/<NDTFAST>/50/" \
                      -e "s/<NRREC>/1/" \
                      -e "s/<ini>/INPUT\/bimin_ini.nc/" \
                      -e "s/<LDEFHIS>/T/" \
@@ -69,6 +70,7 @@ jobmr1=$(ccc_msub ${SUB}.mr1 |awk '{print $4}')
 
 cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
                      -e "s/<dt>/4/" \
+                     -e "s/<NDTFAST>/50/" \
                      -e "s/<NRREC>/13/" \
                      -e "s/<ini>/HIS\/bimin_his.nc/" \
                      -e "s/<LDEFHIS>/F/" \
@@ -84,6 +86,7 @@ jobmr2=$(ccc_msub -a $jobmr1 ${SUB}.mr2 |awk '{print $4}')
 
 cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
                      -e "s/<dt>/4/" \
+                     -e "s/<NDTFAST>/50/" \
                      -e "s/<NRREC>/25/" \
                      -e "s/<ini>/HIS\/bimin_his.nc/" \
                      -e "s/<LDEFHIS>/F/" \
@@ -99,6 +102,7 @@ jobmr3=$(ccc_msub -a $jobmr2 ${SUB}.mr3 |awk '{print $4}')
 
 cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
                      -e "s/<dt>/4/" \
+                     -e "s/<NDTFAST>/50/" \
                      -e "s/<NRREC>/37/" \
                      -e "s/<ini>/HIS\/bimin_his.nc/" \
                      -e "s/<LDEFHIS>/F/" \
@@ -114,6 +118,7 @@ jobmr4=$(ccc_msub -a $jobmr3 ${SUB}.mr4 |awk '{print $4}')
 
 cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
                      -e "s/<dt>/4/" \
+                     -e "s/<NDTFAST>/50/" \
                      -e "s/<NRREC>/49/" \
                      -e "s/<ini>/HIS\/bimin_his.nc/" \
                      -e "s/<LDEFHIS>/F/" \
