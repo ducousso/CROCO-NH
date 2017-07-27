@@ -350,7 +350,9 @@
 #  endif
                   Kv(i,j,k)=Kv(i,j,k)+lmd_nu0c
                   Kt(i,j,k)=Kt(i,j,k)+lmd_nu0c
+#  ifdef SALINITY
                   Ks(i,j,k)=Ks(i,j,k)+lmd_nu0c
+#  endif
 #  ifdef LMD_SKPP
                 endif
 #  endif

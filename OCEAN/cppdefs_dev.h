@@ -430,7 +430,7 @@
 # define LMD_SKPP2005
 #endif
 #ifdef LMD_BKPP
-# undef LMD_BKPP2005
+# define LMD_BKPP2005
 #endif
 
 /*

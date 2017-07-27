@@ -163,6 +163,8 @@
       parameter (LLm0=83,   MMm0=85,   N=32)   ! BENGUELA_HR
 #  elif defined  BENGUELA_VHR
       parameter (LLm0=167,  MMm0=170,  N=32)   ! BENGUELA_VHR
+#  elif defined  BIMIN
+      parameter (LLm0=1024,  MMm0=1024,  N=128)   ! BIMIN
 #  else
       parameter (LLm0=94,   MMm0=81,   N=40)
 #  endif
@@ -196,8 +198,12 @@
 !
       integer NSUB_X, NSUB_E, NPP
 #ifdef MPI
-      integer NP_XI, NP_ETA, NNODES     
+      integer NP_XI, NP_ETA, NNODES
+# ifdef BIMIN
+      parameter (NP_XI=16,  NP_ETA=16,  NNODES=NP_XI*NP_ETA)
+# else     
       parameter (NP_XI=4,  NP_ETA=2,  NNODES=NP_XI*NP_ETA)
+# endif
       parameter (NPP=1)
       parameter (NSUB_X=1, NSUB_E=1)
 #elif defined OPENMP
@@ -397,6 +403,7 @@
 !
 #if defined SOLVE3D && !defined F90CODE
       integer   ntrc_diats, ntrc_diauv, ntrc_diabio
+      integer   ntrc_diavrt, ntrc_diaek, ntrc_surf
 # ifdef BIOLOGY
      &          , itrc_bio
 # endif
@@ -751,11 +758,29 @@
       parameter (ntrc_diats=0)
 # endif
 # ifdef DIAGNOSTICS_UV
-      parameter (ntrc_diauv=16)
+      parameter (ntrc_diauv=18)
 # else
       parameter (ntrc_diauv=0)
 # endif
-
+# ifdef DIAGNOSTICS_VRT
+      parameter (ntrc_diavrt=12)
+# else
+      parameter (ntrc_diavrt=0)
+# endif
+# ifdef DIAGNOSTICS_EK
+# ifdef DIAGNOSTICS_EK_MLD
+      parameter (ntrc_diaek=24)
+# else
+      parameter (ntrc_diaek=12)
+# endif
+# else
+      parameter (ntrc_diaek=0)
+# endif
+# ifdef OUTPUTS_SURFACE
+      parameter (ntrc_surf=5)
+# else
+      parameter (ntrc_surf=0)
+# endif
 #endif /*SOLVE3D */
 
 

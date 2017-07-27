@@ -94,8 +94,13 @@
       parameter (
      &   Cv=1.8,       ! Ratio of interior Brunt-Vaisala
                        !     frequency "N" to that at the entrainment depth "he".
-     &   Ric=0.3,      ! Critical bulk Richardson number
-     &   Ri_inv=1./Ric, 
+#if defined DIURNAL_SRFLUX || defined ROBUST_DIURNAL_SRFLUX || defined BULK_FLUX
+     &   Ric=0.15,     ! Critical bulk Richardson number. (must be decreased
+     &                 ! in case of a diurnal cycle, see McWilliams et. al, 2009, jpo)
+#else
+     &   Ric=0.45,
+#endif
+     &   Ri_inv=1./Ric,
      &   betaT=-0.2,   ! Ratio of entrainment flux to 
                        !       to surface buoyancy flux.
      &   epssfc=0.1,   ! Nondimensional extent of the
@@ -437,6 +442,17 @@
               ghats(i,j,k)=Cg * sigma*(1.-sigma)**2
             else
               ghats(i,j,k)=0.
+            endif
+# endif
+# if defined MLCONVEC
+!
+!  Add convective adjustment in the ML for unresolved convective cells
+!
+            if (bvf(i,j,k).lt.0.) then
+              Kt(i,j,k)=Kt(i,j,k) + nu0c*10.
+#  ifdef SALINITY
+              Ks(i,j,k)=Ks(i,j,k) + nu0c*10.
+#  endif
             endif
 # endif
           enddo
