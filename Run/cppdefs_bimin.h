@@ -79,10 +79,17 @@
 # define UV_COR
 # define UV_ADV
                       /* NHMG */
-# undef NHMG
-# undef NHMG_AB2
-# undef NHMG_NHSSH
-# undef NHMG_MASKING
+# define NHMG 
+# ifdef NHMG
+#  undef NHMG_W_VOL
+#  define NHMG_WBRY_ZERO
+#  define NHMG_2D_DAMPING
+#  define NHMG_WMIX_GR
+#  define NHMG_MASKING
+#  undef NHMG_AB2
+#  undef NHMG_NHSSH
+#  undef NHMG_DEBUG
+# endif
                       /* Equation of State */
 # define SALINITY
 # define NONLIN_EOS
@@ -207,16 +214,14 @@
 #  define DIAGNOSTICS_TS_MLD
 # endif
 
-# define DIAGNOSTICS_VRT
-# define  DIAGNOSTICS_EK
+# undef DIAGNOSTICS_VRT
+# undef  DIAGNOSTICS_EK
 # ifdef DIAGNOSTICS_EK
 #  undef DIAGNOSTICS_EK_FULL
 #  define DIAGNOSTICS_EK_MLD
 # endif
 
 # undef OUTPUTS_SURFACE
-
-
 
 /*
 !           Applications:
