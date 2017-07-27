@@ -1,0 +1,16 @@
+#!/bin/bash
+#MSUB -r Croco_Bimin     # Request na me
+#MSUB -n 256             # Number of tasks to use
+#MSUB -T <ElapsTime>     # Elapsed time limit in seconds
+#MSUB -q <Queue>         #
+#MSUB -o nh_%I.txt       # Standard output.%I is the job id
+#MSUB -e nh_%I.txt       # Error output.%I is the job id
+#MSUB -A gen7638         # IMPORTANT to specify here the correct project ID
+
+set -x
+
+ls -rtl
+date
+time ccc_mprun -n 256 croco_bimin_16x16 <Namelist> > bimin.out
+date
+ls -rtl

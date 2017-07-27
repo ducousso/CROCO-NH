@@ -1,0 +1,130 @@
+#!/bin/bash
+####################################################
+#               SUBMISSION JOB                    #
+####################################################
+
+set -x
+
+##################################
+## Path for NHMG library
+
+export LD_LIBRARY_PATH=${HOME}/CROCO-NH/NHMG/lib:${LD_LIBRARY_PATH}
+echo ${LD_LIBRARY_PATH}
+
+####################################
+## Define files and run parameters #
+
+export EXEC=croco_bimin_16x16
+export NAMELSKEL=croco.in.bimin.skel
+export NAMEL=croco.in.bimin
+export NHMGNAMEL=nhmg_namelist
+export SUBSKEL=run.curie.skel
+export SUB=run.curie
+export SRC_DIR=${HOME}/CROCO-NH/Run
+export EXEC_DIR=${SCRATCHDIR}/CROCO-NH/BIMIN
+export INPUT_DIR=${WORKDIR}/CROCO-NH/BIMIN/INPUT/INPUT_16x16
+
+######################################
+## Create and move to the run directory
+
+export RUN_DIR=EXP_NHMG_NEAR_dt4_nft50_M2SPEC_INTSPEC_SPGGRD25_wbuffer0_5d
+mkdir -p $EXEC_DIR/$RUN_DIR
+cd $EXEC_DIR/$RUN_DIR
+
+######################################
+## Get the executable
+
+cp -f $SRC_DIR/$EXEC .
+chmod 755 $EXEC
+
+#####################################
+# Link to the input data and create outputs dir
+
+ln -s ${INPUT_DIR} INPUT
+mkdir -p HIS
+mkdir -p AVG
+mkdir -p RST
+
+######################################
+## Edit the namelists, the submission script, and submit job 1
+
+cp -f $SRC_DIR/$NHMGNAMEL .
+
+cp -f $SRC_DIR/$NAMELSKEL .
+cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
+                     -e "s/<dt>/4/" \
+                     -e "s/<NRREC>/1/" \
+                     -e "s/<ini>/INPUT\/bimin_ini.nc/" \
+                     -e "s/<LDEFHIS>/T/" \
+                     -e "s/<NWRT>/1800/" > ${NAMEL}.mr1
+
+cp -f $SRC_DIR/$SUBSKEL .
+cat $SUBSKEL | sed -e "s/<ElapsTime>/43200/" \
+                   -e "s/<Queue>/standard/" \
+                   -e "s/<Namelist>/${NAMEL}.mr1/" > ${SUB}.mr1
+
+jobmr1=$(ccc_msub ${SUB}.mr1 |awk '{print $4}')
+
+## Edit the namelist, and submit job 2
+
+cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
+                     -e "s/<dt>/4/" \
+                     -e "s/<NRREC>/13/" \
+                     -e "s/<ini>/HIS\/bimin_his.nc/" \
+                     -e "s/<LDEFHIS>/F/" \
+                     -e "s/<NWRT>/1800/" > ${NAMEL}.mr2
+
+cat $SUBSKEL | sed -e "s/<ElapsTime>/43200/" \
+                   -e "s/<Queue>/standard/" \
+                   -e "s/<Namelist>/${NAMEL}.mr2/" > ${SUB}.mr2
+
+jobmr2=$(ccc_msub -a $jobmr1 ${SUB}.mr2 |awk '{print $4}')
+
+## Edit the namelist, and submit job 3
+
+cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
+                     -e "s/<dt>/4/" \
+                     -e "s/<NRREC>/25/" \
+                     -e "s/<ini>/HIS\/bimin_his.nc/" \
+                     -e "s/<LDEFHIS>/F/" \
+                     -e "s/<NWRT>/1800/" > ${NAMEL}.mr3
+
+cat $SUBSKEL | sed -e "s/<ElapsTime>/43200/" \
+                   -e "s/<Queue>/standard/" \
+                   -e "s/<Namelist>/${NAMEL}.mr3/" > ${SUB}.mr3
+
+jobmr3=$(ccc_msub -a $jobmr2 ${SUB}.mr3 |awk '{print $4}')
+
+## Edit the namelist, and submit job 4
+
+cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
+                     -e "s/<dt>/4/" \
+                     -e "s/<NRREC>/37/" \
+                     -e "s/<ini>/HIS\/bimin_his.nc/" \
+                     -e "s/<LDEFHIS>/F/" \
+                     -e "s/<NWRT>/1800/" > ${NAMEL}.mr4
+
+cat $SUBSKEL | sed -e "s/<ElapsTime>/43200/" \
+                   -e "s/<Queue>/standard/" \
+                   -e "s/<Namelist>/${NAMEL}.mr4/" > ${SUB}.mr4
+
+jobmr4=$(ccc_msub -a $jobmr3 ${SUB}.mr4 |awk '{print $4}')
+
+## Edit the namelist, and submit job 5
+
+cat $NAMELSKEL | sed -e "s/<NTIMES>/21600/" \
+                     -e "s/<dt>/4/" \
+                     -e "s/<NRREC>/49/" \
+                     -e "s/<ini>/HIS\/bimin_his.nc/" \
+                     -e "s/<LDEFHIS>/F/" \
+                     -e "s/<NWRT>/1800/" > ${NAMEL}.mr5
+rm -f $NAMELSKEL
+
+cat $SUBSKEL | sed -e "s/<ElapsTime>/43200/" \
+                   -e "s/<Queue>/standard/" \
+                   -e "s/<Namelist>/${NAMEL}.mr5/" > ${SUB}.mr5
+rm -f $SUBSKEL
+
+jobmr5=$(ccc_msub -a $jobmr4 ${SUB}.mr5 |awk '{print $4}')
+
+

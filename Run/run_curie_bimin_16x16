@@ -1,0 +1,70 @@
+#!/bin/bash
+####################################################
+#               SUBMISSION JOB                    #
+####################################################
+
+set -x
+
+##################################
+## Path for NHMG library
+
+export LD_LIBRARY_PATH=${HOME}/CROCO-NH/NHMG/lib:${LD_LIBRARY_PATH}
+echo ${LD_LIBRARY_PATH}
+
+####################################
+## Define files and run parameters #
+
+export EXEC=croco_bimin_16x16
+export NAMELSKEL=croco.in.bimin.skel
+export NAMEL=croco.in.bimin
+export NHMGNAMEL=nhmg_namelist
+export SUBSKEL=run.curie.skel
+export SUB=run.curie
+export SRC_DIR=${HOME}/CROCO-NH/Run
+export EXEC_DIR=${SCRATCHDIR}/CROCO-NH/BIMIN
+export INPUT_DIR=${WORKDIR}/CROCO-NH/BIMIN/INPUT/INPUT_16x16
+
+######################################
+## Create and move to the run directory
+
+export RUN_DIR=EXP_NHMG_NEAR_dt8_nft50_M2SPEC_INTSPEC_wbuffer0_SPGGRD25_test
+mkdir -p $EXEC_DIR/$RUN_DIR
+cd $EXEC_DIR/$RUN_DIR
+
+######################################
+## Get the executable
+
+cp -f $SRC_DIR/$EXEC .
+chmod 755 $EXEC
+
+#####################################
+# Link to the input data and create outputs dir
+
+ln -s ${INPUT_DIR} INPUT
+mkdir -p HIS
+mkdir -p AVG
+mkdir -p RST
+
+######################################
+## Edit the namelists, the submission script, and submit job
+
+cp -f $SRC_DIR/$NHMGNAMEL .
+
+cp -f $SRC_DIR/$NAMELSKEL .
+cat $NAMELSKEL | sed -e "s/<NTIMES>/2250/" \
+                     -e "s/<dt>/8/" \
+                     -e "s/<NRREC>/1/" \
+                     -e "s/<ini>/INPUT\/bimin_ini.nc/" \
+                     -e "s/<LDEFHIS>/T/" \
+                     -e "s/<NWRT>/450/" > $NAMEL
+rm -f $NAMELSKEL
+
+cp -f $SRC_DIR/$SUBSKEL .
+cat $SUBSKEL | sed -e "s/<ElapsTime>/10000/" \
+                   -e "s/<Queue>/standard/" \
+                   -e "s/<Namelist>/$NAMEL/" > $SUB
+rm -f $SUBSKEL
+
+ccc_msub $SUB
+
+
