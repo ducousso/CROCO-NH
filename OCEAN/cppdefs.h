@@ -739,11 +739,11 @@
 # ifdef NHMG
 #  undef NHMG_W_VOL
 #  undef NHMG_2D_DAMPING
-#  define NHMG_WMIX_GR   /* implicit mixing by guillaume
-#  undef NHMG_WMIX_FA    /* implicit mixing by Francis Auclair. No implicit advection!!!
+#  define NHMG_WMIX_GR   /* implicit mixing by guillaume     */
+#  undef NHMG_WMIX_FA    /* implicit mixing by Francis Auclair. No implicit advection!!!     */
 #  undef NHMG_MASKING
-#  undef NHMG_AB2        /* the default is to use nearest neighbor interpolation for the pressure at the predictor stage
-#  undef NHMG_NHSSH      /* a change in the pressure gradient routine to use the zeta at n+1/2
+#  undef NHMG_AB2        /* the default is to use nearest neighbor interpolation for the pressure at the predictor stage     */
+#  undef NHMG_NHSSH      /* a change in the pressure gradient routine to use the zeta at n+1/2     */
 #  undef NHMG_DEBUG
 # endif
 # undef CLOSED
