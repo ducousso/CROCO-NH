@@ -14,7 +14,7 @@ echo ${LD_LIBRARY_PATH}
 ####################################
 ## Define files and run parameters #
 
-export EXEC=croco_bimin_16x16
+export EXEC=croco_bimin
 export NAMELSKEL=croco.in.bimin.skel
 export NAMEL=croco.in.bimin
 export NHMGNAMEL=nhmg_namelist

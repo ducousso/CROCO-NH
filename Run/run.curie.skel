@@ -11,6 +11,6 @@ set -x
 
 ls -rtl
 date
-time ccc_mprun -n 256 croco_bimin_16x16 <Namelist> > bimin.out
+time ccc_mprun -n 256 croco_bimin <Namelist> > bimin.out
 date
 ls -rtl

@@ -14,8 +14,6 @@ SCRDIR=${WORKDIR}/CROCO-NH/Compile
 RUNDIR=`pwd`
 ROOT_DIR=$SOURCE/..
 
-NBPROC="16x16"
-
 #
 # determine operating system
 #
@@ -103,11 +101,14 @@ AGRIF_SRC=${ROOT_DIR}/AGRIF
 #
 # BIMIN special copy
 #
-/bin/cp -f ${ROOT_DIR}/Run/cppdefs_bimin.h $SCRDIR/cppdefs.h
+/bin/cp -f cppdefs_bimin.h $SCRDIR/cppdefs.h
+
 #
-/bin/cp -f ${ROOT_DIR}/Run/put_global_atts_opt.F $SCRDIR/put_global_atts.F
-/bin/cp -f ${ROOT_DIR}/Run/partit_opt.F $SCRDIR/partit.F
-/bin/cp -f ${ROOT_DIR}/Run/ncjoin_opt.F $SCRDIR/ncjoin.F
+# optimized partit and ncjoin
+#
+/bin/cp -f put_global_atts_opt.F $SCRDIR/put_global_atts.F
+/bin/cp -f partit_opt.F $SCRDIR/partit.F
+/bin/cp -f ncjoin_opt.F $SCRDIR/ncjoin.F
 
 #
 # Change directory
@@ -385,7 +386,7 @@ rm -f flags.tmp
 # compile croco
 #
 $MAKE 
-mv croco $RUNDIR/croco_bimin_${NBPROC}
+mv croco $RUNDIR/croco_bimin
 
 #
 #
