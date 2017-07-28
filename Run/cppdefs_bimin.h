@@ -83,6 +83,7 @@
 # ifdef NHMG
 #  undef NHMG_W_VOL
 #  define NHMG_WBRY_ZERO
+#  define NHMG_WEIGHTED_FRC
 #  define NHMG_2D_DAMPING
 #  define NHMG_WMIX_GR
 #  define NHMG_MASKING

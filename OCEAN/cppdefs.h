@@ -739,6 +739,7 @@
 # ifdef NHMG
 #  undef NHMG_W_VOL
 #  undef NHMG_2D_DAMPING
+#  undef NHMG_WEIGHTED_FRC
 #  define NHMG_WMIX_GR   /* implicit mixing by guillaume     */
 #  undef NHMG_WMIX_FA    /* implicit mixing by Francis Auclair. No implicit advection!!!     */
 #  undef NHMG_MASKING

@@ -1090,10 +1090,10 @@
      &                 + nhdu(i,j,k,iprec2) 
      &                 * om_u(i,j)
 # endif
-!!
+# ifdef NHMG_WEIGHTED_FRC
      &                 * 0.9
 !     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
-!!
+# endif
                enddo
             enddo
             
@@ -1115,10 +1115,10 @@
      &                 + nhdv(i,j,k,iprec2) 
      &                 * on_v(i,j)
 # endif
-!!
+# ifdef NHMG_WEIGHTED_FRC
      &                 * 0.9
 !     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
-!!
+# endif
                enddo
             enddo
             
@@ -1187,10 +1187,10 @@
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
      &                 * pn_u(i,j)
                   rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
-!!
+# ifdef NHMG_WEIGHTED_FRC
      &                 * 0.9
 !     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
-!!
+# endif
                enddo
             enddo
             
@@ -1200,10 +1200,10 @@
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
      &                 * pm_v(i,j)
                   rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
-!!
+# ifdef NHMG_WEIGHTED_FRC
      &                 * 0.9
 !     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
-!!
+# endif
                enddo
             enddo
             
