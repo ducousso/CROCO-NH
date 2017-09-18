@@ -28,9 +28,8 @@ LINUX_FC=mpif90
 #
 # If needed set your own NETCDF directories
 #
-NETCDF="/ccc/products2/netcdf-4.2/BullEL_6__x86_64"
-NETCDFLIB="-L$NETCDF/lib -lnetcdf -lnetcdff"
-NETCDFINC=-I$NETCDF/include
+NETCDFLIB=`nf-config --flibs`
+NETCDFINC=`nf-config --fflags`
 
 #
 # set MPI directories if needed
