@@ -1201,11 +1201,10 @@
 #  undef NHMG_WMIX_GR
 #  undef NHMG_WMIX_FA
 #  undef NHMG_WMIX_ND
+#  define NHMG_WBRY_INIT
 #  define NHMG_WBRY_COUPLING
-#  ifdef NHMG_WBRY_COUPLING
-#   define NHMG_WBRY_COPY
-#   undef NHMG_WBRY_ZERO
-#  endif
+#  define NHMG_WBRY_COPY
+#  undef NHMG_WBRY_ZERO
 #  undef NHMG_WEIGHTED_FRC
 #  undef NHMG_2D_DAMPING
 #  undef NHMG_CORR_SINH
@@ -1236,11 +1235,10 @@
 #  undef NHMG_WMIX_GR
 #  undef NHMG_WMIX_FA
 #  undef NHMG_WMIX_ND
+#  define NHMG_WBRY_INIT
 #  define NHMG_WBRY_COUPLING
-#  ifdef NHMG_WBRY_COUPLING
-#   define NHMG_WBRY_COPY
-#   undef NHMG_WBRY_ZERO
-#  endif
+#  define NHMG_WBRY_COPY
+#  undef NHMG_WBRY_ZERO
 #  undef NHMG_WEIGHTED_FRC
 #  undef NHMG_2D_DAMPING
 #  undef NHMG_AB2
