@@ -24,7 +24,7 @@
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
 #undef  SEAMOUNT        /* Seamount Example */
-#define  CALDEIRA        /* Caldeira Example */
+#undef  CALDEIRA        /* Caldeira Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -36,7 +36,7 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#undef  TANK            /* Tank Example */
+#define  TANK            /* Tank Example */
 #undef  TANKINT            /* Tank internal Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
@@ -1195,13 +1195,18 @@
 ! Int. J. Numer. Methods Fluids 42, 929–952.
 */
 # define  MPI
-# undef NBQ
-# ifdef NBQ
-#  undef  NBQ_IMP
-# endif
 # define NHMG
 # ifdef NHMG
-#  undef NHMG_W_VOL
+#  define NHMG_W_VOL
+#  undef NHMG_WMIX_GR
+#  undef NHMG_WMIX_FA
+#  undef NHMG_WMIX_ND
+#  define NHMG_WBRY_COUPLING
+#  ifdef NHMG_WBRY_COUPLING
+#   define NHMG_WBRY_COPY
+#   undef NHMG_WBRY_ZERO
+#  endif
+#  undef NHMG_WEIGHTED_FRC
 #  undef NHMG_2D_DAMPING
 #  undef NHMG_CORR_SINH
 #  undef NHMG_AB2
@@ -1209,7 +1214,7 @@
 #  undef NHMG_DEBUG
 # endif
 # define SOLVE3D
-# undef UV_ADV
+# define UV_ADV
 # define NEW_S_COORD
 # define ANA_GRID
 # define ANA_INITIAL
@@ -1225,15 +1230,24 @@
 !
 */
 # define MPI
-# define SOLVE3D
 # define NHMG
 # ifdef NHMG
-#  undef NHMG_W_VOL
+#  define NHMG_W_VOL
+#  undef NHMG_WMIX_GR
+#  undef NHMG_WMIX_FA
+#  undef NHMG_WMIX_ND
+#  define NHMG_WBRY_COUPLING
+#  ifdef NHMG_WBRY_COUPLING
+#   define NHMG_WBRY_COPY
+#   undef NHMG_WBRY_ZERO
+#  endif
+#  undef NHMG_WEIGHTED_FRC
 #  undef NHMG_2D_DAMPING
 #  undef NHMG_AB2
 #  undef NHMG_NHSSH
 #  undef NHMG_DEBUG
 # endif
+# define SOLVE3D
 # define UV_ADV
 # define NEW_S_COORD
 # define ANA_GRID
@@ -1242,6 +1256,15 @@
 # define ANA_SMFLUX
 # define ANA_SRFLUX
 # define ANA_STFLUX
+# undef LMD_MIXING
+# ifdef LMD_MIXING
+#  undef LMD_SKPP
+#  undef LMD_BKPP
+#  define LMD_RIMIX
+#  define LMD_CONVEC
+#  undef  LMD_DDMIX
+#  undef LMD_NONLOCAL
+# endif
 
 #endif /* END OF CONFIGURATION CHOICE */
 

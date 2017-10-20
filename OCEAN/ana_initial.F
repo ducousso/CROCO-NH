@@ -178,13 +178,14 @@ C$    integer omp_get_thread_num
 !        ETA0=0.0015
 !        ETA0=0.015
         ETA0=0.15
-        Lt=100.
+!        ETA0=1.5
+        Lt=10.
         do j=JR_RANGE
           do i=IR_RANGE
 #  ifndef MOVING_BATHY       
 #   ifndef TANKY
-!            zeta(i,j,1)=ETA0*cos(pi*xr(i,j)/Lt)
-            zeta(i,j,1)=ETA0*cos(2.*pi*xr(i,j)/Lt)
+            zeta(i,j,1)=ETA0*cos(pi*xr(i,j)/Lt)
+!            zeta(i,j,1)=ETA0*cos(2.*pi*xr(i,j)/Lt)
 !            zeta(i,j,1)=ETA0*cos(4.*pi*xr(i,j)/Lt)
 #   else
             zeta(i,j,1)=ETA0*cos(pi*yr(i,j)/Lt)
@@ -475,9 +476,9 @@ C$    integer omp_get_thread_num
 
 #  elif defined TANKINT
         drho=10
-        thickn=1.
+        thickn=1.5
         cff=2.*(log((0.99+1.)/(-0.99+1.))/2.)/thickn
-        amp=0.15
+        amp=0.5
         Lt=10.
         do k=1,N
           do j=JR_RANGE
