@@ -53,13 +53,11 @@ C$    integer omp_get_thread_num
 # include "compute_auxiliary_bounds.h"
 !
 # ifdef EW_PERIODIC
-!#  define I_RANGE Istr-1,Iend+1 !!! Francis or Cyril ???
 #  define I_RANGE Istr,Iend
 # else
 #  define I_RANGE IstrR,IendR
 # endif
 # ifdef NS_PERIODIC
-!#  define J_RANGE Jstr-1,Jend+1 !!! Francis or Cyril ???
 #  define J_RANGE Jstr,Jend
 # else
 #  define J_RANGE JstrR,JendR
@@ -359,7 +357,9 @@ C$    integer omp_get_thread_num
            enddo
          enddo
        enddo
+
 ! set lateral boundary conditions
+# ifdef NHMG_WBRY_INIT
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
         do k=1,N
@@ -446,12 +446,13 @@ C$    integer omp_get_thread_num
       endif
 #  endif
 # endif
+
 ! exchange
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,1))
 #  endif
-      endif 
+      endif
 # endif
       return
       end
@@ -689,9 +690,8 @@ C$    integer omp_get_thread_num
           enddo
         enddo
 # endif
-
       enddo
-         
+
       do j=JV_RANGE
         do i=IV_RANGE
           DC(i,0)=0.
@@ -761,7 +761,7 @@ C$    integer omp_get_thread_num
      &                                        )
           enddo
         enddo
-
+# endif
       enddo
 
 #if defined NHMG && defined NHMG_NHSSH
@@ -809,8 +809,9 @@ C$    integer omp_get_thread_num
           enddo
         enddo
       enddo
+
 ! set lateral boundary conditions
-# undef NHMG_WBRY_COUPLING
+
 # ifdef NHMG_WBRY_COUPLING
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
@@ -899,6 +900,7 @@ C$    integer omp_get_thread_num
 #  endif
 # endif
 # endif
+
 ! exchange
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,

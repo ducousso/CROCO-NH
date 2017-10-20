@@ -481,7 +481,6 @@
            CF(i,0) = 0.
            DC(i,0) = 0.         !<=Dirichlet BC, no flux
         enddo
-
 !
 ! Apply wind forcing.
 !
@@ -579,7 +578,7 @@
           enddo
         enddo      
 
-# else
+# elif defined NHMG_WMIX_ND
 !Nico Jr code
         do k=1,N
           do i=Istr,Iend
@@ -659,6 +658,18 @@
              wz(i,j,k,nnew)=DC(i,k)-CF(i,k+1)*wz(i,j,k+1,nnew)
           enddo
         enddo 
+# else
+!if no mixing, only division by Hz
+#  ifdef NHMG_W_VOL
+        do k=1,N-1
+          do i=Istr,Iend
+            wz(i,j,k,nnew)=2.*wz(i,j,k,nnew)/(Hz(i,j,k)+Hz(i,j,k+1))
+          enddo
+        enddo
+        do i=Istr,Iend
+          wz(i,j,N,nnew)=2.*wz(i,j,N,nnew)/Hz(i,j,N)
+        enddo
+#  endif
 # endif
 
 # endif
@@ -840,6 +851,10 @@
          enddo
       enddo
 
+      call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+      call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+      call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+
       call toc(1,'swap corrector')
 
 # endif    /* NHMG */
@@ -968,14 +983,23 @@
      &                +ust2d(i,j)*(umask(i,j)-1.0)
 #  endif
 # endif
+# ifdef NHMG
+!          do k=1,N    
+!             ubar(i,j,knew)=ubar(i,j,knew)+DC(i,0)*grid(1)%du(k,j,i)
+!          enddo
+# endif
 # ifdef WET_DRY
           ubar(i,j,knew)=ubar(i,j,knew)*umask_wet(i,j)
 # endif
         enddo
         do k=N,1,-1
           do i=IU_RANGE
-# ifdef NHMG_CORR_SINH
+# ifdef NHMG
+#  ifdef NHMG_CORR_SINH
             u(i,j,k,nnew)=(u(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
+#  else
+            u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0))
+#  endif
 # else
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
 # endif
@@ -1131,16 +1155,25 @@
      &                  +vst2d(i,j)*(vmask(i,j)-1.0)
 #  endif
 # endif
+# ifdef NHMG
+!          do k=1,N   
+!             vbar(i,j,knew)=vbar(i,j,knew)+DC(i,0)*grid(1)%dv(k,j,i)
+!          enddo
+# endif
 # ifdef WET_DRY
           vbar(i,j,knew)=vbar(i,j,knew)*vmask_wet(i,j)
 # endif
           enddo
           do k=N,1,-1
             do i=IV_RANGE
-# ifdef NHMG_CORR_SINH
+# ifdef NHMG
+#  ifdef NHMG_CORR_SINH
               v(i,j,k,nnew)=(v(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
-# else
+#  else
               v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0))
+#  endif
+# else
+              v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
 # endif
 # ifdef MASKING
      &                                  *vmask(i,j)
@@ -1411,8 +1444,7 @@
           enddo
         enddo
       enddo
-
-# undef NHMG_WBRY_COUPLING 
+!
 # ifdef NHMG_WBRY_COUPLING 
 ! set lateral boundary conditions
 # ifndef EW_PERIODIC

@@ -185,7 +185,7 @@
 #  else           /* alternative to open */
         do k=1,N                               ! Western edge closed
           do j=jstr,jend                       ! ======= ==== ======
-            wz(Istr-1,j,k,nnew)=0.             !  (no-flux: default)
+            wz(Istr-1,j,k,nnew)=wz(Istr,j,k,nnew)
           enddo
         enddo
 
@@ -301,7 +301,7 @@
 #  else           /* alternative to open */
         do k=1,N                                ! Eastern edge closed
           do j=jstr,jend                        ! ======= ==== ======
-            wz(Iend+1,j,k,nnew)=0.              !  (no-flux: default)
+            wz(Iend+1,j,k,nnew)=wz(Iend,j,k,nnew)
           enddo
         enddo
 #  endif       /* OBC_COM_EAST */
@@ -419,7 +419,7 @@
 #  else           /* alternative to open */
         do k=1,N                               ! Southern edge closed
           do i=Istr,Iend                       ! ======== ==== ======
-            wz(i,Jstr-1,k,nnew)=0.
+            wz(i,Jstr-1,k,nnew)=wz(i,Jstr,k,nnew)
           enddo
         enddo
 #  endif        /* OBC_COM_SOUTH */
@@ -533,7 +533,7 @@
 #  else           /* alternative to open */
         do k=1,N                               ! Northern edge closed
           do i=Istr,Iend                       ! ======== ==== ======
-            wz(i,Jend+1,k,nnew)=0.
+            wz(i,Jend+1,k,nnew)=wz(i,Jend,k,nnew)
           enddo
         enddo
 #  endif       /* OBC_COM_NORTH */
