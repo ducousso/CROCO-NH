@@ -669,6 +669,10 @@
 # ifdef NBQ
      &                                    +ru_nbq_avg1(i,j,k)
 # endif
+!# ifdef NHMG
+!     &                                    +nhdu(i,j,k,iprec2) 
+!     &                                    *om_u(i,j)
+!# endif
      &                                    ) )*cff
               u(i,j,k,indx)=u(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                         Hz(i-1,j,k))
@@ -764,6 +768,10 @@
 # ifdef NBQ
      &                                  +rv_nbq_avg1(i,j,k)
 # endif
+!# ifdef NHMG
+!     &                                  +nhdv(i,j,k,iprec2) 
+!     &                                  *on_v(i,j)
+!# endif
      &                                  )  )*cff
                 v(i,j,k,indx)=v(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                           Hz(i,j-1,k))
@@ -947,9 +955,11 @@
      &                                             Hz(i,j,k+1))   
      &                       +cff2*wz(i,j,k,indx)*(Hz_bak(i,j,k  )+ 
      &                                             Hz_bak(i,j,k+1)) 
-     &                       +2.*cdt*pn(i,j)*pm(i,j)                
-     &                              *(rw(i,j,k))    
-     &                      ) / (Hz_half(i,j,k)+Hz_half(i,j,k+1)) 
+     &                       +2.*cdt*pn(i,j)*pm(i,j)*(rw(i,j,k)
+!     &                       + nhdw(i,j,k,iprec2) 
+!     &                         * 0.5*(Hz(i,j,k)+Hz(i,j,k+1)) 
+     &                         )   
+     &                       ) / (Hz_half(i,j,k)+Hz_half(i,j,k+1)) 
               wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+
      &                                          Hz(i,j,k+1)) 
 #  else
@@ -964,11 +974,13 @@
         !surface special treatment
         do i=Istr,Iend
 #  ifdef NHMG_W_VOL
-             wz(i,j,N,nnew)=( cff1*wz(i,j,N,nstp)*Hz    (i,j,N)
+             wz(i,j,N,nnew)=( cff1*wz(i,j,N,nstp)*Hz(i,j,N)
      &                       +cff2*wz(i,j,N,indx)*Hz_bak(i,j,N)
-     &                       +2.*cdt*pn(i,j)*pm(i,j)
-     &                          *(rw(i,j,N))
-     &                      )/ Hz_half(i,j,N)              
+     &                       +2.*cdt*pn(i,j)*pm(i,j)*(rw(i,j,N)
+!     &                       + nhdw(i,j,k,iprec2) 
+!     &                         * 0.5*Hz(i,j,N) 
+     &                         )
+     &                      ) / Hz_half(i,j,N)              
              wz(i,j,N,indx)=wz(i,j,N,nstp)*0.5*Hz(i,j,N)   
 #  else
              cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,N)))
@@ -1217,7 +1229,11 @@
         
          call toc(1,'swap predictor')
 
-      endif      
+      endif     
+
+      call u3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
+      call v3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
+      call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
 
 # endif
 
@@ -1254,103 +1270,7 @@
 #  define JV_RANGE Jstr,JendR
 # endif
 !
-c$$$      do j=JU_RANGE                      ! XI-component
-c$$$        do i=IU_RANGE
-c$$$          DC(i,0)=0.
-c$$$          CF(i,0)=0.
-c$$$        enddo
-c$$$        do k=1,N,+1
-c$$$          do i=IU_RANGE
-c$$$            DC(i,k)=0.5*(Hz(i,j,k)+Hz(i-1,j,k))*on_u(i,j)
-c$$$            DC(i,0)=DC(i,0)+DC(i,k)
-c$$$            CF(i,0)=CF(i,0)+DC(i,k)*u(i,j,k,nnew)
-c$$$          enddo
-c$$$        enddo
-c$$$        if (FIRST_TIME_STEP) then
-c$$$          cff1=1.
-c$$$          cff2=0.
-c$$$        else
-c$$$          cff1=1.5
-c$$$          cff2=0.5
-c$$$        endif
-c$$$        do i=IU_RANGE
-c$$$          CF(i,0)=( CF(i,0)-cff1*DU_avg1(i,j,nstp)
-c$$$     &                     +cff2*DU_avg1(i,j,indx) )/DC(i,0)
-c$$$        enddo
-c$$$        do k=N,1,-1
-c$$$          do i=IU_RANGE
-c$$$            u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0))
-c$$$# ifdef MASKING
-c$$$     &                                 *umask(i,j)
-c$$$# endif
-c$$$# ifdef WET_DRY
-c$$$            cff3=wetdry(i-1,j)+wetdry(i,j)
-c$$$            IF (cff3.eq.1.) THEN
-c$$$              cff3=wetdry(i-1,j)-wetdry(i,j)
-c$$$            END IF
-c$$$            cff4=ABS(ABS(cff3)-1.)
-c$$$            cff5=0.5+SIGN(0.5,(cff1*DU_avg1(i,j,nstp)
-c$$$     &                        -cff2*DU_avg1(i,j,indx)))*cff3
-c$$$            umask_wet(i,j)=0.5*cff3*cff4+cff5*(1.-cff4)
-c$$$!            IF (cff1*DU_avg1(i,j,nstp)
-c$$$!     &         -cff2*DU_avg1(i,j,indx).eq.0. .and.
-c$$$!     &          wetdry(i-1,j)+wetdry(i,j).le.1.) THEN
-c$$$!              umask_wet(i,j)=0.
-c$$$!            END IF
-c$$$            u(i,j,k,nnew)=u(i,j,k,nnew)*umask_wet(i,j)
-c$$$# endif
-c$$$          enddo
-c$$$        enddo
-c$$$      enddo
-c$$$
-c$$$      do j=JV_RANGE
-c$$$        do i=IV_RANGE                   ! ETA-component
-c$$$          DC(i,0)=0.
-c$$$          CF(i,0)=0.
-c$$$        enddo
-c$$$        do k=1,N,+1
-c$$$          do i=IV_RANGE
-c$$$            DC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j-1,k))*om_v(i,j)
-c$$$            DC(i,0)=DC(i,0)+DC(i,k)
-c$$$            CF(i,0)=CF(i,0)+DC(i,k)*v(i,j,k,nnew)
-c$$$          enddo
-c$$$        enddo
-c$$$        if (FIRST_TIME_STEP) then
-c$$$          cff1=1.
-c$$$          cff2=0.
-c$$$        else
-c$$$          cff1=1.5
-c$$$          cff2=0.5
-c$$$        endif
-c$$$        do i=IV_RANGE
-c$$$          CF(i,0)=( CF(i,0)-cff1*DV_avg1(i,j,nstp)
-c$$$     &                     +cff2*DV_avg1(i,j,indx) )/DC(i,0)
-c$$$        enddo
-c$$$        do k=N,1,-1
-c$$$          do i=IV_RANGE
-c$$$            v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0))
-c$$$# ifdef MASKING
-c$$$     &                                  *vmask(i,j)
-c$$$# endif
-c$$$# ifdef WET_DRY
-c$$$            cff3=wetdry(i,j-1)+wetdry(i,j)
-c$$$            IF (cff3.eq.1.) THEN
-c$$$              cff3=wetdry(i,j-1)-wetdry(i,j)
-c$$$            END IF
-c$$$            cff4=ABS(ABS(cff3)-1.)
-c$$$            cff5=0.5+SIGN(0.5,(cff1*DV_avg1(i,j,nstp)
-c$$$     &                        -cff2*DV_avg1(i,j,indx)))*cff3
-c$$$            vmask_wet(i,j)=0.5*cff3*cff4+cff5*(1.-cff4)
-c$$$!            IF (cff1*DV_avg1(i,j,nstp)
-c$$$!     &         -cff2*DV_avg1(i,j,indx).eq.0. .and.
-c$$$!     &          wetdry(i,j-1)+wetdry(i,j).le.1.) THEN
-c$$$!              vmask_wet(i,j)=0.
-c$$$!            END IF
-c$$$            v(i,j,k,nnew)=v(i,j,k,nnew)*vmask_wet(i,j)
-c$$$# endif
-c$$$          enddo
-c$$$        enddo
-c$$$      enddo
+
 !
 !======================================================================
 ! Exchange periodic boundaries and computational margins.
