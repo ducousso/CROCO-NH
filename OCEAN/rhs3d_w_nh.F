@@ -32,11 +32,11 @@
       subroutine rhs3d_w_tile (istr,iend,jstr,jend, rw,
      &                                         CF,FC,DC,
      &                              wrk1,wrk2, WFx,WFe)
-   !
-!# ifdef NHMG
-!      USE nhmg, only : nhmg_rw_time
-!# endif
-!   
+
+# ifdef NHMG
+      USE nhmg, only : nhmg_rw_advection
+# endif
+   
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k,kp
 # ifdef MPI
@@ -98,23 +98,6 @@
 !# endif
 
 !====================================================================      
-!  Pseudo forces due to time dependency
-!==================================================================== 
-!# if defined NHMG
-!
-!      call nhmg_rw_time(
-!     &     Lm, Mm, N,
-!     &     Huon(-1:Lm+2,-1:Mm+2,1:N),
-!     &     Hvom(-1:Lm+2,-1:Mm+2,1:N),
-!     &     z_w(-1:Lm+2,-1:Mm+2,0:N),
-!     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-!     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-!     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
-!     &     rw(-1:Lm+2,-1:Mm+2,0:N))
-!
-!# endif
-
-!====================================================================      
 !  Horizontal advection
 !==================================================================== 
 # define W_HADV
@@ -163,6 +146,7 @@
 #   endif
 #  endif
 
+!WFx
           do j=Jstr,Jend
             do i=I_EXT_RANGE
               WFx(i,j)=(Wz(i,j,k,nrhs)-Wz(i-1,j,k,nrhs))
@@ -215,6 +199,7 @@
             enddo         
           enddo
 
+!WFe
           do j=J_EXT_RANGE
             do i=Istr,Iend
               WFe(i,j)=(Wz(i,j,k,nrhs)-Wz(i,j-1,k,nrhs)) 
@@ -279,7 +264,6 @@
 !================
       enddo                    !<-- outer loop k
 # endif /* W_HADV */
-
 
 !====================================================================     
 !== Vertical advection
@@ -382,6 +366,24 @@
       enddo     !<-- outer loop j
 !==
 # endif /* UV_ADV && W_VADV */
+
+# if defined NHMG
+!====================================================================      
+!  Pseudo forces 
+!==================================================================== 
+
+      call nhmg_rw_advection(
+     &     Lm, Mm, N,
+     &     Huon(-1:Lm+2,-1:Mm+2,1:N),
+     &     Hvom(-1:Lm+2,-1:Mm+2,1:N),
+     &     We(-1:Lm+2,-1:Mm+2,0:N),
+     &     z_w(-1:Lm+2,-1:Mm+2,0:N),
+     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
+     &     rw(-1:Lm+2,-1:Mm+2,0:N))
+
+# endif
 
       return
       end  

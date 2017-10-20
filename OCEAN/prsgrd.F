@@ -49,7 +49,7 @@ c********************************************************************
      &                                       dR,dZ, FC,dZx,rx,dRx)
 !
 # ifdef NHMG
-      USE nhmg, only : nhmg_comp_rw
+      USE nhmg, only : nhmg_rw
 # endif
 !
       implicit none
@@ -474,7 +474,7 @@ c********************************************************************
      &                                           )
 !
 # ifdef NHMG
-      USE nhmg, only : nhmg_comp_rw
+      USE nhmg, only : nhmg_rw
 # endif
 !
       implicit none
@@ -668,21 +668,21 @@ c********************************************************************
 !
 
 # ifdef NHMG
+#  if !(defined UV_COR || (defined CURVGRID && defined UV_ADV))
 !
 !--------------------------------------------------------------------
 ! hydrostatic pressure gradient for the vertical flux
 !       dpdz = -zx*dpdx - zy*dpdy (See paper)
 !--------------------------------------------------------------------
 !
-      call nhmg_comp_rw(
+      call nhmg_rw(
      &     Lm, Mm, N,
      &     ru(-1:Lm+2,-1:Mm+2,1:N),
      &     rv(-1:Lm+2,-1:Mm+2,1:N),
      &     rw(-1:Lm+2,-1:Mm+2,0:N))
-!
-! caution : if the call to nhmg_comp_rw is commented, initialise rw 
+! caution : initialize if commented
 !      rw(:,:,:)=0.
-!
+#  endif
 # endif
    
 !

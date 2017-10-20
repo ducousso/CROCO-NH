@@ -39,7 +39,7 @@
      &                                 wrk1,wrk2, UFx,UFe, VFx,VFe)
 !
 # ifdef NHMG
-      USE nhmg, only : nhmg_comp_rw
+      USE nhmg, only : nhmg_rw
 # endif
 !
       implicit none
@@ -277,21 +277,18 @@
 #  endif
           enddo
         enddo
-# endif /* UV_COR || (CURVGRID && UV_ADV) */
-
+!
 # ifdef NHMG
-!
-!      enddo
-!
-!      call nhmg_comp_rw(
-!     &     Lm, Mm, N,
-!     &     ru(-1:Lm+2,-1:Mm+2,1:N),
-!     &     rv(-1:Lm+2,-1:Mm+2,1:N),
-!     &     rw(-1:Lm+2,-1:Mm+2,0:N))
-!
-!      do k=1,N
-!
+      enddo
+      call nhmg_rw(
+     &     Lm, Mm, N,
+     &     ru(-1:Lm+2,-1:Mm+2,1:N),
+     &     rv(-1:Lm+2,-1:Mm+2,1:N),
+     &     rw(-1:Lm+2,-1:Mm+2,0:N))
+      do k=1,N
 # endif
+!
+# endif /* UV_COR || (CURVGRID && UV_ADV) */
 
 # ifdef UV_ADV
 !
