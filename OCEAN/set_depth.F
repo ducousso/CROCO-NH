@@ -446,6 +446,7 @@ C$    integer omp_get_thread_num
       endif
 #  endif
 # endif
+# endif
 
 ! exchange
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
