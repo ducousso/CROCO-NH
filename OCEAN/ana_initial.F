@@ -476,10 +476,10 @@ C$    integer omp_get_thread_num
 
 #  elif defined TANKINT
         drho=10
-        thickn=1.5
+        thickn=2
         cff=2.*(log((0.99+1.)/(-0.99+1.))/2.)/thickn
         amp=0.5
-        Lt=10.
+        Lt=100.
         do k=1,N
           do j=JR_RANGE
             do i=IR_RANGE

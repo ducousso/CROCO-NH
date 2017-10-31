@@ -124,7 +124,7 @@
 # ifndef MOVING_BATHY
 #  ifndef TANKY
 !      parameter (LLm0=50,   MMm0=1,    N=50)   ! 20 cm resolution
-!      parameter (LLm0=64,   MMm0=64,    N=32) ! NHMG test
+!      parameter (LLm0=64,   MMm0=1,    N=64) ! H test
       parameter (LLm0=64,   MMm0=64,    N=64) ! NHMG test
 #  else
       parameter (LLm0=1,    MMm0=50,   N=50)   ! 20 cm resolution
@@ -133,6 +133,7 @@
       parameter (LLm0=4000,   MMm0=1,  N=30)  !  1 mm resolution
 # endif
 #elif defined TANKINT
+!      parameter (LLm0=64,   MMm0=1,    N=64) ! H test
       parameter (LLm0=64,   MMm0=64,    N=64) ! NHMG test
 #elif defined REGIONAL
 #  if   defined USWC0
@@ -202,6 +203,8 @@
 # ifdef BIMIN
       parameter (NP_XI=16,  NP_ETA=16,  NNODES=NP_XI*NP_ETA)
 # else     
+!      parameter (NP_XI=1,  NP_ETA=1,  NNODES=NP_XI*NP_ETA)
+!      parameter (NP_XI=4,  NP_ETA=1,  NNODES=NP_XI*NP_ETA)
       parameter (NP_XI=4,  NP_ETA=2,  NNODES=NP_XI*NP_ETA)
 # endif
       parameter (NPP=1)

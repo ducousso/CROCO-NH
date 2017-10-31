@@ -1,7 +1,7 @@
 title:
 	Tank Example
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                32000     0.01    10       1
+               32000     0.01    10       1
 S-coord: THETA_S,   THETA_B,    Hc (m)
          0.0d0      0.0d0       10.d15
 initial: NRREC  filename

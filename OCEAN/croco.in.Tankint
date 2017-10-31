@@ -1,7 +1,7 @@
 title:
 	Tankint Example
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                32000      0.1     1       1
+               256000      0.05     10       1
 S-coord: THETA_S,   THETA_B,    Hc (m)
          0.0d0      0.0d0       10.d15
 initial: NRREC  filename
@@ -11,7 +11,7 @@ restart:          NRST, NRPFRST / filename
                   5000    -1
                           tankint_rst.nc
 history: LDEFHIS, NWRT, NRPFHIS / filename 
-            T      128      0 
+            T      256      0 
                           tankint_his.nc
 primary_history_fields: zeta UBAR VBAR  U  V   wrtT(1:NT)
                           T    T   T   T  T    30*T

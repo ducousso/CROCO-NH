@@ -273,8 +273,8 @@ C$    integer omp_get_thread_num
 #   ifndef TANKY
 !                     Length_XI =10.0
 !                     Length_ETA=0.20
-                     Length_XI =100.0
-                     Length_ETA=100.0
+                     Length_XI =10.0
+                     Length_ETA=10.0
 #   else
                      Length_XI =0.20
                      Length_ETA=10.0
@@ -284,8 +284,8 @@ C$    integer omp_get_thread_num
                      Length_ETA=0.001
 #  endif
 # elif defined TANKINT
-                     Length_XI =10.0
-                     Length_ETA=10.0
+                     Length_XI =100.0
+                     Length_ETA=100.0
 # else
                      Length_XI =???
                      Length_ETA=??? 
