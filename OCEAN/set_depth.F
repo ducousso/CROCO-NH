@@ -676,7 +676,11 @@ C$    integer omp_get_thread_num
         enddo
         do k=1,N
           do i=IU_RANGE
+#  ifndef NO_SPLIT
             u(i,j,k,nrhs)=(u(i,j,k,nrhs)-FC(i,0))
+#  else
+            u(i,j,k,nrhs)=u(i,j,k,nrhs)
+#  endif
 #  ifdef MASKING
      &                                *umask(i,j)
 #    ifdef MRL_WCI
@@ -748,7 +752,11 @@ C$    integer omp_get_thread_num
         enddo
         do k=1,N
           do i=IV_RANGE
+#  ifndef NO_SPLIT
             v(i,j,k,nrhs)=(v(i,j,k,nrhs)-FC(i,0))
+#  else
+            v(i,j,k,nrhs)=v(i,j,k,nrhs)
+#  endif
 #  ifdef MASKING
      &                                *vmask(i,j)
 #    ifdef MRL_WCI
@@ -794,10 +802,9 @@ C$    integer omp_get_thread_num
      &                                  v(START_2D_ARRAY,1,nrhs))
 #  endif
 
-# ifdef NHMG
-!
+# if defined NHMG && !defined NO_SPLIT
+
 ! Coupling wz
-!
       do j=Jstr,Jend
         do k=1,N          
           do i=Istr,Iend
@@ -812,7 +819,6 @@ C$    integer omp_get_thread_num
       enddo
 
 ! set lateral boundary conditions
-
 # ifdef NHMG_WBRY_COUPLING
 # ifndef EW_PERIODIC
       if (WESTERN_EDGE) then

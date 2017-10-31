@@ -1327,6 +1327,87 @@
       enddo
 # endif
 !
+!======================================================================
+!
+# ifdef NO_SPLIT
+# ifdef MPI
+!! d_t(zeta) from wz at n+1/2
+!      do j=JU_RANGE
+!        do i=IV_RANGE
+!          Zt_avg1(i,j)=Zt_avg1(i,j)+dt*wz(i,j,N,nnew)
+!        enddo
+!      enddo
+!      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,
+!     &                          Zt_avg1(START_2D_ARRAY))
+!! d_t(zeta) from horiz divergence at n
+      FX(:,:)=0.
+      FE(:,:)=0.
+      do k=1,N
+        do j=Jstr,Jend
+          do i=Istr,Iend+1
+          FX(i,j)=FX(i,j)+Huon(i,j,k)
+          enddo
+        enddo
+        do j=Jstr,Jend+1
+          do i=Istr,Iend
+          FE(i,j)=FE(i,j)+Hvom(i,j,k)
+          enddo
+        enddo
+      enddo
+      do j=Jstr,Jend
+        do i=Istr,Iend
+          Zt_avg1(i,j)=Zt_avg1(i,j)
+     &        -dt*pm(i,j)*pn(i,j)*( FX(i+1,j)-FX(i,j)
+     &                             +FE(i,j+1)-FE(i,j) )
+        enddo
+      enddo
+!! boundaries
+#  ifndef EW_PERIODIC
+      if (WESTERN_EDGE) then
+          do j=Jstr,Jend
+            Zt_avg1(0,j)=Zt_avg1(1,j)
+          enddo
+      endif
+      if (EASTERN_EDGE) then
+          do j=Jstr,Jend
+            Zt_avg1(LOCALLM+1,j)=Zt_avg1(LOCALLM,j)
+          enddo
+      endif
+#  endif
+#  ifndef NS_PERIODIC
+      if (SOUTHERN_EDGE) then
+          do i=Istr,Iend
+            Zt_avg1(i,0)=Zt_avg1(i,1)
+          enddo
+      endif
+      if (NORTHERN_EDGE) then
+          do i=Istr,Iend
+            Zt_avg1(i,LOCALMM+1)=Zt_avg1(i,LOCALMM)
+          enddo
+      endif
+#  endif
+#  ifndef EW_PERIODIC
+      if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
+          Zt_avg1(0,0)=Zt_avg1(1,1)
+      endif
+      if (WESTERN_EDGE .and. NORTHERN_EDGE) then
+          Zt_avg1(0,LOCALMM+1)=Zt_avg1(1,LOCALMM)
+      endif
+      if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
+          Zt_avg1(LOCALLM+1,0)=Zt_avg1(LOCALLM,1)
+      endif
+      if (EASTERN_EDGE .and. NORTHERN_EDGE) then
+          Zt_avg1(LOCALLM+1,LOCALMM+1)=
+     &                     Zt_avg1(LOCALLM,LOCALMM)
+      endif
+#  endif
+!! exchange
+      call exchange_r2d_tile (Istr,Iend,Jstr,Jend,
+     &                          Zt_avg1(START_2D_ARRAY))
+# else
+# endif
+# endif
+!
 # undef IU_RANGE
 # undef JU_RANGE
 # undef IV_RANGE

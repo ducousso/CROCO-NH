@@ -36,8 +36,8 @@
 #undef  SHOREFACE       /* Shoreface Test Case on a Planar Beach */
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
-#define  TANK            /* Tank Example */
-#undef  TANKINT            /* Tank internal Example */
+#undef  TANK            /* Tank Example */
+#define  TANKINT            /* Tank internal Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 
@@ -1195,6 +1195,7 @@
 ! Int. J. Numer. Methods Fluids 42, 929–952.
 */
 # define  MPI
+# undef NO_SPLIT
 # define NHMG
 # ifdef NHMG
 #  define NHMG_W_VOL
@@ -1205,6 +1206,8 @@
 #  define NHMG_WBRY_COUPLING
 #  define NHMG_WBRY_COPY
 #  undef NHMG_WBRY_ZERO
+#  undef NHMG_CHECKDIV
+#  undef NHMG_DIAG
 #  undef NHMG_WEIGHTED_FRC
 #  undef NHMG_2D_DAMPING
 #  undef NHMG_CORR_SINH
@@ -1229,6 +1232,7 @@
 !
 */
 # define MPI
+# undef NO_SPLIT
 # define NHMG
 # ifdef NHMG
 #  define NHMG_W_VOL
@@ -1239,6 +1243,8 @@
 #  define NHMG_WBRY_COUPLING
 #  define NHMG_WBRY_COPY
 #  undef NHMG_WBRY_ZERO
+#  undef NHMG_CHECKDIV
+#  undef NHMG_DIAG
 #  undef NHMG_WEIGHTED_FRC
 #  undef NHMG_2D_DAMPING
 #  undef NHMG_AB2

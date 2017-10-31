@@ -44,7 +44,7 @@
        endif 
 #endif /* OA_COUPLING */
 
-       iif = iif+1
+      iif = iif+1
       IF (iif .EQ. 0) then
 #endif      
 C$OMP PARALLEL
@@ -55,7 +55,9 @@ C$OMP END PARALLEL
       IF ((iif.GT.0).AND.(iif.LT.(nfast+1))) THEN
 #endif
 C$OMP PARALLEL
+# ifndef NO_SPLIT
         call step2d_thread()
+# endif
 C$OMP END PARALLEL
 #ifdef SOLVE3D
       ENDIF

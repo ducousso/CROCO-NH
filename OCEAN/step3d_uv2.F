@@ -62,6 +62,12 @@
       USE nhmg, only : nhmg_solve
       USE mg_grids
       USE mg_tictoc
+# ifdef NHMG_CHECKDIV
+      USE nhmg, only : nhmg_checkdivergence
+# endif
+# ifdef NHMG_DIAG
+      USE nhmg, only : nhmg_diagnostics
+# endif
 # ifdef NHMG_DEBUG
       USE nhmg_debug, only : nhmg_write_corr_inter1
       USE nhmg_debug, only : nhmg_write_corr_inter2
@@ -265,7 +271,11 @@
         do k=1,N
           do i=IstrU,Iend
 # ifndef NHMG
+#  ifndef NO_SPLIT
             u(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH umask(i,j)
+#  else 
+            u(i,j,k,nnew)=DC(i,k) SWITCH umask(i,j)
+#  endif
 # else
             u(i,j,k,nnew)=DC(i,k) SWITCH umask(i,j)
 # endif
@@ -400,7 +410,11 @@
           do k=1,N
             do i=Istr,Iend
 # ifndef NHMG
+#  ifndef NO_SPLIT
               v(i,j,k,nnew)=(DC(i,k)-DC(i,0)) SWITCH vmask(i,j)
+#  else
+              v(i,j,k,nnew)=DC(i,k) SWITCH vmask(i,j)
+#  endif
 # else
               v(i,j,k,nnew)=DC(i,k) SWITCH vmask(i,j)
 # endif
@@ -857,6 +871,20 @@
 
       call toc(1,'swap corrector')
 
+# ifdef NHMG_CHECKDIV
+      call nhmg_checkdivergence(u(:,:,:,nnew),
+     &                          v(:,:,:,nnew),
+     &                          wz(:,:,:,nnew),
+     &                          Hz(:,:,:))
+# endif
+
+# ifdef NHMG_DIAG
+      call nhmg_diagnostics(u(:,:,:,nnew),
+     &                      v(:,:,:,nnew),
+     &                      wz(:,:,:,nnew),
+     &                      Hz(:,:,:))
+# endif
+
 # endif    /* NHMG */
 
 # ifdef NHMG_DEBUG
@@ -983,25 +1011,34 @@
      &                +ust2d(i,j)*(umask(i,j)-1.0)
 #  endif
 # endif
-# ifdef NHMG
+!to add a correction to ubar??
+!# ifdef NHMG
 !          do k=1,N    
 !             ubar(i,j,knew)=ubar(i,j,knew)+DC(i,0)*grid(1)%du(k,j,i)
 !          enddo
-# endif
+!# endif
 # ifdef WET_DRY
           ubar(i,j,knew)=ubar(i,j,knew)*umask_wet(i,j)
 # endif
         enddo
         do k=N,1,-1
           do i=IU_RANGE
-# ifdef NHMG
+# ifndef NHMG
+#  ifndef NO_SPLIT
+            u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
+#  else
+            u(i,j,k,nnew)=u(i,j,k,nnew)
+#  endif
+# else
+#  ifndef NO_SPLIT
 #  ifdef NHMG_CORR_SINH
             u(i,j,k,nnew)=(u(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
 #  else
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0))
 #  endif
-# else
-            u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
+#  else
+            u(i,j,k,nnew)=u(i,j,k,nnew)
+#  endif
 # endif
 # ifdef MASKING
      &                                *umask(i,j)
@@ -1041,18 +1078,22 @@
           enddo
         enddo
         do i=IU_RANGE
-# ifdef NHMG_CORR_SINH
-          FC(i,0)=(FC(i,0)-DU_avg2(i,j))/ND(i,0)
-# else
+# ifndef NHMG_CORR_SINH
           FC(i,0)=DC(i,0)*(FC(i,0)-DU_avg2(i,j))
+# else
+          FC(i,0)=(FC(i,0)-DU_avg2(i,j))/ND(i,0)
 # endif
         enddo
         do k=1,N,+1
           do i=IU_RANGE
-# ifdef NHMG_CORR_SINH
-            Huon(i,j,k)=FC(i,k)-ND(i,k)*FC(i,0)
-# else
+# ifndef NO_SPLIT
+#  ifndef NHMG_CORR_SINH
             Huon(i,j,k)=FC(i,k)-DC(i,k)*FC(i,0)
+#  else
+            Huon(i,j,k)=FC(i,k)-ND(i,k)*FC(i,0)
+#  endif
+# else
+            Huon(i,j,k)=FC(i,k)
 # endif
           enddo
         enddo
@@ -1155,26 +1196,34 @@
      &                  +vst2d(i,j)*(vmask(i,j)-1.0)
 #  endif
 # endif
-# ifdef NHMG
+!to add a correction to vbar?
+!# ifdef NHMG
 !          do k=1,N   
 !             vbar(i,j,knew)=vbar(i,j,knew)+DC(i,0)*grid(1)%dv(k,j,i)
 !          enddo
-# endif
+!# endif
 # ifdef WET_DRY
           vbar(i,j,knew)=vbar(i,j,knew)*vmask_wet(i,j)
 # endif
           enddo
           do k=N,1,-1
             do i=IV_RANGE
-# ifdef NHMG
-#  ifdef NHMG_CORR_SINH
-              v(i,j,k,nnew)=(v(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
+# ifndef NHMG
+#  ifndef NO_SPLIT
+              v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
 #  else
-              v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0))
+              v(i,j,k,nnew)=v(i,j,k,nnew)
 #  endif
 # else
+#  ifndef NO_SPLIT
+#   ifdef NHMG_CORR_SINH
+              v(i,j,k,nnew)=(v(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
+#   else
               v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
-# endif
+#   endif
+#  else
+              v(i,j,k,nnew)=v(i,j,k,nnew)
+#  endif
 # ifdef MASKING
      &                                  *vmask(i,j)
 #  ifdef MRL_WCI
@@ -1212,18 +1261,22 @@
             enddo
           enddo
           do i=IV_RANGE
-# ifdef NHMG_CORR_SINH
-            FC(i,0)=(FC(i,0)-DV_avg2(i,j))/ND(i,0)
-# else
+# ifndef NHMG_CORR_SINH
             FC(i,0)=DC(i,0)*(FC(i,0)-DV_avg2(i,j))
+# else
+            FC(i,0)=(FC(i,0)-DV_avg2(i,j))/ND(i,0)
 # endif
           enddo
           do k=1,N,+1
             do i=IV_RANGE
-# ifdef NHMG_CORR_SINH
-              Hvom(i,j,k)=FC(i,k)-ND(i,k)*FC(i,0)
-# else
+# ifndef NO_SPLIT
+#  ifndef NHMG_CORR_SINH
               Hvom(i,j,k)=FC(i,k)-DC(i,k)*FC(i,0)
+#  else
+              Hvom(i,j,k)=FC(i,k)-ND(i,k)*FC(i,0)
+#  endif
+# else
+              Hvom(i,j,k)=FC(i,k)
 # endif
             enddo
           enddo
@@ -1417,7 +1470,7 @@
 
       call exchange_v2d_tile (Istr,Iend,Jstr,Jend,
      &                                   vbar(START_2D_ARRAY,knew))
-#   if defined TS_MIX_ISO || defined TS_MIX_GEO
+#  if defined TS_MIX_ISO || defined TS_MIX_GEO
       call exchange_u3d_tile (istr,iend,jstr,jend, dRdx  )
       call exchange_v3d_tile (istr,iend,jstr,jend, dRde  )
 #  endif
@@ -1428,6 +1481,7 @@
 !--------------------------------------------------------------------
 !
 # ifdef NHMG
+#  ifndef NO_SPLIT
 
       do j=Jstr,Jend
         do k=1,N          
@@ -1445,102 +1499,101 @@
         enddo
       enddo
 !
-# ifdef NHMG_WBRY_COUPLING 
+#  ifdef NHMG_WBRY_COUPLING 
 ! set lateral boundary conditions
-# ifndef EW_PERIODIC
+#  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
         do k=1,N
           do j=Jstr,Jend
-#  if defined NHMG_WBRY_ZERO
+#   if defined NHMG_WBRY_ZERO
             wz(0,j,k,nnew)=0.
-#  elif defined NHMG_WBRY_COPY
+#   elif defined NHMG_WBRY_COPY
             wz(0,j,k,nnew)=wz(1,j,k,nnew)
-#  endif
+#   endif
           enddo
         enddo
       endif
       if (EASTERN_EDGE) then
         do k=1,N
           do j=Jstr,Jend
-#  if defined NHMG_WBRY_ZERO
+#   if defined NHMG_WBRY_ZERO
             wz(LOCALLM+1,j,k,nnew)=0.
-#  elif defined NHMG_WBRY_COPY
+#   elif defined NHMG_WBRY_COPY
             wz(LOCALLM+1,j,k,nnew)=wz(LOCALLM,j,k,nnew)
-#  endif
+#   endif
           enddo
         enddo
       endif
-# endif
-# ifndef NS_PERIODIC
+#  endif
+#  ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
         do k=1,N
           do i=Istr,Iend
-#  if defined NHMG_WBRY_ZERO
+#   if defined NHMG_WBRY_ZERO
             wz(i,0,k,nnew)=0.
-#  elif defined NHMG_WBRY_COPY
+#   elif defined NHMG_WBRY_COPY
             wz(i,0,k,nnew)=wz(i,1,k,nnew)
-#  endif
+#   endif
           enddo
         enddo
       endif
       if (NORTHERN_EDGE) then
         do k=1,N
           do i=Istr,Iend
-#  if defined NHMG_WBRY_ZERO
+#   if defined NHMG_WBRY_ZERO
             wz(i,LOCALMM+1,k,nnew)=0.
-#  elif defined NHMG_WBRY_COPY
+#   elif defined NHMG_WBRY_COPY
             wz(i,LOCALMM+1,k,nnew)=wz(i,LOCALMM,k,nnew)
-#  endif
+#   endif
           enddo
         enddo
       endif
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
         do k=1,N
-#  if defined NHMG_WBRY_ZERO
+#   if defined NHMG_WBRY_ZERO
           wz(0,0,k,nnew)=0.
-#  elif defined NHMG_WBRY_COPY
+#   elif defined NHMG_WBRY_COPY
           wz(0,0,k,nnew)=wz(1,1,k,nnew)
-#  endif
+#   endif
         enddo
       endif
       if (WESTERN_EDGE .and. NORTHERN_EDGE) then
         do k=1,N
-#  if defined NHMG_WBRY_ZERO
+#   if defined NHMG_WBRY_ZERO
           wz(0,LOCALMM+1,k,nnew)=0.
-#  elif defined NHMG_WBRY_COPY
+#   elif defined NHMG_WBRY_COPY
           wz(0,LOCALMM+1,k,nnew)=wz(1,LOCALMM,k,nnew)
-#  endif
+#   endif
         enddo
       endif
       if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
         do k=1,N
-#  if defined NHMG_WBRY_ZERO
+#   if defined NHMG_WBRY_ZERO
           wz(LOCALLM+1,0,k,nnew)=0.
-#  elif defined NHMG_WBRY_COPY
+#   elif defined NHMG_WBRY_COPY
           wz(LOCALLM+1,0,k,nnew)=wz(LOCALLM,1,k,nnew)
-#  endif
+#   endif
         enddo
       endif
       if (EASTERN_EDGE .and. NORTHERN_EDGE) then
         do k=1,N
-#  if defined NHMG_WBRY_ZERO
+#   if defined NHMG_WBRY_ZERO
           wz(LOCALLM+1,LOCALMM+1,k,nnew)=0.
-#  elif defined NHMG_WBRY_COPY
+#   elif defined NHMG_WBRY_COPY
           wz(LOCALLM+1,LOCALMM+1,k,nnew)=wz(LOCALLM,LOCALMM,k,nnew)
-#  endif
+#   endif
         enddo
       endif
 #  endif
-# endif
-# endif
+#  endif
 
+#  endif
 ! exchange
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,nnew)) 
 # endif
-
 # endif
 
 # ifdef NHMG_DEBUG
