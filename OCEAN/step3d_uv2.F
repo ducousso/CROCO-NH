@@ -453,10 +453,10 @@
             !FC(i,:) is defined for k=0,1...N-1
             !FC(i,N) should not be used for w
             FC(i,k)=-0.5*dt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k+1)
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
             DC(i,0)=pm(i,j)*pn(i,j)
             WC(i,k)=dt*DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
-# endif
+#  endif
           enddo
         enddo
 
@@ -466,9 +466,9 @@
             DC(i,k)=wz(i,j,k,nnew)*0.5*(Hz(i,j,k)+Hz(i,j,k+1))
             BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1))
      &              -FC(i,k)-FC(i,k-1)
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
      &              +max(WC(i,k  ),0.)-min(WC(i,k-1),0.)
-# endif
+#  endif
           enddo
         enddo      !--> discard DC(:,0); keep FC
         ! Dirichlet condition = we keep the wz(:,:,N) identical
@@ -495,21 +495,16 @@
            CF(i,0) = 0.
            DC(i,0) = 0.         !<=Dirichlet BC, no flux
         enddo
-!
-! Apply wind forcing.
-!
-# ifndef BODYFORCE
-! the wind does not force W
-# endif
+
         do k=1,N-1 !<= starts at 1, unlike for u and v (starts at 2)
           do i=Istr,Iend
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
               aa = FC(i,k-1)-max(WC(i,k-1),0.)   !<-- a = sub   (lower) diagonal
               cc = FC(i,k  )+min(WC(i,k  ),0.)   !<-- c = super (upper) diagonal
-# else
+#  else
               aa = FC(i,k-1)
               cc = FC(i,k  )
-# endif
+#  endif
             cff=1./(BC(i,k)-aa*CF(i,k-1))        !<-- p    = 1/(b(k)-a(k)*q(k))
             CF(i,k)=cff*cc
             ! DC was a velocity * Hz, after this operation
@@ -532,9 +527,9 @@
 !            CF(i,0)=CF(i,0)+cff
 !            DC(i,0)=DC(i,0)+cff*DC(i,k)
             wz(i,j,k,nnew)=DC(i,k) SWITCH rmask(i,j)
-# ifdef DIAGNOSTICS_UV
+#  ifdef DIAGNOSTICS_UV
 !todo            MVmix(i,j,k,1)=
-# endif 
+#  endif 
           enddo
         enddo      !--> discard FC,BC; keep DC,CF(:,0)
 
@@ -598,17 +593,17 @@
           do i=Istr,Iend
             FC(i,k)=-0.5*dt*( Akv(i,j,k)+Akv(i,j,k-1) )
      &                 /    ( z_w(i,j,k)-z_w(i,j,k-1) )
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
             DC(i,0)=pm(i,j)*pn(i,j)
             WC(i,k)=dt*DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k-1))
-# endif
+#  endif
           enddo
         enddo
         do i=Istr,Iend
           FC(i,0)=0.
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
           WC(i,0)=0.
-# endif
+#  endif
         enddo
         do k=1,N-1
           do i=Istr,Iend
@@ -618,9 +613,9 @@
             DC(i,k)=wz(i,j,k,nnew) *0.5*(Hz(i,j,k)+Hz(i,j,k+1))
 #  endif
             BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1)) - FC(i,k) - FC(i,k+1)
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
      &              +max(WC(i,k+1),0.)-min(WC(i,k),0.)
-# endif
+#  endif
           enddo
         enddo  
         do i=Istr,Iend            
@@ -630,40 +625,40 @@
           DC(i,N)=wz(i,j,N,nnew) *0.5*Hz(i,j,N)
 #  endif
           BC(i,N)=0.5*Hz(i,j,N) - FC(i,N)
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
      &              -min(WC(i,N),0.)
-# endif
+#  endif
         enddo 
         
         do i=Istr,Iend
           cff=1./BC(i,1)
           CF(i,2)=cff*(FC(i,2)
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
      &              +min(WC(i,2),0.)
-# endif
+#  endif
      &                                 )
           DC(i,1)=cff*DC(i,1)
         enddo
         do k=2,N-1
           do i=Istr,Iend
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
               aa = FC(i,k)-max(WC(i,k),0.)
               cc = FC(i,k+1)+min(WC(i,k+1),0.)
-# else
+#  else
               aa = FC(i,k)
               cc = FC(i,k+1)
-# endif
+#  endif
             cff=1./(BC(i,k)-aa*CF(i,k))
             CF(i,k+1)=cff*cc
             DC(i,k)=cff*(DC(i,k)-aa*DC(i,k-1))
           enddo
         enddo
         do i=Istr,Iend
-# ifdef VADV_ADAPT_IMP
+#  ifdef VADV_ADAPT_IMP
               aa = FC(i,N)-max(WC(i,N),0.)
-# else
+#  else
               aa = FC(i,N)
-# endif
+#  endif
           wz(i,j,N,nnew)=(DC(i,N)-aa*DC(i,N-1))
      &                  /(BC(i,N)-aa*CF(i,N))
         enddo
@@ -786,7 +781,7 @@
 ! Non-hydro projection of momentum
 !--------------------------------------------------------------------
 !
-# ifdef NHMG_DEBUG
+#  ifdef NHMG_DEBUG
 
       write(*,*) 'step3d_uv2 : u,v,wz before projection . [u]'
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
@@ -799,7 +794,7 @@
      &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
 
-# endif
+#  endif
 
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
@@ -810,7 +805,7 @@
 
       call tic(1,'swap corrector')
 
-# if defined NHMG_MASKING
+#  if defined NHMG_MASKING
          do k=1,N    
             do j=Jstr,Jend
                do i=IstrU,Iend
@@ -832,7 +827,7 @@
                enddo
             enddo
          enddo
-# endif
+#  endif
 
       call nhmg_solve(u(:,:,:,nnew),
      &                v(:,:,:,nnew),
@@ -871,19 +866,19 @@
 
       call toc(1,'swap corrector')
 
-# ifdef NHMG_CHECKDIV
+#  ifdef NHMG_CHECKDIV
       call nhmg_checkdivergence(u(:,:,:,nnew),
      &                          v(:,:,:,nnew),
      &                          wz(:,:,:,nnew),
      &                          Hz(:,:,:))
-# endif
+#  endif
 
-# ifdef NHMG_DIAG
+#  ifdef NHMG_DIAG
       call nhmg_diagnostics(u(:,:,:,nnew),
      &                      v(:,:,:,nnew),
      &                      wz(:,:,:,nnew),
      &                      Hz(:,:,:))
-# endif
+#  endif
 
 # endif    /* NHMG */
 
@@ -946,7 +941,7 @@
       write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
       write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
       write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-# endif
+#endif
 
 # ifdef EW_PERIODIC
 #  define IU_RANGE Istr,Iend
@@ -1031,11 +1026,11 @@
 #  endif
 # else
 #  ifndef NO_SPLIT
-#  ifdef NHMG_CORR_SINH
+#   ifdef NHMG_CORR_SINH
             u(i,j,k,nnew)=(u(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
-#  else
+#   else
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0))
-#  endif
+#   endif
 #  else
             u(i,j,k,nnew)=u(i,j,k,nnew)
 #  endif
@@ -1224,6 +1219,7 @@
 #  else
               v(i,j,k,nnew)=v(i,j,k,nnew)
 #  endif
+# endif
 # ifdef MASKING
      &                                  *vmask(i,j)
 #  ifdef MRL_WCI
@@ -1587,13 +1583,16 @@
       endif
 #  endif
 #  endif
+#  endif
 
 #  endif
+
 ! exchange
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,nnew)) 
 # endif
+
 # endif
 
 # ifdef NHMG_DEBUG
