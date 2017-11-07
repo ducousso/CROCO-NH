@@ -1103,7 +1103,7 @@
      &                 * om_u(i,j)
 # endif
 # ifdef NHMG_WEIGHTED_FRC
-     &                 * 0.9
+     &                 * 0.0
 !     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
 # endif
                enddo
@@ -1128,7 +1128,7 @@
      &                 * on_v(i,j)
 # endif
 # ifdef NHMG_WEIGHTED_FRC
-     &                 * 0.9
+     &                 * 0.0
 !     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
 # endif
                enddo
@@ -1188,6 +1188,7 @@
          call nhmg_solve(u(:,:,:,nnew),
      &                   v(:,:,:,nnew),
      &                   wz(:,:,:,nnew),
+     &                   z_w(:,:,:),
      &                   Hz_half,.true.)
          
          ! add the non-hydro correction (du, dv, dw are in flux form)
@@ -1200,7 +1201,7 @@
      &                 * pn_u(i,j)
                   rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
 # ifdef NHMG_WEIGHTED_FRC
-     &                 * 0.9
+     &                 * 0.0
 !     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
 # endif
                enddo
@@ -1213,7 +1214,7 @@
      &                 * pm_v(i,j)
                   rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
 # ifdef NHMG_WEIGHTED_FRC
-     &                 * 0.9
+     &                 * 0.0
 !     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
 # endif
                enddo

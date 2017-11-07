@@ -832,6 +832,7 @@
       call nhmg_solve(u(:,:,:,nnew),
      &                v(:,:,:,nnew),
      &                wz(:,:,:,nnew),
+     &                z_w(:,:,:),
      &                Hz,.false.)
 
       do k=1,N
