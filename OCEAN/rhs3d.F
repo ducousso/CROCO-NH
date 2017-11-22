@@ -278,7 +278,7 @@
           enddo
         enddo
 !
-# ifdef NHMG
+# ifdef NHMG2
       enddo
       call nhmg_rw(
      &     Lm, Mm, N,
