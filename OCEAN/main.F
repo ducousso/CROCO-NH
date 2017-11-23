@@ -68,6 +68,9 @@
 #elif defined NBQ
        integer MPI_STATUS_SIZE
 #endif 
+# if defined NHMG
+      integer halo
+# endif
 
       integer :: iifroot, iicroot
 #ifdef WKB_WWAVE
@@ -354,10 +357,9 @@ CR      write(*,*)  ' -5' MYID
 !----------------------------------------------------------------------
 !
 #ifdef NHMG
+      halo = (size(z_r,dim=1) - Lm)/2
       call nhmg_matrices(
-     & Lm,Mm,N,
-     &  z_r(0:Lm+1,0:Mm+1,1:N), 
-     &   Hz(0:Lm+1,0:Mm+1,1:N),
+     & Lm,Mm,N,halo,z_r, Hz,
      & om_r(0:Lm+1,0:Mm+1)    ,
      & on_r(0:Lm+1,0:Mm+1)    )
 #endif

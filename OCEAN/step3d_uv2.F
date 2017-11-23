@@ -62,9 +62,9 @@
       USE nhmg, only : nhmg_solve
       USE mg_grids
       USE mg_tictoc
-# ifdef NHMG_CHECKDIV
+!# ifdef NHMG_CHECKDIV
       USE nhmg, only : nhmg_checkdivergence
-# endif
+!# endif
 # ifdef NHMG_DIAG
       USE nhmg, only : nhmg_diagnostics
 # endif
@@ -867,12 +867,12 @@
 
       call toc(1,'swap corrector')
 
-#  ifdef NHMG_CHECKDIV
+!#  ifdef NHMG_CHECKDIV
       call nhmg_checkdivergence(u(:,:,:,nnew),
      &                          v(:,:,:,nnew),
      &                          wz(:,:,:,nnew),
      &                          Hz(:,:,:))
-#  endif
+!#  endif
 
 #  ifdef NHMG_DIAG
       call nhmg_diagnostics(u(:,:,:,nnew),
