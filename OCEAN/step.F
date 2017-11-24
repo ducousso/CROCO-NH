@@ -745,8 +745,8 @@ C$OMP BARRIER
 ! care that dz is properly updated. needed to compute rw etc     
 !
       !! We're assuming that Padd_X,Padd_E are 0
-      halo = (size(z_r,dim=1) - Lm)/2
-      call nhmg_matrices(Lm,Mm,N,halo,z_r,Hz)
+      halo = (size(Hz,dim=1) - Lm)/2
+      call nhmg_matrices(Lm,Mm,N,halo,dzdxi,dzdeta,Hz)
 # endif
 
 C$OMP BARRIER

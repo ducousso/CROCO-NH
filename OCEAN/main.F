@@ -357,9 +357,9 @@ CR      write(*,*)  ' -5' MYID
 !----------------------------------------------------------------------
 !
 #ifdef NHMG
-      halo = (size(z_r,dim=1) - Lm)/2
+      halo = (size(Hz,dim=1) - Lm)/2
       call nhmg_matrices(
-     & Lm,Mm,N,halo,z_r, Hz,
+     & Lm,Mm,N,halo,dzdxi,dzdeta, Hz,
      & om_r(0:Lm+1,0:Mm+1)    ,
      & on_r(0:Lm+1,0:Mm+1)    )
 #endif

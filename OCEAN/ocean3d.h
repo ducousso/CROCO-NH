@@ -67,11 +67,15 @@
       real nhdv(GLOBAL_2D_ARRAY,1:N,2)
       real nhdw(GLOBAL_2D_ARRAY,0:N,2)
       real nhssh(GLOBAL_2D_ARRAY)
+      real dzdxi(GLOBAL_2D_ARRAY,1:N)
+      real dzdeta(GLOBAL_2D_ARRAY,1:N)
       common /ocean_wz/wz
       common /ocean_nhdu/nhdu 
       common /ocean_nhdv/nhdv
       common /ocean_nhdw/nhdw
       common /ocean_nhssh/nhssh
+      common /ocean_dzdxi/dzdxi
+      common /ocean_dzdeta/dzdeta
 # endif
 
 # if defined UV_VIS4 && defined UV_MIX_GEO
