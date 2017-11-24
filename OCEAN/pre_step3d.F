@@ -72,6 +72,7 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
+      use mg_netcdf_out
       USE mg_grids
       use mg_tictoc
 # ifdef NHMG_DEBUG
@@ -1184,6 +1185,8 @@
             enddo
          enddo
 # endif
+         call write_netcdf(wz(:,:,:,nnew),vname='wz',netcdf_file_name='pre.nc',
+     & rank=myrank,iter=1)
 
          call nhmg_solve(u(:,:,:,nnew),
      &                   v(:,:,:,nnew),
