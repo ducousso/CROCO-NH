@@ -65,7 +65,7 @@ c********************************************************************
      &     rx(PRIVATE_2D_SCRATCH_ARRAY),
      &    dRx(PRIVATE_2D_SCRATCH_ARRAY)
 # ifdef NHMG
-     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,0:N)
+     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,N)
 # endif
 !
       parameter (OneFifth=0.2, OneTwelfth=1./12., epsil=0.) !1.E-10) 
@@ -489,7 +489,7 @@ c********************************************************************
      &     rx(PRIVATE_2D_SCRATCH_ARRAY)
 #  endif
 #  ifdef NHMG
-     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,0:N)
+     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,N)
 #  endif
 #  include "grid.h"
 #  include "ocean3d.h"
@@ -679,7 +679,7 @@ c********************************************************************
      &     Lm, Mm, N,
      &     ru(-1:Lm+2,-1:Mm+2,1:N),
      &     rv(-1:Lm+2,-1:Mm+2,1:N),
-     &     rw(-1:Lm+2,-1:Mm+2,0:N))
+     &     rw(-1:Lm+2,-1:Mm+2,1:N))
 ! caution : initialize if commented
 !      rw(:,:,:)=0.
 #  endif

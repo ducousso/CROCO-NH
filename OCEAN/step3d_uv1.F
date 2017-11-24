@@ -43,7 +43,7 @@
       real ru(PRIVATE_2D_SCRATCH_ARRAY,N),
      &     rv(PRIVATE_2D_SCRATCH_ARRAY,N),
 #ifdef NHMG
-     &     rw(PRIVATE_2D_SCRATCH_ARRAY,0:N),
+     &     rw(PRIVATE_2D_SCRATCH_ARRAY,1:N),
 #endif
      &     DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff
 # include "grid.h"
@@ -80,7 +80,7 @@
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
      &     ru(-1:Lm+2,-1:Mm+2,1:N),
      &     rv(-1:Lm+2,-1:Mm+2,1:N),
-     &     rw(-1:Lm+2,-1:Mm+2,0:N) )
+     &     rw(-1:Lm+2,-1:Mm+2,1:N) )
 
 #endif
 

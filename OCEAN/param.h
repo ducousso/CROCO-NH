@@ -294,13 +294,8 @@
 # else
       parameter (Lm=LLm, Mm=MMm)
 # endif
-# ifdef NHMG
-      parameter (padd_X=0)
-      parameter (padd_E=0)
-# else
       parameter (padd_X=(Lm+2)/2-(Lm+1)/2)
       parameter (padd_E=(Mm+2)/2-(Mm+1)/2)
-# endif 
 #endif
 
 #if defined AGRIF || defined AUTOTILING

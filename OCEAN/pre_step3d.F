@@ -89,7 +89,7 @@
 # endif
       real   ru(PRIVATE_2D_SCRATCH_ARRAY,N),    cff,
      &       rv(PRIVATE_2D_SCRATCH_ARRAY,N),    cff1,
-     &       rw(PRIVATE_2D_SCRATCH_ARRAY,0:N),     
+     &       rw(PRIVATE_2D_SCRATCH_ARRAY,N),     
      &       FC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff2,
      &       CF(PRIVATE_1D_SCRATCH_ARRAY,0:N),
      &       DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  gamma, 
@@ -602,7 +602,7 @@
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp),
      &     ru(-1:Lm+2,-1:Mm+2,1:N),
      &     rv(-1:Lm+2,-1:Mm+2,1:N),
-     &     rw(-1:Lm+2,-1:Mm+2,0:N) )
+     &     rw(-1:Lm+2,-1:Mm+2,1:N) )
 
 # endif
 

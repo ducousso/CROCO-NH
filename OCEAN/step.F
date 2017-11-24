@@ -741,12 +741,13 @@ C$OMP BARRIER
       enddo
 
 # ifdef NHMG
-!XXXXXXXXXXXXXXXXXXXX
-! care that dz is properly updated. needed to compute rw etc     
-!
-      !! We're assuming that Padd_X,Padd_E are 0
-      halo = (size(Hz,dim=1) - Lm)/2
-      call nhmg_matrices(Lm,Mm,N,halo,dzdxi,dzdeta,Hz)
+
+# ifdef THREE_GHOST_POINTS
+      halo = 3
+# else
+      halo = 2
+# endif
+      call nhmg_matrices(Lm,Mm,N,halo,padd_X,padd_E,dzdxi,dzdeta,Hz)
 # endif
 
 C$OMP BARRIER
