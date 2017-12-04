@@ -106,8 +106,8 @@
    Set default time-averaging filter for barotropic fields.
 ======================================================================
 */
-#define  M2FILTER_NONE
-#undef M2FILTER_POWER
+#undef  M2FILTER_NONE
+#define M2FILTER_POWER
 #undef  M2FILTER_COSINE
 #undef  M2FILTER_FLAT
 /*
