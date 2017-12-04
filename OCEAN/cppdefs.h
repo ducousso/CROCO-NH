@@ -786,14 +786,14 @@
 # define NONLIN_EOS
 # define SPLIT_EOS
                       /* OBCs algo */
-# undef OBC_M2SPECIFIED
+# define OBC_M2SPECIFIED
 # undef  OBC_M2FLATHER
-# define  OBC_M2CHARACT
+# undef  OBC_M2CHARACT
 # undef  OBC_M2ORLANSKI
-# undef OBC_M3SPECIFIED
-# define OBC_M3ORLANSKI
-# undef OBC_TSPECIFIED
-# define OBC_TORLANSKI
+# define OBC_M3SPECIFIED
+# undef OBC_M3ORLANSKI
+# define OBC_TSPECIFIED
+# undef OBC_TORLANSKI
                       /* Sponge */
 # undef SPONGE
                       /* Semi-implicit Vertical Tracer/Mom Advection */
