@@ -434,7 +434,7 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
         do i=IstrR,IendR 
 !          h(i,j)=depth*(1+0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
 !     &                                  (yr(i,j)-0.5*el)**2))) 
-          h(i,j)=depth*(1-0.6*exp(-cff*((xr(i,j)-0.5*xl)**2+
+          h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
      &                                  (yr(i,j)-0.5*el)**2))) 
 !          h(i,j)=depth
 #  if defined MASKING || defined NHMG_MASKING
