@@ -668,7 +668,7 @@ c********************************************************************
 !
 
 # ifdef NHMG
-#  if (defined UV_COR || (defined CURVGRID && defined UV_ADV))
+#  if !(defined UV_COR || (defined CURVGRID && defined UV_ADV))
 !
 !--------------------------------------------------------------------
 ! hydrostatic pressure gradient for the vertical flux
