@@ -90,7 +90,7 @@
 # endif
       real   ru(PRIVATE_2D_SCRATCH_ARRAY,N),    cff,
      &       rv(PRIVATE_2D_SCRATCH_ARRAY,N),    cff1,
-     &       rw(PRIVATE_2D_SCRATCH_ARRAY,N),     
+     &       rw(PRIVATE_2D_SCRATCH_ARRAY,0:N),     
      &       FC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff2,
      &       CF(PRIVATE_1D_SCRATCH_ARRAY,0:N),
      &       DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  gamma, 
@@ -603,7 +603,7 @@
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp),
      &     ru(-1:Lm+2,-1:Mm+2,1:N),
      &     rv(-1:Lm+2,-1:Mm+2,1:N),
-     &     rw(-1:Lm+2,-1:Mm+2,1:N) )
+     &     rw(-1:Lm+2,-1:Mm+2,0:N) )
 
 # endif
 
@@ -1185,8 +1185,6 @@
             enddo
          enddo
 # endif
-         call write_netcdf(wz(:,:,:,nnew),vname='wz',netcdf_file_name='pre.nc',
-     & rank=myrank,iter=1)
 
          call nhmg_solve(u(:,:,:,nnew),
      &                   v(:,:,:,nnew),

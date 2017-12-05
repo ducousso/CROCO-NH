@@ -58,7 +58,7 @@
      &     CF(PRIVATE_1D_SCRATCH_ARRAY,0:N),
      &     FC(PRIVATE_1D_SCRATCH_ARRAY,0:N), cff,
      &     DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),
-     &     rw(PRIVATE_2D_SCRATCH_ARRAY,1:N)       
+     &     rw(PRIVATE_2D_SCRATCH_ARRAY,0:N)       
       real grad(PRIVATE_2D_SCRATCH_ARRAY)
       real dpth
 !

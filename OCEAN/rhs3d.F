@@ -63,7 +63,7 @@
      &      VFx(PRIVATE_2D_SCRATCH_ARRAY), 
      &      VFe(PRIVATE_2D_SCRATCH_ARRAY),    gamma 
 # ifdef NHMG
-     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,N)
+     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 # endif
       parameter (gamma = -0.25)
 # include "grid.h"
@@ -284,7 +284,7 @@
      &     Lm, Mm, N,
      &     ru(-1:Lm+2,-1:Mm+2,1:N),
      &     rv(-1:Lm+2,-1:Mm+2,1:N),
-     &     rw(-1:Lm+2,-1:Mm+2,1:N))
+     &     rw(-1:Lm+2,-1:Mm+2,0:N))
       do k=1,N
 # endif
 !

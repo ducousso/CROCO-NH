@@ -43,7 +43,7 @@
      &                   ,imin,imax,jmin,jmax
 # endif
 # include "param.h"
-      real rw(PRIVATE_2D_SCRATCH_ARRAY,N),
+      real rw(PRIVATE_2D_SCRATCH_ARRAY,0:N),
      &     CF(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff,cff1,cff2,
      &     FC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  
      &     DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),        
@@ -371,7 +371,6 @@
 !====================================================================      
 !  Pseudo forces 
 !==================================================================== 
-
       call nhmg_rw_advection(
      &     Lm, Mm, N,
      &     Huon(-1:Lm+2,-1:Mm+2,1:N),
@@ -381,7 +380,7 @@
      &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
      &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
      &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
-     &     rw(-1:Lm+2,-1:Mm+2,1:N))
+     &     rw(-1:Lm+2,-1:Mm+2,0:N))
 
 # endif
 
