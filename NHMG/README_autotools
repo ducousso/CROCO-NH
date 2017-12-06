@@ -1,0 +1,14 @@
+The GNU autotools = automake and autoconf (+libtool and gettext)
+
+Quick start:
+-----------
+mkdir confdb
+
+automake --add-missing
+
+aclocal; automake; autoconf
+
+More information:
+----------------
+http://www.gnu.org/software/automake/manual/
+http://www.gnu.org/software/autoconf/manual/
