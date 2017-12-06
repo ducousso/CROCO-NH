@@ -237,7 +237,46 @@ C$    integer omp_get_thread_num
             enddo
          enddo
       enddo
-      
+      if (WESTERN_EDGE) then
+         do k = 1, N
+            do j = 0,Mm+1
+               dzdxi (0,j,k) = 0.
+               dzdxi (1,j,k) = 0.
+               dzdeta(0,j,k) = 0.
+               dzdeta(1,j,k) = 0.
+            enddo
+         enddo
+       endif
+      if (EASTERN_EDGE) then
+         do k = 1, N
+            do j = 0,Mm+1
+               dzdxi (Lm  ,j,k) = 0.
+               dzdxi (Lm+1,j,k) = 0.
+               dzdeta(Lm  ,j,k) = 0.
+               dzdeta(Lm+1,j,k) = 0.
+            enddo
+         enddo
+       endif
+      if (SOUTHERN_EDGE) then
+         do k = 1, N
+            do i = 0,Lm+1
+               dzdxi (i,0,k) = 0.
+               dzdxi (i,1,k) = 0.
+               dzdeta(i,0,k) = 0.
+               dzdeta(i,1,k) = 0.
+            enddo
+         enddo
+       endif
+      if (NORTHERN_EDGE) then
+         do k = 1, N
+            do i = 0,Lm+1
+               dzdxi (i,Mm  ,k) = 0.
+               dzdxi (i,Mm+1,k) = 0.
+               dzdeta(i,Mm  ,k) = 0.
+               dzdeta(i,Mm+1,k) = 0.
+            enddo
+         enddo
+       endif
 
 #endif
       return

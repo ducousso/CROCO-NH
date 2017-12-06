@@ -216,24 +216,6 @@ contains
           enddo
        enddo
 
-       
-!!$       !! Slopes
-!!$       do i = 0,nx+1        ! We need zr with 2 halo points !
-!!$          do j = 0,ny+1     !
-!!$             do k = 1, nz
-!!$                zx(k,j,i) = hlf * (( zr(k,j  ,i+1) - zr(k,j  ,i-1) ) / dx(j,i) )
-!!$                zy(k,j,i) = hlf * (( zr(k,j+1,i  ) - zr(k,j-1,i  ) ) / dy(j,i) )
-!!$             enddo
-!!$          enddo
-!!$       enddo
-!!$
-       call set_phybound2zero(lev,zx,gt='u')
-       call set_phybound2zero(lev,zy,gt='v')
-
-
-       call set_phybound2zero(lev,zxdy,gt='u')
-       call set_phybound2zero(lev,zydx,gt='v')
-
        !!- Used in set_matrices and fluxes
        do i = 0,nx+1
           do j = 0,ny+1

@@ -23,6 +23,9 @@
       trd=omp_get_thread_num()
       call rhs3d_w_tile (Istr,Iend,Jstr,Jend,  A3d(1,5,trd),
      &             A2d(1,1,trd), A2d(1,2,trd), A2d(1,3,trd),
+# ifdef NHMG
+     &      A2d(1,5,trd), A2d(1,6,trd), A2d(1,7,trd),A2d(1,8,trd),
+# endif
      &             A2d(1,1,trd), A2d(1,2,trd), A2d(1,3,trd), 
      &             A2d(1,4,trd)
      &                  )
@@ -30,7 +33,10 @@
       end
 !====================================================================           
       subroutine rhs3d_w_tile (istr,iend,jstr,jend, rw,
-     &                                         CF,FC,DC,
+     &                                        CF,FC,DC,
+# ifdef NHMG
+     &                   div_zx,div_zy,Udiv_zx,Vdiv_zy,
+# endif
      &                              wrk1,wrk2, WFx,WFe)
 
 # ifdef NHMG
@@ -47,6 +53,13 @@
      &     CF(PRIVATE_1D_SCRATCH_ARRAY,0:N),  cff,cff1,cff2,
      &     FC(PRIVATE_1D_SCRATCH_ARRAY,0:N),  
      &     DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),        
+# ifdef NHMG
+     &     div_zx(PRIVATE_1D_SCRATCH_ARRAY,1:N),  
+     &     div_zy(PRIVATE_1D_SCRATCH_ARRAY,1:N),  
+     &     Udiv_zx(PRIVATE_1D_SCRATCH_ARRAY,1:N),  
+     &     Vdiv_zy(PRIVATE_1D_SCRATCH_ARRAY,1:N),  
+
+# endif
      &   wrk1(PRIVATE_2D_SCRATCH_ARRAY), Huon_w,
      &   wrk2(PRIVATE_2D_SCRATCH_ARRAY), Hvom_w,
      &    WFx(PRIVATE_2D_SCRATCH_ARRAY), Omeg_r,
@@ -92,7 +105,7 @@
 !     &                                                     ) !<-- Hz contains rho Hz 
 !                                                             !<-- units of cff : kg.m.s-2       
 !            rw(i,j,N  ) = cff
-!          enddo
+!          enddo W_VADV
 !        enddo      
 !!====================================================================         
 !# endif
@@ -371,16 +384,76 @@
 !====================================================================      
 !  Pseudo forces 
 !==================================================================== 
-      call nhmg_rw_advection(
-     &     Lm, Mm, N,
-     &     Huon(-1:Lm+2,-1:Mm+2,1:N),
-     &     Hvom(-1:Lm+2,-1:Mm+2,1:N),
-     &     We(-1:Lm+2,-1:Mm+2,0:N),
-     &     z_w(-1:Lm+2,-1:Mm+2,0:N),
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
-     &     rw(-1:Lm+2,-1:Mm+2,0:N))
+!     call nhmg_rw_advection(
+!    &     Lm, Mm, N,
+!    &     Huon(-1:Lm+2,-1:Mm+2,1:N),
+!    &     Hvom(-1:Lm+2,-1:Mm+2,1:N),
+!    &     We(-1:Lm+2,-1:Mm+2,0:N),
+!    &     z_w(-1:Lm+2,-1:Mm+2,0:N),
+!    &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+!    &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
+!    &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
+!    &     rw(-1:Lm+2,-1:Mm+2,0:N))
+
+!      if(mynode.eq.0)write(*,*)"dzdxi=",dzdxi(0,3,1),dzdxi(1,3,1)
+      do j=jstr,jend
+        do k=1,N
+          do i=Istr,Iend
+            div_zx(i,k) = 0.5*Huon(i+1,j,k)*(dzdxi(i,j,k)+dzdxi(i+1,j,k)) 
+     &                   -0.5*Huon(i  ,j,k)*(dzdxi(i,j,k)+dzdxi(i-1,j,k)) 
+     &                   +0.5*Hvom(i,j+1,k)*(dzdxi(i,j,k)+dzdxi(i,j+1,k)) 
+     &                   -0.5*Hvom(i,j  ,k)*(dzdxi(i,j,k)+dzdxi(i,j-1,k)) 
+          div_zy(i,k) = 0.5*Huon(i+1,j,k)*(dzdeta(i,j,k)+dzdeta(i+1,j,k)) 
+     &                 -0.5*Huon(i  ,j,k)*(dzdeta(i,j,k)+dzdeta(i-1,j,k)) 
+     &                 +0.5*Hvom(i,j+1,k)*(dzdeta(i,j,k)+dzdeta(i,j+1,k)) 
+     &                 -0.5*Hvom(i,j  ,k)*(dzdeta(i,j,k)+dzdeta(i,j-1,k)) 
+          enddo
+        enddo
+        k=1
+          do i=Istr,Iend
+            div_zx(i,k) = div_zx(i,k)
+     &                   +0.5*  We(i,j,k  )*(dzdxi(i,j,k)+dzdxi(i,j,k+1)) 
+            div_zy(i,k) = div_zy(i,k)
+     &                   +0.5*  We(i,j,k  )*(dzdeta(i,j,k)+dzdeta(i,j,k+1)) 
+          enddo
+        do k=2,N-1
+          do i=Istr,Iend
+            div_zx(i,k) = div_zx(i,k)
+     &                 +0.5*  We(i,j,k  )*(dzdxi(i,j,k)+dzdxi(i,j,k+1)) 
+     &                 -0.5*  We(i,j,k-1)*(dzdxi(i,j,k)+dzdxi(i,j,k-1)) 
+            div_zy(i,k) = div_zy(i,k)
+     &               +0.5*  We(i,j,k  )*(dzdeta(i,j,k)+dzdeta(i,j,k+1)) 
+     &               -0.5*  We(i,j,k-1)*(dzdeta(i,j,k)+dzdeta(i,j,k-1)) 
+          enddo
+        enddo
+        k=N
+          do i=Istr,Iend
+            div_zx(i,k) = div_zx(i,k) 
+     &                 -0.5*  We(i,j,k-1)*(dzdxi(i,j,k)+dzdxi(i,j,k-1))
+            div_zy(i,k) = div_zy(i,k) 
+     &                 -0.5*  We(i,j,k-1)*(dzdeta(i,j,k)+dzdeta(i,j,k-1)) 
+          enddo
+
+        do k=1,N
+          do i=Istr,Iend
+            Udiv_zx(i,k) = 0.5*(u(i,j,k,nrhs) + u(i+1,j,k,nrhs))*div_zx(i,k) 
+            Vdiv_zy(i,k) = 0.5*(v(i,j,k,nrhs) + v(i,j+1,k,nrhs))*div_zy(i,k) 
+          enddo
+        enddo
+
+        do k=1,N-1
+          do i=Istr,Iend
+            rw(i,j,k) = rw(i,j,k) 
+     &              - 0.5*(Udiv_zx(i,k) + Udiv_zx(i,k+1))
+     &              - 0.5*(Vdiv_zy(i,k) + Vdiv_zy(i,k+1))
+          enddo
+        enddo
+        k=N
+          do i=Istr,Iend
+            rw(i,j,k) = rw(i,j,k) - Udiv_zx(i,k) - Vdiv_zy(i,k) 
+          enddo
+
+      enddo
 
 # endif
 

@@ -16,11 +16,6 @@ module mg_mpi_exchange
           fill_halo_4D
   end interface fill_halo
 
-  interface set_phybound2zero
-     module procedure   &
-          set_phybound2zero_3D
-  end interface set_phybound2zero
-
   interface set_rurvbc2zero
      module procedure   &
           set_rurvbc2zero_3D
@@ -1526,50 +1521,6 @@ contains
     call toc(lev,'fill_halo_4D')
 
   end subroutine fill_halo_4D
-
-  !----------------------------------------
-  subroutine set_phybound2zero_3D(lev,a3D, gt)
-
-    integer(kind=ip), intent(in):: lev
-    real(kind=rp), dimension(:,:,:), pointer, intent(inout)::a3D
-    character(len=1) :: gt
-
-    integer(kind=ip) :: nx, ny
-    integer(kind=ip) :: south, east, north, west
-
-    nx = grid(lev)%nx
-    ny = grid(lev)%ny
-
-    south     = grid(lev)%neighb(1)
-    east      = grid(lev)%neighb(2)
-    north     = grid(lev)%neighb(3)
-    west      = grid(lev)%neighb(4)
-
-    if (trim(gt) == 'u') then
-
-       if (east == MPI_PROC_NULL) then
-          a3D(:,:,nx:nx+1) = zero
-       endif
-
-       if (west == MPI_PROC_NULL) then
-          a3D(:,:,0:1) = zero
-       endif
-
-    elseif (trim(gt) == 'v') then
-
-       if (south == MPI_PROC_NULL) then
-          a3D(:,0:1,:) = zero
-       endif
-
-       if (north == MPI_PROC_NULL) then
-          a3D(:,ny:ny+1,:) = zero
-       endif
-
-    else
-       stop
-    endif
-
-  end subroutine set_phybound2zero_3D
 
   !----------------------------------------
   subroutine set_rurvbc2zero_3D(a3D,gt)
