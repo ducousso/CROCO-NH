@@ -200,8 +200,8 @@
 !
 !====================================================================
 !
-        do j=JstrV-1,Jend
-          do i=IstrU-1,Iend
+        do j=JstrV-1,Jend+1
+          do i=IstrU-1,Iend+1
             cff=0.5*Hz(i,j,k)*(
 #  ifdef UV_COR
      &              fomn(i,j)
@@ -239,7 +239,7 @@
         enddo
 
         do j=Jstr,Jend
-          do i=IstrU,Iend
+          do i=IstrU,Iend+1
             ru(i,j,k)=ru(i,j,k)+0.5*(UFx(i,j)+UFx(i-1,j))
 #  ifdef MRL_WCI
      &                         +0.5*(UFe(i,j)+UFe(i-1,j))
@@ -258,7 +258,7 @@
           enddo
         enddo
 
-        do j=JstrV,Jend
+        do j=JstrV,Jend+1
           do i=Istr,Iend
             rv(i,j,k)=rv(i,j,k)-0.5*(VFe(i,j)+VFe(i,j-1))
 #  ifdef MRL_WCI
@@ -280,11 +280,37 @@
 !
 # ifdef NHMG
       enddo
-      call nhmg_rw(
-     &     Lm, Mm, N,
-     &     ru(-1:Lm+2,-1:Mm+2,1:N),
-     &     rv(-1:Lm+2,-1:Mm+2,1:N),
-     &     rw(-1:Lm+2,-1:Mm+2,0:N))
+!      if (mynode.eq.1)write(*,*)"corio NODE1=",ru(17,32,1)
+!      if (mynode.eq.2)write(*,*)"corio NODE2=",ru(1,32,1)
+!
+!--------------------------------------------------------------------
+! hydrostatic pressure gradient for the vertical flux
+!       dpdz = -zx*dpdx - zy*dpdy (See paper)
+!--------------------------------------------------------------------
+!
+!     We are re-using FC as a work array
+      do j=Jstr,Jend
+         do k = 1,N
+            do i=Istr,Iend
+              FC(i,k) = dzdxi(i,j,k) *(                                
+     $              ru(i  ,j,k  )/(Hz(i,j,k)+Hz(i-1,j,k)) 
+     $            + ru(i+1,j,k  )/(Hz(i,j,k)+Hz(i+1,j,k)))
+     $            +     dzdeta(i,j,k) *(                               
+     $              rv(i,j  ,k  )/(Hz(i,j,k)+Hz(i,j-1,k)) 
+     $            + rv(i,j+1,k  )/(Hz(i,j,k)+Hz(i,j+1,k)))
+            enddo
+         enddo
+
+         do k = 1,N-1
+            do i=Istr,Iend
+              rw(i,j,k)=-0.25*(FC(i,k+1)+FC(i,k))*(Hz(i,j,k+1)+Hz(i,j,k))
+            enddo
+         enddo
+         do i=Istr,Iend
+            rw(i,j,N) = -0.5*FC(i,N)*Hz(i,j,N)
+         enddo
+      enddo
+
       do k=1,N
 # endif
 !
