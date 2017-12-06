@@ -24,7 +24,7 @@
 #undef  RIVER           /* River run-off Example */
 #undef  OVERFLOW        /* Graviational/Overflow Example */
 #undef  SEAMOUNT        /* Seamount Example */
-#undef  CALDEIRA        /* Caldeira Example */
+#define  CALDEIRA        /* Caldeira Example */
 #undef  SHELFRONT       /* Shelf Front Example */
 #undef  SOLITON         /* Equatorial Rossby Wave Example */
 #undef  UPWELLING       /* Upwelling Example */
@@ -37,7 +37,7 @@
 #undef  SWASH           /* Swash Test Case on a Planar Beach */
 #undef  THACKER         /* Thacker wetting-drying Example */
 #undef  TANK            /* Tank Example */
-#define  TANKINT            /* Tank internal Example */
+#undef  TANKINT            /* Tank internal Example */
 #undef  S2DV            /* 2D Vertical Section Application */
 #undef REGIONAL        /* REGIONAL Applications */
 

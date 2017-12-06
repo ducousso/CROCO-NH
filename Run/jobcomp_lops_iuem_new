@@ -13,9 +13,15 @@ module list
 #
 SOURCE=../OCEAN
 #SCRDIR=./Compile
-SCRDIR=/local/tmp/1/${LOGNAME}/CROCO-NH/Compile
+#SCRDIR=/local/tmp/1/${LOGNAME}/CROCO-NH/Compile
+SCRDIR=/net/alpha/exports/sciences/roullet/CROCO-NH/Compile
 RUNDIR=`pwd`
 ROOT_DIR=$SOURCE/..
+#
+# set where the NHMG library will be installed
+# (if you want use CROCO in Non-Hydostatic mode!)
+# (Please choose a directory different than SCRDIR)
+NHMGPATH=/net/alpha/exports/sciences/roullet/CROCO-NH/NHMG
 
 #
 # determine operating system
@@ -53,11 +59,6 @@ PRISM_ROOT_DIR=../../../oasis3-mct/compile_oa3-mct
 XIOS_ROOT_DIR=$HOME/xios-1.0
 #
 
-#
-# set where the NHMG library will be installed
-# (if you want use CROCO in Non-Hydostatic mode!)
-# (Please choose a directory different than SCRDIR)
-NHMGPATH="${HOME}/CROCO-NH/NHMG"
 
 # END OF USER'S MODIFICATIONS
 ####################################################
@@ -68,7 +69,7 @@ MAKE=make
 #
 # clean scratch area
 #
-rm -rf $SCRDIR
+#rm -rf $SCRDIR
 mkdir $SCRDIR
 #
 # AGRIF sources directory
@@ -77,37 +78,37 @@ AGRIF_SRC=${ROOT_DIR}/AGRIF
 #
 # copy SOURCE code
 #
-/bin/cp -f ${SOURCE}/*.F90 $SCRDIR
-/bin/cp -f ${SOURCE}/*.h90 $SCRDIR
-/bin/cp -f ${SOURCE}/*.F   $SCRDIR
-/bin/cp -f ${SOURCE}/*.h   $SCRDIR
-/bin/cp -f ${SOURCE}/Make* $SCRDIR
-/bin/cp -f ${SOURCE}/testkeys.F $SCRDIR
-/bin/cp -f ${SOURCE}/jobcomp $SCRDIR
-/bin/cp -f ${SOURCE}/amr.in $SCRDIR
+/bin/cp -fup ${SOURCE}/*.F90 $SCRDIR
+/bin/cp -fup ${SOURCE}/*.h90 $SCRDIR
+/bin/cp -fup ${SOURCE}/*.F   $SCRDIR
+/bin/cp -fup ${SOURCE}/*.h   $SCRDIR
+/bin/cp -fup ${SOURCE}/Make* $SCRDIR
+/bin/cp -fup ${SOURCE}/testkeys.F $SCRDIR
+/bin/cp -fup ${SOURCE}/jobcomp $SCRDIR
+/bin/cp -fup ${SOURCE}/amr.in $SCRDIR
 ## NHMG ## Don't remove the cp options -RLfu ###
 # /bin/cp -RLfu ${ROOT_DIR}/NHMG $SCRDIR
 /bin/cp -RLf ${AGRIF_SRC} $SCRDIR
-/bin/cp -f ${ROOT_DIR}/XIOS/*.F $SCRDIR
-/bin/cp -f ${ROOT_DIR}/PISCES/* $SCRDIR
-/bin/cp -f ${ROOT_DIR}/PISCES/kRGB61* $RUNDIR
+/bin/cp -fup ${ROOT_DIR}/XIOS/*.F $SCRDIR
+/bin/cp -fup ${ROOT_DIR}/PISCES/* $SCRDIR
+/bin/cp -fup ${ROOT_DIR}/PISCES/kRGB61* $RUNDIR
 
 if [[ -e "namelist_pisces" ]] ; then
 	echo "  file namelist_pisces exists in Run directory"
 else
-	/bin/cp -f ${SOURCE}/PISCES/namelist_pisces* $RUNDIR
+	/bin/cp -fup ${SOURCE}/PISCES/namelist_pisces* $RUNDIR
 	echo "  file namelist_pisces copied from source directory"
 fi
 
 #
 # overwrite with local files
 #
-/bin/cp -f *.F90 $SCRDIR
-/bin/cp -f *.h90 $SCRDIR
-/bin/cp -f *.F $SCRDIR
-/bin/cp -f *.h $SCRDIR
-/bin/cp -f Make* $SCRDIR
-/bin/cp -f jobcomp $SCRDIR
+/bin/cp -fup *.F90 $SCRDIR
+/bin/cp -fup *.h90 $SCRDIR
+/bin/cp -fup *.F $SCRDIR
+/bin/cp -fup *.h $SCRDIR
+/bin/cp -fup Make* $SCRDIR
+/bin/cp -fup jobcomp $SCRDIR
 #
 # Change directory
 #
@@ -195,7 +196,7 @@ if $($CPP1 testkeys.F | grep -i -q agrifisdefined) ; then
 	FFLAGS1="$FFLAGS1 -IAGRIF"
 	LDFLAGS1="-LAGRIF -lagrif $LDFLAGS1"
 # we use the AGRIF Makedefs.generic definition
-	/bin/cp -f Makedefs.generic.AGRIF Makedefs.generic
+	/bin/cp -fup Makedefs.generic.AGRIF Makedefs.generic
 fi
 #
 # determine if MPI compilation is required
@@ -337,12 +338,12 @@ rm -f flags.tmp
 #
 # clean scratch
 #
-$MAKE clobber
+#$MAKE clobber
 
 #
 # compile the precompiling program
 #
-$MAKE mpc
+#$MAKE mpc
 
 #
 # prepare and compile the library
@@ -387,8 +388,9 @@ if [[ $CONFIGNHMG == 'TRUE' ]] ; then
     echo ""
     wwa=`pwd`
     cd ${NHMG_SRCDIR}
-    ./configure --prefix="${NHMGPATH}" \
+    ./configure --prefix="${NHMGPATH}" --enable-netcdf \
         --enable-mpicroco MPI_F90="${MPIF90}" MPI_INC="${MPIINC}" MPI_LIB="${MPILIB}"
+    ${MAKE} clean
     cd ${wwa}
 fi
 
