@@ -1,0 +1,54 @@
+How to configure and compile mgroms at IFREMER/CAPARMOR:
+=======================================================
+Intel compiler + Intel MPI
+
+Environment:
+-----------
+  module load intel-comp/2015.3.187 
+  module load intel-mpi/5.0.3.048  
+  module load netCDF/4.2.1-intel-12.1.5
+
+  setenv NETCDF /appli/netCDF/netcdf-4.2.1__intel-12.1.5
+
+  setenv MPI_INC /appli/intel/impi/5.0.3.048/intel64/include
+  setenv MPI_LIB /appli/intel/impi/5.0.3.048/intel64/lib
+
+Ncview:
+------
+module load ncview/2.1.2_intel
+
+Configuration and compilation:
+-----------------------------
+./configure --prefix=/home2/caparmor/grima/NHMG/INTEL_MPI --enable-intel_mpi  --enable-netcdf [--enable-traceanalyser] [--enable-optimization=aggressive] [--enable-profiling]
+
+==> HERE A TRICK TO USE MAKE WITH GIT ON A DIFFERENT COMPUTER: https://github.com/hyperrealm/libconfig/issues/22
+make clean   AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+make         AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+
+Libtool:
+--------
+error message ===> libtool: Version mismatch error.
+solution ====> autoreconf --force --install
+
+Submission:
+----------
+qsub run_nhmg_caparmor.pbs
+
+Debugging with DDT:
+------------------
+module load ddt/4.2.2
+ddt &
+
+github :
+------
+
+git remote set-url origin git@github.com:ngrigri/NHMG.git
+
+ssh-keygen
+
+add a new key in the github settings: 
+https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/
+ 
+to have the key to copy on github:
+more /home2/caparmor/grima/.ssh/id_dsa.pub

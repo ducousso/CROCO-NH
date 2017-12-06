@@ -1,0 +1,40 @@
+How to configure and compile mgroms at IFREMER/DATARMOR:
+=======================================================
+
+github :
+------
+git clone https://github.com/ngrigri/NHMG.git
+
+cd NHMG
+
+git remote set-url origin git@github.com:ngrigri/NHMG.git
+
+ssh-keygen
+
+Don't forget your pathphrase !!!!
+
+add a new key in the github settings: 
+https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/
+ 
+to have the key to copy on github (copy all from ssh-rsa -> datarmor2):
+more /home2/datarmor/grima/.ssh/id_rsa.pub
+
+Compilation Environment:
+-----------------------
+  module load intel-comp/17
+  module load impi/2017.2.174 
+  module load NetCDF/4.4.1.1__intel-cc-17.0.2.174__nop
+
+  setenv MPI_INC /appli/intel/parallel_studio/parallel_studio_xe_2017_update2/impi/2017.2.174/intel64/include
+  setenv MPI_LIB /appli/intel/parallel_studio/parallel_studio_xe_2017_update2/impi/2017.2.174/intel64/lib
+
+  setenv CC icc
+
+Configuration and compilation:
+-----------------------------
+./configure --prefix=${HOME}/CROCO-NH/NHMG/ --enable-intel_mpi  --enable-netcdf [--enable-traceanalyser] [--enable-optimization=aggressive] [--enable-profiling]
+
+==> HERE A TRICK TO USE MAKE WITH GIT ON A DIFFERENT COMPUTER: https://github.com/hyperrealm/libconfig/issues/22
+make clean   AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+make         AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:

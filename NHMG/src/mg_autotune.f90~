@@ -1,0 +1,15 @@
+module mg_autotune
+
+  !- NHMG AUTOTUNE -!
+  ! If the namelist parameter autotune is .True.
+  ! test different values of namelist parameters to solve an output of CROCO 
+  ! after a number of time steps (100 by default).
+  ! Results, in terms of performance, are ranked and the best set of values underligned.
+  ! - NHMG AUTOTUNE -!
+
+  implicit none
+
+contains
+
+
+end module mg_autotune

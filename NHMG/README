@@ -1,0 +1,9 @@
+first read
+
+To download mgroms from github:
+$> git clone https://github.com/ngrigri/NHMG.git
+
+If you've got this error message (on caparmor for example !):
+"error: error:0D0C50A1:asn1 encoding routines:ASN1_item_verify:unknown message digest algorithm while accessing https://github.com/ngrigri/NHMG.git/info/refs"
+try:
+$> git clone git://github.com/ngrigri/NHMG.git

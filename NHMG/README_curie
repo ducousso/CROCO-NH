@@ -1,0 +1,58 @@
+SSH and file transfert:
+----------------------
+ssh -X griman@curie-fr.ccc.cea.fr
+scp tarball.tar.gz griman@curie-fr.ccc.cea.fr:.
+
+Git:
+---
+Impossible to use github on Curie machine, no comminication to outside!
+
+A solution
+https://github.com/feelpp/feelpp/wiki/Git
+
+Local emacs -> curie files:
+--------------------------
+/griman@curie-fr.ccc.cea.fr:/ccc/cont003/home/gen9178/griman/CROCO-NH/CROCO-NH/Run/
+
+Environment:
+-----------
+module load netcdf/4.4.0_hdf5
+
+Configuration and compilation (bash):
+-----------------------------
+
+export MPI_INC=${MPI_ROOT}/lib 
+export MPI_LIB=${MPI_ROOT}/lib
+
+(Avx option only on Curie thin nodes !)
+It's a cross compilation configuration:
+./configure --prefix=/ccc/cont003/home/gen9178/griman/NHMG --enable-openmpi [--enable-netcdf] [--enable-tests] [--enable-optimization=aggressive] [--enable-avx]
+make clean
+make 
+make install
+
+Submission and stats:
+--------------------
+Examples are available in the examples/curie directory
+
+ccc_msub job_curie_mpi.slurm
+
+ccc_mpstat -u griman
+
+Namelist:
+--------
+Examples are available in the examples/namelist directory
+
+Make a test:
+-----------
+cd where_you_want
+mkdir test_v1
+cd test_v1
+ln -s /ccc/cont003/home/gen9178/griman/NH_Multigrid/bin/testseamount testseamount
+cp /ccc/cont003/home/gen9178/griman/NH_Multigrid/mgroms-0.0.9/examples/namelist/nh_namelist ./.
+cp /ccc/cont003/home/gen9178/griman/NH_Multigrid/mgroms-0.0.9/examples/curie/job_curie_mpi.slurm ./.
+
+ccc_msub job_curie_mpi.slurm
+
+ccc_mstat -u griman
+

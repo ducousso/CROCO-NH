@@ -1,0 +1,101 @@
+[]= optional
+
+How to configure and compile mgroms at UBO:
+==========================================
+Intel compiler + mpich + netcdf
+
+Environment:
+-----------
+module load intel/12.1 mpich2/1.5-intel12 netcdf/fortran-4.4.4-intel12
+module list
+Currently Loaded Modulefiles:
+ 1) intel/12.1          2) mpich2/1.5-intel12     [3) netcdf/fortran-4.4.4-intel12
+
+Configuration and compilation:
+-----------------------------
+setenv MPI_INC /opt/linux/mpich2/1.5-intel12.1/include
+setenv MPI_LIB /opt/linux/mpich2/1.5-intel12.1/lib
+or
+export MPI_INC=/opt/linux/mpich2/1.5-intel12.1/include
+export MPI_LIB=/opt/linux/mpich2/1.5-intel12.1/lib
+
+./configure --prefix=/home/grima/CROCO-NH --enable-mpich
+or
+./configure --prefix=/home/grima/CROCO-NH --enable-mpich --enable-netcdf 
+or
+./configure --prefix=/home/grima/CROCO-NH --enable-mpich --enable-netcdf --enable-tests 
+or
+./configure --prefix=/home/grima/CROCO-NH --enable-mpich --enable-netcdf --enable-tests --enable-optimization=debug
+or
+...
+make clean
+make 
+make install
+
+Submission:
+----------
+set you PATH environment variable !!
+unlimit (see Problem)
+mpirun -np 4 test*
+
+Problem:
+-------
+.....
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   EXIT CODE: 139
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+===================================================================================
+YOUR APPLICATION TERMINATED WITH THE EXIT STRING: Segmentation fault (signal 11)
+This typically refers to a problem with your application.
+Please see the FAQ page for debugging suggestions
+...
+
+If you've got this message error, enter 'unlimit' before to submit you test*
+
+in csh
+
+unlimit
+mpirun -np 4 test*
+
+or in sh
+
+ulimit -all
+ulimit -s unlimited
+ulimit -all
+mpirun -np 4 test*
+
+LIBRARY problem:
+---------------
+setenv LD_LIBRARY_PATH /home/grima/CROCO-NH/lib:$LD_LIBRARY_PATH
+
+Profiling: Doesn't work  with nhmg library ????
+---------
+./configure --prefix=/home/grima/NH_MultiGrid --enable-mpich --enable-netcdf --enable-profiling
+make clean
+make install
+mpirun -np 4 testseamount
+ln -fs ~/NHMG/libtool
+./libtool --mode=execute gprof ./testseamount gmon.out > testseamount_prof.txt
+python /home/grima/PYTHON/GPROF2DOT/gprof2dot.py -n0.5 -s testseamount_prof.txt > testseamount_prof.dot
+dot -Tpng testseamount_prof.dot -o testseamount_prof.png
+
+/opt/linux/intel/12.1/composer_xe_2011_sp1.7.256/bin/intel64/loopprofileviewer.sh loop_prof_*.xml
+
+Memory check (valgrind):
+-----------------------
+mpirun -np 4 valgrind --leak-check=full --undef-value-errors=yes --log-file=memcheck.%p ./testseamount
+
+Oprofile:
+--------
+/usr/bin/ophelp > oprofile_list_events.txt
+
+mpirun -np 4 /usr/bin/ocount --events=CPU_CLK_UNHALTED,INST_RETIRED ./testseamount
+
+Cache misses :
+-------------
+mpirun -np 4 valgrind --tool=cachegrind testseamount
+cg_annotate cachegrind.out.xxxxx 
+cg_annotate cachegrind.out.xxxxx /home/grima/NH_MultiGrid/mgroms/src/mg_relax.f90
+kcachegrind cachegrind.out.xxxxx 

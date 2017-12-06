@@ -284,8 +284,8 @@ C$    integer omp_get_thread_num
                      Length_ETA=0.001
 #  endif
 # elif defined TANKINT
-                     Length_XI =100.0
-                     Length_ETA=100.0
+                     Length_XI =10.0
+                     Length_ETA=10.0
 # else
                      Length_XI =???
                      Length_ETA=??? 
@@ -434,7 +434,7 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
         do i=IstrR,IendR 
 !          h(i,j)=depth*(1+0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
 !     &                                  (yr(i,j)-0.5*el)**2))) 
-          h(i,j)=depth*(1-0.6*exp(-cff*((xr(i,j)-0.5*xl)**2+
+          h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
      &                                  (yr(i,j)-0.5*el)**2))) 
 !          h(i,j)=depth
 #  if defined MASKING || defined NHMG_MASKING

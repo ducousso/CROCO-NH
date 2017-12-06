@@ -1,0 +1,68 @@
+Where:
+-----
+http://www.idris.fr/ada/
+
+Git:
+---
+module load git/2.8.2  
+git is available on ADA but internet connexion not, 
+it seems to be impossible to clone a repository from github 
+
+[rdgw004@ada338: ~]$ git clone https://github.com/ngrigri/NHMG.git
+Cloning into 'NHMG'...
+fatal: Unable to find remote helper for 'https'
+
+[rdgw004@ada338: ~]$ git clone git://github.com/ngrigri/NHMG.git
+Cloning into 'NHMG'...
+fatal: unable to connect to github.com:
+github.com[0: 192.30.253.112]: errno=Connection timed out
+github.com[1: 192.30.253.113]: errno=Connection timed out
+
+Source Code: (tarball NHMG-x.x.x.tar.gz)
+-----------
+available on Nicolas Grima account (rdgw004)
+/linkhome/rech/dgw/rdgw004/NHMG
+
+Environment:
+-----------
+module unload intel netcdf
+module load intel/2017.1 netcdf/seq/4.3.3.1 
+
+Configuration and compilation (bash):
+-----------------------------
+export MPI_INC=/smplocal/intel/compilers_and_libraries_2017.1.132/linux/mpi/intel64/include
+export MPI_LIB=/smplocal/intel/compilers_and_libraries_2017.1.132/linux/mpi/intel64/lib
+
+./configure --prefix=/linkhome/rech/dgw/rdgw004/NHMG --enable-intel_mpi  --enable-netcdf --enable-ada
+[--enable-traceanalyser] [--enable-optimization=aggressive] [--enable-optimization=debug] [--enable-profiling]
+make clean
+make 
+make install
+
+Problem at compilation:
+----------------------
+mg_netcdf_out.f90(444): error #5286: Ambiguous generic interface WRITE_NETCDF: 
+previously declared specific procedure SUB_NETCDF_WRITE_FAST_R3D is not 
+distinguishable from this declaration. [SUB_NETCDF_WRITE_FAST_R3D_P]
+
+Error if you keep in mg_netcdf_out.f90 the routines:
+- sub_netcdf_write_fast_r3D
+- sub_netcdf_write_fast_r3D_p
+
+remove/comment sub_netcdf_write_fast_r3D in mg_netcdf_out.f90 
+and comment in mg_test*.f90 the write_netcdf calls.
+
+Submission:
+----------
+- in interactive mode: 
+                 export LD_LIBRARY_PATH=/smplocal/pub/NetCDF/4.3.3.1/seq/lib:$LD_LIBRARY_PATH
+                 cd $WORKDIR
+                 cd MGROMS
+                 mkdir test_****
+                 cd test_****
+                 cp /linkhome/rech/dgw/rdgw004/MGROMS/mgroms-0.3.8/src/testseamount ./.
+                 cp /linkhome/rech/dgw/rdgw004/MGROMS/mgroms-0.3.8/src/nh_namelist ./.
+                 mpirun -np 4 ./testseamount
+- in batch mode:
+                cp examples/IDRIS_ADA/run_test.ll ./.
+                llsubmit run_test.ll
