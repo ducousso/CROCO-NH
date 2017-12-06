@@ -161,17 +161,14 @@
    2- The Weighted Jacobian formulation of Song & Haidvogel (1994)
    can also be used by defining the WJ_GRADP key, which then serves 
    as the weight value. 
+
+   Removed the BASIC JACOBIAN because it is dumb to keep it!!!!!
 ======================================================================
 */
 #if defined BASIN || defined EQUATOR  || defined GRAV_ADJ \
                   || defined SOLITON  || defined JET \
                   || defined ACOUSTIC || defined VORTEX \
                   || defined THACKER  
-# define PGF_BASIC_JACOBIAN
-# undef WJ_GRADP
-#elif defined RIP
-# define PGF_BASIC_JACOBIAN
-# define WJ_GRADP 0.125
 #endif
 
 /*

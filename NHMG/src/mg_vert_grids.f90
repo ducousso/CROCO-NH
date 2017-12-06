@@ -14,9 +14,7 @@ module mg_vert_grids
 contains
 
   !----------------------------------------
-  subroutine set_vert_grids(z_r,Hz)
-
-    real(kind=rp), dimension(:,:,:), pointer, intent(in)  :: z_r,Hz
+  subroutine set_vert_grids()
 
     integer(kind=ip) :: lev
     integer(kind=ip) :: nx,ny,nz
@@ -26,8 +24,8 @@ contains
 
     real(kind=rp), dimension(:,:,:), pointer :: zr,dz
 
-    real(kind=rp), dimension(:,:,:), pointer :: zrf,zrc 
-    real(kind=rp), dimension(:,:,:), pointer :: dzf,dzc
+    real(kind=rp), dimension(:,:,:), pointer :: zrf,zrc,zxf,zxc 
+    real(kind=rp), dimension(:,:,:), pointer :: dzf,dzc,zyf,zyc
 
     real(kind=rp), dimension(:,:)  , pointer :: dx,dy
     real(kind=rp), dimension(:,:,:), pointer :: dzw
@@ -52,10 +50,22 @@ contains
        ny=grid(lev)%ny
        nz=grid(lev)%nz
 
+       dx    => grid(lev)%dx
+       dy    => grid(lev)%dy
+       zr    => grid(lev)%zr
+
        if (lev == 1) then ! zr,dz from croco
 
-          grid(lev)%zr(1:nz,0:ny+1,0:nx+1) = z_r
-          grid(lev)%dz(1:nz,0:ny+1,0:nx+1) = Hz
+!!$       do i = 0,nx+1        ! We need zr with 2 halo points !
+!!$          do j = 0,ny+1     !
+!!$             do k = 1, nz
+!!$                grid(1)%zxdy(k,j,i) = hlf * (( zr(k,j  ,i+1) - zr(k,j  ,i-1) ) / dx(j,i) ) * dy(j,i)
+!!$                grid(1)%zydx(k,j,i) = hlf * (( zr(k,j+1,i  ) - zr(k,j-1,i  ) ) / dy(j,i) ) * dx(j,i)
+!!$             enddo
+!!$          enddo
+!!$       enddo
+!          grid(lev)%zr(1:nz,0:ny+1,0:nx+1) = z_r
+!          grid(lev)%dz(1:nz,0:ny+1,0:nx+1) = Hz
 
        else               ! coarsen zr,dz (needed when directly discretizing on coarser grids)
 
@@ -66,18 +76,25 @@ contains
           zrf => grid(lev-1)%zr
           dzf => grid(lev-1)%dz
 
+          zxf => grid(lev-1)%zxdy
+          zyf => grid(lev-1)%zydx
+
           if (grid(lev)%gather == 1) then
              nxc = nx/grid(lev)%ngx
              nyc = ny/grid(lev)%ngy
              nzc = nz
              allocate(zrc(1:nzc,0:nyc+1,0:nxc+1))
              allocate(dzc(1:nzc,0:nyc+1,0:nxc+1))
+             allocate(zxc(1:nzc,0:nyc+1,0:nxc+1))
+             allocate(zyc(1:nzc,0:nyc+1,0:nxc+1))
           else
              nxc = nx
              nyc = ny
              nzc = nz
              zrc => grid(lev)%zr
              dzc => grid(lev)%dz
+             zxc => grid(lev)%zxdy
+             zyc => grid(lev)%zydx
           endif
 
           ! Call fine2coarse
@@ -102,17 +119,45 @@ contains
                dzf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) +   &
                dzf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
 
+          ! Call fine2coarse
+          zxc(1:nzc,1:nyc,1:nxc) = eighth * (       &
+               zxf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
+               zxf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) + &
+               zxf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
+               zxf(1:nzf  :2,2:nyf+1:2,2:nxf+1:2) + &
+               zxf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) + &
+               zxf(2:nzf+1:2,2:nyf+1:2,1:nxf  :2) + &
+               zxf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) + &
+               zxf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
+
+          ! Call fine2coarse
+          zyc(1:nzc,1:nyc,1:nxc) = eighth * (       &
+               zyf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
+               zyf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) + &
+               zyf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
+               zyf(1:nzf  :2,2:nyf+1:2,2:nxf+1:2) + &
+               zyf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) + &
+               zyf(2:nzf+1:2,2:nyf+1:2,1:nxf  :2) + &
+               zyf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) + &
+               zyf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
+
           if (grid(lev)%gather == 1) then
              call gather(lev,zrc,grid(lev)%zr)
              call gather(lev,dzc,grid(lev)%dz)
+             call gather(lev,zxc,grid(lev)%zxdy)
+             call gather(lev,zyc,grid(lev)%zydx)
              deallocate(zrc)
              deallocate(dzc)
+             deallocate(zxc)
+             deallocate(zyc)
           endif
-
-       end if
 
        call fill_halo(lev,grid(lev)%zr) ! special fill_halo of zr (nh=2)
        call fill_halo(lev,grid(lev)%dz) ! special fill_halo of dz (nh=2)
+       call fill_halo(lev,grid(lev)%zxdy) ! special fill_halo of zr (nh=2)
+       call fill_halo(lev,grid(lev)%zydx) ! special fill_halo of dz (nh=2)
+       end if
+
 
        if (netcdf_output) then
           call write_netcdf(grid(lev)%zr,vname='zr',netcdf_file_name='zr.nc',rank=myrank,iter=lev)
@@ -171,27 +216,20 @@ contains
           enddo
        enddo
 
-       !! Slopes
-       do i = 0,nx+1        ! We need zr with 2 halo points !
-          do j = 0,ny+1     !
-             do k = 1, nz
-                zx(k,j,i) = hlf * (( zr(k,j  ,i+1) - zr(k,j  ,i-1) ) / dx(j,i) )
-                zy(k,j,i) = hlf * (( zr(k,j+1,i  ) - zr(k,j-1,i  ) ) / dy(j,i) )
-             enddo
-          enddo
-       enddo
-
+       
+!!$       !! Slopes
+!!$       do i = 0,nx+1        ! We need zr with 2 halo points !
+!!$          do j = 0,ny+1     !
+!!$             do k = 1, nz
+!!$                zx(k,j,i) = hlf * (( zr(k,j  ,i+1) - zr(k,j  ,i-1) ) / dx(j,i) )
+!!$                zy(k,j,i) = hlf * (( zr(k,j+1,i  ) - zr(k,j-1,i  ) ) / dy(j,i) )
+!!$             enddo
+!!$          enddo
+!!$       enddo
+!!$
        call set_phybound2zero(lev,zx,gt='u')
        call set_phybound2zero(lev,zy,gt='v')
 
-       do i = 0,nx+1        ! We need zr with 2 halo points !
-          do j = 0,ny+1     !
-             do k = 1, nz
-                zxdy(k,j,i) = hlf * (( zr(k,j  ,i+1) - zr(k,j  ,i-1) ) / dx(j,i) ) * dy(j,i)
-                zydx(k,j,i) = hlf * (( zr(k,j+1,i  ) - zr(k,j-1,i  ) ) / dy(j,i) ) * dx(j,i)
-             enddo
-          enddo
-       enddo
 
        call set_phybound2zero(lev,zxdy,gt='u')
        call set_phybound2zero(lev,zydx,gt='v')

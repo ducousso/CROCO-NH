@@ -68,6 +68,9 @@
 #elif defined NBQ
        integer MPI_STATUS_SIZE
 #endif 
+# if defined NHMG
+      integer halo
+# endif
 
       integer :: iifroot, iicroot
 #ifdef WKB_WWAVE
@@ -354,12 +357,16 @@ CR      write(*,*)  ' -5' MYID
 !----------------------------------------------------------------------
 !
 #ifdef NHMG
-      call nhmg_matrices(
-     & Lm,Mm,N,
-     &  z_r(0:Lm+1,0:Mm+1,1:N), 
-     &   Hz(0:Lm+1,0:Mm+1,1:N),
-     & om_r(0:Lm+1,0:Mm+1)    ,
-     & on_r(0:Lm+1,0:Mm+1)    )
+# ifdef THREE_GHOST_POINTS
+      halo = 3
+# else
+      halo = 2
+# endif
+      write(*,*)"shape(dzdxi)=",size(dzdxi,dim=1),
+     & size(dzdxi,dim=2),size(dzdxi,dim=3)
+      call nhmg_matrices(Lm,Mm,N,halo,padd_X,padd_E,dzdxi,dzdeta,Hz,
+     &                   om_r(0:Lm+1,0:Mm+1),
+     &                   on_r(0:Lm+1,0:Mm+1)    )
 #endif
 !
 !----------------------------------------------------------------------

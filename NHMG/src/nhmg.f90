@@ -337,22 +337,25 @@ contains
   end subroutine nhmg_rw_advection
 
   !--------------------------------------------------------------
-  subroutine nhmg_matrices(nx,ny,nz,zra,Hza,dxa,dya)
+  subroutine nhmg_matrices(nx,ny,nz,hl,pdx,pdy,zxa,zya,Hza,dxa,dya)
 
-    integer(kind=ip), intent(in) :: nx, ny, nz
+    integer(kind=ip), intent(in) :: nx,ny,nz
+    integer(kind=ip), intent(in) :: hl,pdx,pdy
 
-    real(kind=rp), dimension(0:nx+1,0:ny+1,1:nz)          , intent(in) :: zra
-    real(kind=rp), dimension(0:nx+1,0:ny+1,1:nz)          , intent(in) :: Hza
+    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in) :: zxa,zya
+    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in) :: Hza
+!    real(kind=rp), dimension(-1:nx+2,-1:ny+2,1:nz),intent(in) :: zr
+!    real(kind=rp), dimension(-1:nx+2,-1:ny+2,1:nz),intent(in) :: Hz
     real(kind=rp), dimension(0:nx+1,0:ny+1)     , optional, intent(in) :: dxa
     real(kind=rp), dimension(0:nx+1,0:ny+1)     , optional, intent(in) :: dya
 
-    real(kind=rp), dimension(:,:,:), pointer :: zr,Hz
+!    real(kind=rp), dimension(:,:,:), pointer :: zr,Hz
     real(kind=rp), dimension(:,:)  , pointer :: dx,dy
 
 !!! dirty reshape arrays indexing ijk -> kji !!!
     integer(kind=ip) :: i,j,k
-    real(kind=rp), dimension(1:nz,0:ny+1,0:nx+1), target :: zrb
-    real(kind=rp), dimension(1:nz,0:ny+1,0:nx+1), target :: Hzb 
+!    real(kind=rp), dimension(1:nz,0:ny+1,0:nx+1), target :: zrb
+!    real(kind=rp), dimension(1:nz,0:ny+1,0:nx+1), target :: Hzb 
     real(kind=rp), dimension(0:ny+1,0:nx+1),      target :: dxb,dyb
 !!!
 
@@ -360,6 +363,11 @@ contains
     iter_matrices = iter_matrices + 1
 
 !    if (myrank==0) write(*,*)' nhmg_matrices: ',iter_matrices
+
+    call tic(1,'nhmg_matrices')
+
+!      write(*,*)"inside nhmg : shape(zxa)=",size(zxa,dim=1),size(zxa,dim=2),size(zxa,dim=3)
+
 
     !--------------------!
     !- Horizontal grids -!
@@ -386,44 +394,85 @@ contains
     !------------------!
     !- Vertical grids -!
     !------------------!
-!!! dirty reshape arrays indexing ijk -> kji !!!
-    do i = 0,nx+1
-       do j = 0,ny+1
+
+
+!!!  reshape arrays indexing ijk -> kji !!!
+    do i = -1,nx+2
+       do j = -1,ny+2
           do k = 1,nz
-             zrb(k,j,i) = zra(i,j,k)
-             Hzb(k,j,i) = Hza(i,j,k)
+!             grid(1)%zr(k,j,i) = zr(i,j,k)
+             grid(1)%dz(k,j,i) = Hza(i,j,k)
           enddo
        enddo
     enddo
-    zr => zrb
-    Hz => Hzb
-!!!
 
-    call set_vert_grids(zr,Hz)
+       do i = 0,nx+1        ! We need zr with 2 halo points !
+          do j = 0,ny+1     !
+             do k = 1, nz
+                grid(1)%zxdy(k,j,i) = zxa(i,j,k) * grid(1)%dy(j,i)
+                grid(1)%zydx(k,j,i) = zya(i,j,k) * grid(1)%dx(j,i)
+                grid(1)%zx(k,j,i) = zxa(i,j,k)
+                grid(1)%zy(k,j,i) = zya(i,j,k)
+             enddo
+          enddo
+       enddo
 
-!!$    if (check_output) then
-!!$       !if ((iter_matrices .EQ. 1) .OR. (iter_matrices .EQ. 2)) then
-!!$          call write_netcdf(grid(1)%zr,vname='zr',netcdf_file_name='mat.nc',rank=myrank,iter=iter_matrices)
-!!$          call write_netcdf(grid(1)%dz,vname='dz',netcdf_file_name='mat.nc',rank=myrank,iter=iter_matrices)
-!!$       !endif
-!!$    endif
 
-    if (associated(zr)) zr => null()
-    if (associated(Hz)) Hz => null()
+!    call fill_outer_halos(grid(1)%zr,nx,ny,nz)
+    call fill_outer_halos(grid(1)%dz,nx,ny,nz)
 
-    !------------!
-    !- matrices -!
-    !------------!
+    call set_vert_grids()
+
     call set_matrices()
 
-!!$    if (check_output) then
-!!$       !if ((iter_matrices .EQ. 1) .OR. (iter_matrices .EQ. 2)) then
-!!$          call write_netcdf(grid(1)%cA,vname='cA',netcdf_file_name='mat.nc',rank=myrank,iter=iter_matrices)
-!!$       !endif
-!!$    endif
+    call toc(1,'nhmg_matrices')
 
   end subroutine nhmg_matrices
 
+  !--------------------------------------------------------------
+  subroutine fill_outer_halos(z,nx,ny,nz)
+    real(kind=rp), dimension(1:nz,-1:ny+2,-1:nx+2), intent(inout) :: z
+
+    integer :: i,j,k,nx,ny,nz
+
+    if(grid(1)%neighb(1).eq.MPI_PROC_NULL) then
+       ! south
+       do i=-1,nx+2 ! <=extended range to fill the corners (not a bug)
+          do k=1,nz
+             z(k,-1,i)=z(k,1,i)
+             z(k, 0,i)=z(k,1,i)
+          enddo
+       enddo
+    endif
+    if(grid(1)%neighb(3).eq.MPI_PROC_NULL) then
+       ! north
+       do i=-1,nx+2
+          do k=1,nz
+             z(k,ny+1,i)=z(k,ny,i)
+             z(k,ny+2,i)=z(k,ny,i)
+          enddo
+       enddo
+    endif
+    if(grid(1)%neighb(2).eq.MPI_PROC_NULL) then
+       ! east
+       do j=-1,ny+2
+          do k=1,nz
+             z(k,j,nx+1)=z(k,j,nx)
+             z(k,j,nx+2)=z(k,j,nx)
+          enddo
+       enddo
+    endif
+    if(grid(1)%neighb(4).eq.MPI_PROC_NULL) then
+       ! west
+       do j=-1,ny+2
+          do k=1,nz
+             z(k,j,-1)=z(k,j,1)
+             z(k,j, 0)=z(k,j,1)
+          enddo
+       enddo
+    endif
+
+  end subroutine fill_outer_halos
   !--------------------------------------------------------------
   subroutine nhmg_solve(ua,va,wa,zwa,Hza,fill_hz)
 
@@ -510,7 +559,7 @@ contains
           do i=1,nx
              is=i+ishift
              wcorr(j,i) = wa(is,js,nz+1) + ( ubar(j,i+1) - ubar(j,i) + vbar(j+1,i) - vbar(j,i) ) &
-                  / (dx(j,i) * dy(j,i)) 
+                            / (dx(j,i) * dy(j,i)) 
           enddo
        enddo
        do k=1,nz+1
@@ -519,12 +568,12 @@ contains
              do i=1,nx
                 is=i+ishift
                 wa(is,js,k) = wa(is,js,k) - wcorr(j,i) &
-                     * (zw(is,js,k   )-zw(is,js,1)) &
-                     / (zw(is,js,nz+1)-zw(is,js,1))
+                            * (zw(is,js,k   )-zw(is,js,1)) &
+                            / (zw(is,js,nz+1)-zw(is,js,1))
              enddo
           enddo
        enddo
-    endif
+    endif 
 
     do k=1,nz
        do j=1,ny

@@ -709,7 +709,7 @@ C$OMP END MASTER
       integer itrc
 
 # if defined NHMG
-      integer, save :: count = 0
+      integer halo
 # endif
       
       real t1,t2,t3
@@ -741,16 +741,13 @@ C$OMP BARRIER
       enddo
 
 # ifdef NHMG
-!XXXXXXXXXXXXXXXXXXXX
-! care that dz is properly updated. needed to compute rw etc     
-!
-!      count = count+1
-!      if (mod(count,10).eq.0) then
-      call nhmg_matrices(
-     & Lm,Mm,N,
-     & z_r(0:Lm+1,0:Mm+1,1:N),
-     &  Hz(0:Lm+1,0:Mm+1,1:N))
-!      endif
+
+# ifdef THREE_GHOST_POINTS
+      halo = 3
+# else
+      halo = 2
+# endif
+      call nhmg_matrices(Lm,Mm,N,halo,padd_X,padd_E,dzdxi,dzdeta,Hz)
 # endif
 
 C$OMP BARRIER

@@ -223,6 +223,23 @@ C$    integer omp_get_thread_num
 
 #   endif
 #  endif 
+
+#ifdef NHMG
+! compute slopes
+! zr is buffer filled in the interior halos but not in the outer halos
+
+
+      do k = 1, N
+         do j = 0,Mm+1
+            do i = 0,Lm+1
+               dzdxi (i,j,k)=0.5*(z_r(i+1,j,k)-z_r(i-1,j,k))*pn(i,j)  
+               dzdeta(i,j,k)=0.5*(z_r(i,j+1,k)-z_r(i,j-1,k))*pm(i,j) 
+            enddo
+         enddo
+      enddo
+      
+
+#endif
       return
       end
 !
