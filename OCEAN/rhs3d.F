@@ -278,6 +278,30 @@
           enddo
         enddo
 !
+#  ifdef NONTRAD_COR
+         ! wrk1 is the vertical momentum at RHO-points
+        do j=JstrV-1,Jend
+          do i=IstrU-1,Iend
+             wrk1(i,j) = 0.5*(
+     &            wz(i,j,k,nrhs)+wz(i,j,k-1,nrhs)
+     &           + dzdxi(i,j,k)*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
+     &           +dzdeta(i,j,k)*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs)) )
+          enddo
+        enddo        
+        do j=Jstr,Jend
+          do i=IstrU,Iend
+            ru(i,j,k)=ru(i,j,k)
+     &          + 0.5*( wrk1(i,j)*feta(i,j) + wrk1(i-1,j)*feta(i-1,j) )
+          enddo
+        enddo        
+        do j=JstrV,Jend
+          do i=Istr,Iend
+            rv(i,j,k)=rv(i,j,k)
+     &          - 0.5*( wrk1(i,j)*fxi(i,j) + wrk1(i,j-1)*fxi(i,j-1) )
+          enddo
+        enddo        
+#endif
+
 !
 # endif /* UV_COR || (CURVGRID && UV_ADV) */
 
@@ -764,6 +788,36 @@
          do i=Istr,Iend
             rw(i,j,N) = rw(i,j,N) - FC(i,N)
          enddo
+#  ifdef NONTRAD_COR
+         ! FC is the vertical momentum at W-points
+         do k = 1,N
+            do i=Istr,Iend
+               FC(i,k) = 0.5*(
+     &  -(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
+     &    * ( feta(i,j) * (1+dzdxi(i,j,k)**2)
+     &      -  fxi(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) )
+     &  +(v(i,j,k,nrhs)+v(i,j+1,k,nrhs))
+     &    * ( fxi(i,j) * (1+dzdeta(i,j,k)**2)
+     &      -feta(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) ) )
+            enddo
+         enddo
+         do k = 1,N-1
+            do i=Istr,Iend
+               rw(i,j,k) = rw(i,j,k) + 0.5*(FC(i,k)+FC(i,k+1))
+     & +wz(i,j,k,nrhs)*0.5*(
+     &   fxi(i,j)*(dzdeta(i,j,k)+dzdeta(i,j,k+1))
+     & +feta(i,j)*( dzdxi(i,j,k)+ dzdxi(i,j,k+1)) )
+            enddo
+         enddo
+         do i=Istr,Iend
+            rw(i,j,N) = rw(i,j,N) + FC(i,N)
+     & +wz(i,j,N,nrhs)*(
+     &   fxi(i,j)*dzdeta(i,j,N)
+     & +feta(i,j)* dzdxi(i,j,N) )
+         enddo
+
+#  endif
+
 # endif
 
 # ifdef UV_ADV

@@ -737,6 +737,7 @@
 # define MPI
 # define NHMG
 # ifdef NHMG
+# define NONTRAD_COR
 #  undef NHMG_W_VOL
 #  undef NHMG_2D_DAMPING
 #  undef NHMG_WEIGHTED_FRC

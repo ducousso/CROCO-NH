@@ -65,8 +65,8 @@ C$    integer omp_get_thread_num
           eomn(i,j)=e(i,j)/(pm(i,j)*pn(i,j))          
 #endif
 #if defined NONTRAD_COR
-           fxionm(i,j) =  fxi(i,j)/(pm(i,j)*pn(i,j)) 
-          fetaonm(i,j) = feta(i,j)/(pm(i,j)*pn(i,j)) 
+           fxiomn(i,j) =  fxi(i,j)/(pm(i,j)*pn(i,j)) 
+          fetaomn(i,j) = feta(i,j)/(pm(i,j)*pn(i,j)) 
 #endif
        enddo                                      ! in MPI code; 
       enddo                                        ! others are...
