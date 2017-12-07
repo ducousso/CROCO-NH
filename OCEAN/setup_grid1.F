@@ -28,6 +28,9 @@ C$    integer omp_get_thread_num
 #ifdef WET_DRY
       real cff
 #endif
+# ifdef NONTRAD_COR
+      real cff
+# endif
 #include "param.h"
 #include "scalars.h"
 #include "grid.h"
@@ -39,6 +42,18 @@ C$    integer omp_get_thread_num
 #endif
 !
 #include "compute_extended_bounds.h"
+#if defined NONTRAD_COR
+#if !(defined ANA_GRID)
+      cff = 4*pi/day2sec
+      do j=JstrR,JendR
+         do i=IstrR,IendR
+               f(i,j) =                  sin(lat_rho(i,j)*deg2rad)*cff
+             fxi(i,j) = sin(angler(i,j))*cos(lat_rho(i,j)*deg2rad)*cff
+            feta(i,j) = cos(angler(i,j))*cos(lat_rho(i,j)*deg2rad)*cff
+         enddo
+      enddo
+#endif
+#endif
 !
 !  Set f/mn,at horizontal RHO-points.
 !
@@ -49,7 +64,11 @@ C$    integer omp_get_thread_num
 #ifdef NBQ
           eomn(i,j)=e(i,j)/(pm(i,j)*pn(i,j))          
 #endif
-        enddo                                      ! in MPI code; 
+#if defined NONTRAD_COR
+           fxionm(i,j) =  fxi(i,j)/(pm(i,j)*pn(i,j)) 
+          fetaonm(i,j) = feta(i,j)/(pm(i,j)*pn(i,j)) 
+#endif
+       enddo                                      ! in MPI code; 
       enddo                                        ! others are...
 
 #ifdef EW_PERIODIC

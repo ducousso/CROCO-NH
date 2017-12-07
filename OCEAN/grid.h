@@ -60,6 +60,13 @@
       real hinv(GLOBAL_2D_ARRAY)
       real f(GLOBAL_2D_ARRAY)
       real fomn(GLOBAL_2D_ARRAY)
+# ifdef NONTRAD_COR
+      real fxi(GLOBAL_2D_ARRAY)
+      real feta(GLOBAL_2D_ARRAY)
+      real fxiomn(GLOBAL_2D_ARRAY)
+      real fetaomn(GLOBAL_2D_ARRAY)
+      common /grid_fxy/fxi,feta,fxiomn,fetaomn
+# endif
 # ifdef MOVING_BATHY
       real dh(GLOBAL_2D_ARRAY)
 # endif      

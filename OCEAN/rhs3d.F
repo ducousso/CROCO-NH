@@ -278,36 +278,6 @@
           enddo
         enddo
 !
-# ifdef NHMG
-      enddo
-!
-!--------------------------------------------------------------------
-! hydrostatic pressure gradient for the vertical flux
-!       dpdz = -zx*dpdx - zy*dpdy (See paper)
-!--------------------------------------------------------------------
-!
-!     We are re-using FC as a work array
-      do j=Jstr,Jend
-         do k = 1,N
-            do i=Istr,Iend
-              FC(i,k) = 0.5*fomn(i,j)*Hz(i,j,k)*( 
-     &                  dzdxi(i,j,k)*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
-     &                -dzdeta(i,j,k)*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs)) )
-            enddo
-         enddo
-
-         do k = 1,N-1
-            do i=Istr,Iend
-              rw(i,j,k)= rw(i,j,k) - 0.5*(FC(i,k+1)+FC(i,k))
-            enddo
-         enddo
-         do i=Istr,Iend
-            rw(i,j,N) = rw(i,j,N) - FC(i,N)
-         enddo
-      enddo
-
-      do k=1,N
-# endif
 !
 # endif /* UV_COR || (CURVGRID && UV_ADV) */
 
@@ -774,6 +744,28 @@
       enddo    ! <-- k
 
       do j=Jstr,Jend
+
+# if defined UV_COR & defined NHMG
+!     Vertical component of Coriolis on vertical velocity
+!     We are re-using FC as a work array
+         do k = 1,N
+            do i=Istr,Iend
+              FC(i,k) = 0.5*fomn(i,j)*Hz(i,j,k)*( 
+     &                  dzdxi(i,j,k)*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
+     &                -dzdeta(i,j,k)*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs)) )
+            enddo
+         enddo
+
+         do k = 1,N-1
+            do i=Istr,Iend
+              rw(i,j,k)= rw(i,j,k) - 0.5*(FC(i,k+1)+FC(i,k))
+            enddo
+         enddo
+         do i=Istr,Iend
+            rw(i,j,N) = rw(i,j,N) - FC(i,N)
+         enddo
+# endif
+
 # ifdef UV_ADV
 !
 !======================================================================

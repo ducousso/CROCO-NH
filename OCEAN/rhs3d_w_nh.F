@@ -38,10 +38,6 @@
      &                   div_zx,div_zy,Udiv_zx,Vdiv_zy,
 # endif
      &                              wrk1,wrk2, WFx,WFe)
-
-# ifdef NHMG
-      USE nhmg, only : nhmg_rw_advection
-# endif
    
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k,kp

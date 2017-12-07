@@ -361,6 +361,10 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
 #  else
           f(i,j)=f0+beta*(yr(i,j)-(0.5*el))
 #  endif
+# ifdef NONTRAD_COR
+          fxi(i,j)=0.
+          feta(i,j)=0.
+# endif 
         enddo
       enddo   
 !
@@ -432,6 +436,11 @@ CR     &                                'x0=',x0, 'y0=',y0, mynode
 !      cff=(1./1.e2)**2
       do j=JstrR,JendR
         do i=IstrR,IendR 
+#if defined NONTRAD_COR
+             feta(i,j) = f0*cos(pi/4.)
+             fxi(i,j)  = f0*sin(pi/4.)
+#endif
+
 !          h(i,j)=depth*(1+0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
 !     &                                  (yr(i,j)-0.5*el)**2))) 
           h(i,j)=depth*(1-0.1*exp(-cff*((xr(i,j)-0.5*xl)**2+
