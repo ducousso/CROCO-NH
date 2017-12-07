@@ -38,9 +38,9 @@
      &                                                   CF,FC,DC,
      &                                 wrk1,wrk2, UFx,UFe, VFx,VFe)
 !
-# ifdef NHMG
-      USE nhmg, only : nhmg_rw
-# endif
+!# ifdef NHMG
+!      USE nhmg, only : nhmg_rw
+!# endif
 !
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
@@ -280,8 +280,6 @@
 !
 # ifdef NHMG
       enddo
-!      if (mynode.eq.1)write(*,*)"corio NODE1=",ru(17,32,1)
-!      if (mynode.eq.2)write(*,*)"corio NODE2=",ru(1,32,1)
 !
 !--------------------------------------------------------------------
 ! hydrostatic pressure gradient for the vertical flux
@@ -292,22 +290,19 @@
       do j=Jstr,Jend
          do k = 1,N
             do i=Istr,Iend
-              FC(i,k) = dzdxi(i,j,k) *(                                
-     $              ru(i  ,j,k  )/(Hz(i,j,k)+Hz(i-1,j,k)) 
-     $            + ru(i+1,j,k  )/(Hz(i,j,k)+Hz(i+1,j,k)))
-     $            +     dzdeta(i,j,k) *(                               
-     $              rv(i,j  ,k  )/(Hz(i,j,k)+Hz(i,j-1,k)) 
-     $            + rv(i,j+1,k  )/(Hz(i,j,k)+Hz(i,j+1,k)))
+              FC(i,k) = 0.5*fomn(i,j)*Hz(i,j,k)*( 
+     &                  dzdxi(i,j,k)*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
+     &                -dzdeta(i,j,k)*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs)) )
             enddo
          enddo
 
          do k = 1,N-1
             do i=Istr,Iend
-              rw(i,j,k)=-0.25*(FC(i,k+1)+FC(i,k))*(Hz(i,j,k+1)+Hz(i,j,k))
+              rw(i,j,k)= rw(i,j,k) - 0.5*(FC(i,k+1)+FC(i,k))
             enddo
          enddo
          do i=Istr,Iend
-            rw(i,j,N) = -0.5*FC(i,N)*Hz(i,j,N)
+            rw(i,j,N) = rw(i,j,N) - FC(i,N)
          enddo
       enddo
 

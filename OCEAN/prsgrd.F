@@ -48,9 +48,9 @@ c********************************************************************
 # endif
      &                                       dR,dZ, FC,dZx,rx,dRx)
 !
-# ifdef NHMG
-      USE nhmg, only : nhmg_rw
-# endif
+!# ifdef NHMG
+!      USE nhmg, only : nhmg_rw
+!# endif
 !
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k, imin,imax,jmin,jmax
@@ -65,7 +65,7 @@ c********************************************************************
      &     rx(PRIVATE_2D_SCRATCH_ARRAY),
      &    dRx(PRIVATE_2D_SCRATCH_ARRAY)
 # ifdef NHMG
-     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,N)
+     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 # endif
 !
       parameter (OneFifth=0.2, OneTwelfth=1./12., epsil=0.) !1.E-10) 
@@ -496,7 +496,7 @@ c********************************************************************
      &     rx(PRIVATE_2D_SCRATCH_ARRAY)
 #  endif
 #  ifdef NHMG
-     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,N)
+     &    ,rw(PRIVATE_2D_SCRATCH_ARRAY,0:N)
 #  endif
 #  include "grid.h"
 #  include "ocean3d.h"
@@ -675,25 +675,43 @@ c********************************************************************
 !
 
 # ifdef NHMG
-#  if !(defined UV_COR || (defined CURVGRID && defined UV_ADV))
 !
 !--------------------------------------------------------------------
 ! hydrostatic pressure gradient for the vertical flux
 !       dpdz = -zx*dpdx - zy*dpdy (See paper)
 !--------------------------------------------------------------------
 !
+!     We are re-using dR as a work arrayo
 
-!      if (mynode.eq.1)write(*,*)"going to NODE1=",ru(17,32,1)
-!      if (mynode.eq.2)write(*,*)"going to NODE2=",ru(1,32,1)
+      do j=Jstr,Jend
+         do k = 1,N
+            do i=Istr,Iend
+              dR(i,k) = dzdxi(i,j,k) *(                                
+     $              ru(i  ,j,k  )/(Hz(i,j,k)+Hz(i-1,j,k)) 
+     $            + ru(i+1,j,k  )/(Hz(i,j,k)+Hz(i+1,j,k)))
+     $            +     dzdeta(i,j,k) *(                               
+     $              rv(i,j  ,k  )/(Hz(i,j,k)+Hz(i,j-1,k)) 
+     $            + rv(i,j+1,k  )/(Hz(i,j,k)+Hz(i,j+1,k)))
+            enddo
+         enddo
 
-      call nhmg_rw(
-     &     Lm, Mm, N,
-     &     ru(-1:Lm+2,-1:Mm+2,1:N),
-     &     rv(-1:Lm+2,-1:Mm+2,1:N),
-     &     rw(-1:Lm+2,-1:Mm+2,1:N))
+         do k = 1,N-1
+            do i=Istr,Iend
+              rw(i,j,k)=-0.25*(dR(i,k+1)+dR(i,k))*(Hz(i,j,k+1)+Hz(i,j,k))
+            enddo
+         enddo
+         do i=Istr,Iend
+            rw(i,j,N) = -0.5*dR(i,N)*Hz(i,j,N)
+         enddo
+      enddo
+
+!     call nhmg_rw(
+!    &     Lm, Mm, N,
+!    &     ru(-1:Lm+2,-1:Mm+2,1:N),
+!    &     rv(-1:Lm+2,-1:Mm+2,1:N),
+!    &     rw(-1:Lm+2,-1:Mm+2,1:N))
 ! caution : initialize if commented
 !      rw(:,:,:)=0.
-#  endif
 # endif
    
 !
