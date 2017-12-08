@@ -22,15 +22,13 @@ contains
     integer(kind=ip) :: nyf,nyc
     integer(kind=ip) :: nzf,nzc
 
-    real(kind=rp), dimension(:,:,:), pointer :: zr,dz
-
-    real(kind=rp), dimension(:,:,:), pointer :: zrf,zrc,zxf,zxc 
-    real(kind=rp), dimension(:,:,:), pointer :: dzf,dzc,zyf,zyc
+    real(kind=rp), dimension(:,:,:), pointer :: zxf,zxc 
+    real(kind=rp), dimension(:,:,:), pointer :: zyf,zyc 
+    real(kind=rp), dimension(:,:,:), pointer :: dzf,dzc
 
     real(kind=rp), dimension(:,:)  , pointer :: dx,dy
-    real(kind=rp), dimension(:,:,:), pointer :: dzw
+    real(kind=rp), dimension(:,:,:), pointer :: dz,dzw
     real(kind=rp), dimension(:,:,:), pointer :: Arx,Ary
-    real(kind=rp), dimension(:,:,:), pointer :: zx,zy
     real(kind=rp), dimension(:,:,:), pointer :: zydx,zxdy
     real(kind=rp), dimension(:,:,:), pointer :: alpha
     real(kind=rp), dimension(:,:)  , pointer :: beta
@@ -44,7 +42,7 @@ contains
 
     do lev = 1, nlevs
 
-       !! fill and coarsen zr and dz
+       !! coarsen slopes and dz
 
        nx=grid(lev)%nx
        ny=grid(lev)%ny
@@ -52,28 +50,17 @@ contains
 
        dx    => grid(lev)%dx
        dy    => grid(lev)%dy
-       zr    => grid(lev)%zr
 
-       if (lev == 1) then ! zr,dz from croco
+       if (lev == 1) then 
 
-!!$       do i = 0,nx+1        ! We need zr with 2 halo points !
-!!$          do j = 0,ny+1     !
-!!$             do k = 1, nz
-!!$                grid(1)%zxdy(k,j,i) = hlf * (( zr(k,j  ,i+1) - zr(k,j  ,i-1) ) / dx(j,i) ) * dy(j,i)
-!!$                grid(1)%zydx(k,j,i) = hlf * (( zr(k,j+1,i  ) - zr(k,j-1,i  ) ) / dy(j,i) ) * dx(j,i)
-!!$             enddo
-!!$          enddo
-!!$       enddo
-!          grid(lev)%zr(1:nz,0:ny+1,0:nx+1) = z_r
-!          grid(lev)%dz(1:nz,0:ny+1,0:nx+1) = Hz
+          !! we fill slopes and dz in nhmg at the finest grid level
 
-       else               ! coarsen zr,dz (needed when directly discretizing on coarser grids)
+       else               ! coarsen slopes,dz (needed when directly discretizing on coarser grids)
 
           nxf = grid(lev-1)%nx
           nyf = grid(lev-1)%ny
           nzf = grid(lev-1)%nz
 
-          zrf => grid(lev-1)%zr
           dzf => grid(lev-1)%dz
 
           zxf => grid(lev-1)%zxdy
@@ -83,7 +70,6 @@ contains
              nxc = nx/grid(lev)%ngx
              nyc = ny/grid(lev)%ngy
              nzc = nz
-             allocate(zrc(1:nzc,0:nyc+1,0:nxc+1))
              allocate(dzc(1:nzc,0:nyc+1,0:nxc+1))
              allocate(zxc(1:nzc,0:nyc+1,0:nxc+1))
              allocate(zyc(1:nzc,0:nyc+1,0:nxc+1))
@@ -91,22 +77,10 @@ contains
              nxc = nx
              nyc = ny
              nzc = nz
-             zrc => grid(lev)%zr
              dzc => grid(lev)%dz
              zxc => grid(lev)%zxdy
              zyc => grid(lev)%zydx
           endif
-
-          ! Call fine2coarse
-          zrc(1:nzc,1:nyc,1:nxc) = eighth * (       &
-               zrf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
-               zrf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) + &
-               zrf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
-               zrf(1:nzf  :2,2:nyf+1:2,2:nxf+1:2) + &
-               zrf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) + &
-               zrf(2:nzf+1:2,2:nyf+1:2,1:nxf  :2) + &
-               zrf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) + &
-               zrf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
 
           ! Call fine2coarse
           dzc(1:nzc,1:nyc,1:nxc) = 2._rp * eighth * ( &
@@ -142,41 +116,28 @@ contains
                zyf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
 
           if (grid(lev)%gather == 1) then
-             call gather(lev,zrc,grid(lev)%zr)
              call gather(lev,dzc,grid(lev)%dz)
              call gather(lev,zxc,grid(lev)%zxdy)
              call gather(lev,zyc,grid(lev)%zydx)
-             deallocate(zrc)
              deallocate(dzc)
              deallocate(zxc)
              deallocate(zyc)
           endif
 
-       call fill_halo(lev,grid(lev)%zr) ! special fill_halo of zr (nh=2)
-       call fill_halo(lev,grid(lev)%dz) ! special fill_halo of dz (nh=2)
-       call fill_halo(lev,grid(lev)%zxdy) ! special fill_halo of zr (nh=2)
-       call fill_halo(lev,grid(lev)%zydx) ! special fill_halo of dz (nh=2)
+       call fill_halo(lev,grid(lev)%dz)   ! special fill_halo of dz (nh=2)
+       call fill_halo(lev,grid(lev)%zxdy) ! special fill_halo of zx (nh=2)
+       call fill_halo(lev,grid(lev)%zydx) ! special fill_halo of zy (nh=2)
        end if
-
-
-       if (netcdf_output) then
-          call write_netcdf(grid(lev)%zr,vname='zr',netcdf_file_name='zr.nc',rank=myrank,iter=lev)
-          call write_netcdf(grid(lev)%dz,vname='dz',netcdf_file_name='dz.nc',rank=myrank,iter=lev)
-       endif
 
        !! compute derived qties
 
        dx    => grid(lev)%dx
        dy    => grid(lev)%dy
-       zr    => grid(lev)%zr
        dz    => grid(lev)%dz
-
        dzw   => grid(lev)%dzw
        Arx   => grid(lev)%Arx
        Ary   => grid(lev)%Ary
        Arz   => grid(lev)%Arz
-       zx    => grid(lev)%zx
-       zy    => grid(lev)%zy
        zxdy  => grid(lev)%zxdy
        zydx  => grid(lev)%zydx
        alpha => grid(lev)%alpha

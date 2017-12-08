@@ -388,8 +388,11 @@ if [[ $CONFIGNHMG == 'TRUE' ]] ; then
     echo ""
     wwa=`pwd`
     cd ${NHMG_SRCDIR}
-    ./configure --prefix="${NHMGPATH}" --enable-netcdf \
+    ./configure --prefix="${NHMGPATH}" \
         --enable-mpicroco MPI_F90="${MPIF90}" MPI_INC="${MPIINC}" MPI_LIB="${MPILIB}"
+#  Enables netcdf for NHMG development
+#   ./configure --prefix="${NHMGPATH}" --enable-netcdf \
+#       --enable-mpicroco MPI_F90="${MPIF90}" MPI_INC="${MPIINC}" MPI_LIB="${MPILIB}"
     ${MAKE} clean
     cd ${wwa}
 fi

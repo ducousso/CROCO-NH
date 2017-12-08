@@ -32,6 +32,8 @@ contains
     nd = size(cA(:,:,:,:),dim=1)
 
     if (grid(lev)%nz == 1) then
+!      Be aware that the 2D mg is not tested yet
+!      The definition of the matrix in 2D has not been implemented yet
 
        call relax_2D_5(lev,p,b,cA,nsweeps,nx,ny)
 
@@ -67,6 +69,7 @@ contains
     integer(kind=ip)           :: i,j,k, it,rb
     integer(kind=ip)            :: ib,ie,jb,je,rbb,rbe,rbi
     real(kind=rp) :: z,gamma,g1,g2
+    logical :: red_black=.true.
 
     gamma = one
     g1 = gamma
@@ -155,6 +158,7 @@ contains
 
  !----------------------------------------
   subroutine relax_3D_8_RB(lev,p,b,cA,nsweeps,nx,ny,nz)
+! This is the recommended relaxation method for production
 
     integer(kind=ip)                        , intent(in)   :: lev
     integer(kind=ip)                        , intent(in)   :: nsweeps
@@ -169,25 +173,18 @@ contains
 
     call tic(lev,'relax_3D_8_RB')
 
-    ! add a loop on smoothing
     do it = 1,nsweeps
-
        do rb = 1, 2 ! Red black loop
           do i = 1, nx
-
-!!NG             !DIR$ SIMD
              do j = 1+mod(i+rb,2),ny,2
 
                 call relax_3D_8_heart(p,b,cA,i,j,nz)
 
-             enddo ! j
-          enddo    ! i
-
+             enddo
+          enddo
           call fill_halo(lev,p)
-
-       enddo       ! red-black
-
-    enddo  !it
+       enddo
+    enddo
 
     call toc(lev,'relax_3D_8_RB')
 
@@ -195,6 +192,7 @@ contains
 
  !----------------------------------------
   subroutine relax_3D_8_FC(lev,p,b,cA,nsweeps,nx,ny,nz)
+! This is the recommended relaxation method for MPI debugging with topography
 
     integer(kind=ip)                        , intent(in)   :: lev
     integer(kind=ip)                        , intent(in)   :: nsweeps
@@ -209,25 +207,20 @@ contains
 
     call tic(lev,'relax_3D_8_FC')
 
-    ! add a loop on smoothing
     do it = 1,nsweeps
-
-       do fc1 = 1, 2 ! 
-          do fc2 = 1, 2 ! 
+       do fc1 = 1, 2
+          do fc2 = 1, 2
              do i = 1 + mod(fc1-1,2), nx, 2
                 do j = 1 + mod(fc2-1,2), ny, 2
 
                    call relax_3D_8_heart(p,b,cA,i,j,nz)
 
-                enddo ! j
-             enddo    ! i
-
+                enddo
+             enddo
              call fill_halo(lev,p)
-
-          enddo  ! fc2
-       enddo  ! fc1
-
-    enddo  !it
+          enddo
+       enddo
+    enddo
 
     call toc(lev,'relax_3D_8_FC')
 
@@ -262,22 +255,17 @@ contains
     rhs(k) = b(k,j,i)                                              &
          - cA(3,k,j,i)*p(k+1,j-1,i)                                &
          - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
-         - cA(5,k+1,j+1,i)*p(k+1,j+1,i) &
+         - cA(5,k+1,j+1,i)*p(k+1,j+1,i)                            &
          - cA(6,k,j,i)*p(k+1,j,i-1)                                &
          - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
-         - cA(8,k+1,j,i+1)*p(k+1,j,i+1) 
-
-    if (cmatrix == 'real') then
-       !- Exception for the redefinition of the coef for the bottom level
-       rhs(k) = rhs(k) &
-            - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1) &
-            - cA(8,k,j,i)*p(k,j-1,i-1) - cA(8,k,j+1,i+1)*p(k,j+1,i+1)
-    endif
+         - cA(8,k+1,j,i+1)*p(k+1,j,i+1)                            &
+!!  Special cross terms 
+         - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1) &
+         - cA(8,k,j,i)*p(k,j-1,i-1) - cA(8,k,j+1,i+1)*p(k,j+1,i+1)
 
     d(k)   = cA(1,k,j,i)
     ud(k)  = cA(2,k+1,j,i)
 
-    !DEC$ VECTOR ALWAYS
     do k = 2,nz-1 !interior levels
        rhs(k) = b(k,j,i) &
             - cA(3,k,j,i)*p(k+1,j-1,i) - cA(3,k-1,j+1,i)*p(k-1,j+1,i) &
@@ -300,7 +288,7 @@ contains
          - cA(8,k,j,i)*p(k-1,j,i-1) 
     d(k)   = cA(1,k,j,i)
 
-    call tridiag(nz,d,ud,rhs,p(:,j,i)) !solve for vertical_coeff_matrix.p1d=rhs
+    call tridiag(nz,d,ud,rhs,p(:,j,i)) ! solve 1D tridiagonal system
 
   end subroutine relax_3D_8_heart
 
@@ -308,13 +296,12 @@ contains
   subroutine tridiag(l,d,dd,b,xc)
     !     Axc = b
     !     Solve tridiagonal system
-    implicit none
-    !     IMPORT/EXPORT
+
     integer                   ,intent(in)  :: l
     real(kind=rp),dimension(l),intent(in)  :: d,b
     real(kind=rp),dimension(l),intent(in)  :: dd
     real(kind=rp),dimension(l),intent(out) :: xc
-    !     LOCAL
+
     integer                  :: k
     real(kind=rp),dimension(l):: gam
     real(kind=rp)             :: bet
@@ -329,7 +316,7 @@ contains
     do k=l-1,1,-1
        xc(k) = xc(k)-gam(k+1)*xc(k+1)
     enddo
-    !    endif
+
   end subroutine tridiag
 
   !----------------------------------------
@@ -448,14 +435,10 @@ contains
                - cA(5,k+1,j+1,i)*p(k+1,j+1,i)                           &
                - cA(6,k,j,i)*p(k+1,j,i-1)                               &
                - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1)&
-               - cA(8,k+1,j,i+1)*p(k+1,j,i+1)
-
-          if (cmatrix == 'real') then
-             !- Exception for the redefinition of the coef for the bottom level
-             r(k,j,i) = r(k,j,i) &
-                  - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1) &
-                  - cA(8,k,j,i)*p(k,j-1,i-1) - cA(8,k,j+1,i+1)*p(k,j+1,i+1)
-          endif
+               - cA(8,k+1,j,i+1)*p(k+1,j,i+1)                           &
+!!  Special cross terms 
+               - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1)&
+               - cA(8,k,j,i)*p(k,j-1,i-1) - cA(8,k,j+1,i+1)*p(k,j+1,i+1)
 
           res = res+r(k,j,i)*r(k,j,i)
 
@@ -477,10 +460,10 @@ contains
           r(k,j,i) = b(k,j,i)                                           &
                - cA(1,k,j,i)*p(k,j,i)                                   &
                - cA(2,k,j,i)*p(k-1,j,i)                                 &
-               - cA(3,k-1,j+1,i)*p(k-1,j+1,i)&
+               - cA(3,k-1,j+1,i)*p(k-1,j+1,i)                           &
                - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i)&
                - cA(5,k,j,i)*p(k-1,j-1,i)                               &
-               - cA(6,k-1,j,i+1)*p(k-1,j,i+1)&
+               - cA(6,k-1,j,i+1)*p(k-1,j,i+1)                           &
                - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1)&
                - cA(8,k,j,i)*p(k-1,j,i-1)
 

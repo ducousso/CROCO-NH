@@ -20,8 +20,6 @@ contains
 
     real(kind=rp), dimension(:,:,:), pointer :: u,v,w,rhs
 
-!    if (myrank==0) write(*,*)'   - set rhs:'
-    
     nx = grid(1)%nx
     ny = grid(1)%ny
     nz = grid(1)%nz
@@ -77,7 +75,6 @@ contains
 
     integer(kind=ip) :: dirichlet_flag 
     
-!    if (myrank==0) write(*,*)'   - set matrices:'
 
     if (surface_neumann) then
        dirichlet_flag = 0

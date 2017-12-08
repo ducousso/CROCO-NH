@@ -20,7 +20,6 @@ contains
     real(kind=rp), dimension(:,:)  , pointer :: Arz
     real(kind=rp), dimension(:,:,:), pointer :: dzw
     real(kind=rp), dimension(:,:,:), pointer :: Arx,Ary
-    real(kind=rp), dimension(:,:,:), pointer :: zx,zy
     real(kind=rp), dimension(:,:,:), pointer :: zxdy,zydx
     real(kind=rp), dimension(:,:,:), pointer :: u,v,w
     real(kind=rp), dimension(:,:,:), pointer :: um,vm,wm
@@ -37,8 +36,6 @@ contains
     Arx   => grid(1)%Arx
     Ary   => grid(1)%Ary
     Arz   => grid(1)%Arz
-    zx  => grid(1)%zx
-    zy  => grid(1)%zy
     zxdy  => grid(1)%zxdy
     zydx  => grid(1)%zydx
 
@@ -51,33 +48,33 @@ contains
 
     ! wm
 
-    do i = 1,nx
-       do j = 1,ny
-          k = 1 
-          wm(k,j,i) = 1/Arz(j,i) * (w(k,j,i) + hlf*( &
-               +zx(k  ,j,i)*u(k  ,j,i  ) &
-               +zx(k  ,j,i)*u(k  ,j,i+1) &
-               +zy(k  ,j,i)*v(k  ,j  ,i) &
-               +zy(k  ,j,i)*v(k  ,j+1,i) ))
-          do k = 2,nz 
-             wm(k,j,i) = 1/Arz(j,i) * (w(k,j,i) + qrt*( &
-                   +zx(k-1,j,i)*u(k-1,j,i  ) &
-                   +zx(k-1,j,i)*u(k-1,j,i+1) &
-                   +zx(k  ,j,i)*u(k  ,j,i  ) &
-                   +zx(k  ,j,i)*u(k  ,j,i+1) &
-                   +zy(k-1,j,i)*v(k-1,j  ,i) &
-                   +zy(k-1,j,i)*v(k-1,j+1,i) &
-                   +zy(k  ,j,i)*v(k  ,j  ,i) &
-                   +zy(k  ,j,i)*v(k  ,j+1,i) ))
-          enddo
-          k = nz+1
-          wm(k,j,i) = 1/Arz(j,i) * (w(k,j,i) + hlf*( &
-               +zx(k-1,j,i)*u(k-1,j,i  ) &
-               +zx(k-1,j,i)*u(k-1,j,i+1) &
-               +zy(k-1,j,i)*v(k-1,j  ,i) &
-               +zy(k-1,j,i)*v(k-1,j+1,i) )) 
-       enddo
-    enddo
+!   do i = 1,nx
+!      do j = 1,ny
+!         k = 1 
+!         wm(k,j,i) = 1/Arz(j,i) * (w(k,j,i) + hlf*( &
+!              +zx(k  ,j,i)*u(k  ,j,i  ) &
+!              +zx(k  ,j,i)*u(k  ,j,i+1) &
+!              +zy(k  ,j,i)*v(k  ,j  ,i) &
+!              +zy(k  ,j,i)*v(k  ,j+1,i) ))
+!         do k = 2,nz 
+!            wm(k,j,i) = 1/Arz(j,i) * (w(k,j,i) + qrt*( &
+!                  +zx(k-1,j,i)*u(k-1,j,i  ) &
+!                  +zx(k-1,j,i)*u(k-1,j,i+1) &
+!                  +zx(k  ,j,i)*u(k  ,j,i  ) &
+!                  +zx(k  ,j,i)*u(k  ,j,i+1) &
+!                  +zy(k-1,j,i)*v(k-1,j  ,i) &
+!                  +zy(k-1,j,i)*v(k-1,j+1,i) &
+!                  +zy(k  ,j,i)*v(k  ,j  ,i) &
+!                  +zy(k  ,j,i)*v(k  ,j+1,i) ))
+!         enddo
+!         k = nz+1
+!         wm(k,j,i) = 1/Arz(j,i) * (w(k,j,i) + hlf*( &
+!              +zx(k-1,j,i)*u(k-1,j,i  ) &
+!              +zx(k-1,j,i)*u(k-1,j,i+1) &
+!              +zy(k-1,j,i)*v(k-1,j  ,i) &
+!              +zy(k-1,j,i)*v(k-1,j+1,i) )) 
+!      enddo
+!   enddo
 
     call fill_halo(1,wm)
 

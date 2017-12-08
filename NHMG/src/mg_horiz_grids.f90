@@ -36,6 +36,7 @@ contains
 
        if (lev == 1) then ! dx,dy from croco
 
+!  comment out these lines because we'll fill grid(1) dx in nhmg
           grid(lev)%dx(0:ny+1,0:nx+1) = dx
           grid(lev)%dy(0:ny+1,0:nx+1) = dy
 

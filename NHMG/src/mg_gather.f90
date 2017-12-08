@@ -46,17 +46,7 @@ contains
     buffer => grid(lev)%gatherbuffer2D
 
     call MPI_ALLGATHER( x, Ng, MPI_DOUBLE_PRECISION, buffer, Ng, MPI_DOUBLE_PRECISION, grid(lev)%localcomm,ierr)
-    !       if(myrank==0)write(*,*)'gather lev, Ng=',lev,Ng,ngx,ngy,nx,ny
-    !       if(myrank==0)write(*,*)buffer(1,1,1),buffer(1,1,1),buffer(1,1,1),buffer(1,1,1,1,1)
 
-    ! I can see two possibilities to copy the 4 buffers into y
-    !
-    ! 1/ either sweep across each buffer and copy it to y
-    !
-    ! 2/ sweep across y and pick the value from the proper buffer
-    !
-    ! what's the fastest???
-    !
     nx = nx / ngx
     ny = ny / ngy
     do m=0,ngy-1
@@ -111,38 +101,25 @@ contains
     integer(kind=ip):: ierr
     real(kind=rp),dimension(:,:,:,:,:),pointer :: buffer
 
-    ! number of cores per direction involved in this gathering (1 or 2)
+    !  ngx = 1,2 the number of subdomains to be gathered in x
+    !  ngy = 1,2 the number of subdomains to be gathered in y
+
     ngx = grid(lev)%ngx
     ngy = grid(lev)%ngy
 
     nx = grid(lev)%nx
     ny = grid(lev)%ny
-    !21112016   nz = grid(lev)%nz
-    nz = size(x,dim=1) ! k,j,i convention
+    nz = grid(lev)%nz
 
-    ! numel(x)
-    if (nz > grid(lev)%nz) then
-       Ng = grid(lev)%Ngp
-       buffer => grid(lev)%gatherbufferp
-    else
-       Ng = grid(lev)%Ng
-       buffer => grid(lev)%gatherbuffer
-    endif
+    Ng = grid(lev)%Ng
+    buffer => grid(lev)%gatherbuffer
 
     call MPI_ALLGATHER( x, Ng, MPI_DOUBLE_PRECISION, buffer, Ng, MPI_DOUBLE_PRECISION, grid(lev)%localcomm,ierr)
-    !       if(myrank==0)write(*,*)'gather lev, Ng=',lev,Ng,ngx,ngy,nx,ny
-    !       if(myrank==0)write(*,*)buffer(1,1,1),buffer(1,1,1),buffer(1,1,1),buffer(1,1,1,1,1)
 
-    ! I can see two possibilities to copy the 4 buffers into y
-    !
-    ! 1/ either sweep across each buffer and copy it to y
-    !
-    ! 2/ sweep across y and pick the value from the proper buffer
-    !
-    ! what's the fastest???
-    !
+
     nx = nx / ngx
     ny = ny / ngy
+
     do m=0,ngy-1
        ! copy only the inner points of x into y because 
        ! the halo of x is corrupted
@@ -193,7 +170,8 @@ contains
     integer(kind=ip):: ngx,ngy
     integer(kind=ip):: i,j,k,l,m,ii,jj,key
 
-    ! number of cores per direction involved in this gathering (1 or 2)
+    !  ngx = 1,2 the number of subdomains to be gathered in x
+    !  ngy = 1,2 the number of subdomains to be gathered in y
     ngx = grid(lev)%ngx
     ngy = grid(lev)%ngy
 
@@ -201,6 +179,7 @@ contains
     ny = grid(lev)%ny / ngy
     nz = grid(lev)%nz
 
+!! TODO this requires a comment, but Guillaume does not remember what it should be
     key = grid(lev)%key
 
     l = mod(key,2)

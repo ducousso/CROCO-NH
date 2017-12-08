@@ -5,42 +5,28 @@ module mg_namelist
 
   implicit none
 
-  ! smallest dimension ever for the global domain
-  integer(kind=ip) :: nsmall      =   8
+  integer(kind=ip) :: nsmall      =   8        ! smallest dimension ever for a subdomain; triggers a gather
 
-  integer(kind=ip) :: ns_coarsest =  40
-  integer(kind=ip) :: ns_pre      =   3
-  integer(kind=ip) :: ns_post     =   2
+  integer(kind=ip) :: ns_coarsest =  40        ! Number of relax sweeps for the coarsest grid level
+  integer(kind=ip) :: ns_pre      =   3        ! Number of relax sweeps before coarsening  (going down)
+  integer(kind=ip) :: ns_post     =   2        ! Number of relax sweeps after interpolation(going up)
 
   real(kind=rp)    :: solver_prec    = 1.d-6   !- solver precision 
-  integer(kind=ip) :: solver_maxiter = 50      !- maximum of solver iterations
+  integer(kind=ip) :: solver_maxiter = 10      !- maximum of solver iterations
 
   logical          :: autotune    =.false.     !- tuning test after a number of time steps (by default 100)
   integer(kind=ip) :: autotune_ts = 100        !- tuning test time step (if autotune=.true.)
 
-  character(len=16) :: cmatrix='real'          !- 'real' or 'simple'
-
-  logical           :: red_black = .true.      !- .false. or .true.
   character(len=16) :: relax_method ='RB'      !- 'Gauss-Seidel', 'GS', 
   !                                            !- 'Red-Black'   , 'RB',
   !                                            !- 'Four-Color'  , 'FC'
 
-  character(len=16) :: interp_type='linear'    !- 'nearest'  or 'linear'
-
-  character(len=16) :: restrict_type='avg'     !- 'avg'  or 'linear'
-
-  logical           :: aggressive = .false.    !- .false. or .true.
-
   logical           :: netcdf_output = .false. !- .false. or .true.
-
-  logical           :: check_output  = .false. !- .false. or .true.
 
   logical           :: surface_neumann  = .true.
 
   logical           :: east_west_perio = .false.
   logical           :: north_south_perio = .false.
-
-  character(len=16) :: bench =''               !- 'seamount'
 
   namelist/nhparam/    &
        solver_prec   , &
@@ -51,16 +37,11 @@ module mg_namelist
        ns_post       , &
        autotune      , &
        autotune_ts   , &
-       cmatrix       , &
        relax_method  , &
-       interp_type   , &
-       restrict_type , &
        netcdf_output , &
-       check_output ,  &
        surface_neumann, &
        east_west_perio, &
-       north_south_perio, &
-       aggressive   
+       north_south_perio
 
 contains
 
@@ -109,11 +90,6 @@ contains
        vb = .true.
     endif
 
-    if ((trim(interp_type)=='linear') .and. (trim(restrict_type)=='linear')) then
-       if (rank == 0) write(*,*) "linear interp + linear restrict is not permitted"
-       stop
-    endif
-
     if (vb) then
 
        if (present(vbrank)) then
@@ -132,14 +108,11 @@ contains
           write(*,*)'  - ns_post       : ', ns_post
           write(*,*)'  - autotune      : ', autotune
           write(*,*)'  - autotune_ts   : ', autotune_ts
-          write(*,*)'  - cmatrix       : ', trim(cmatrix)
           write(*,*)'  - relax_method  : ', trim(relax_method)
-          write(*,*)'  - interp_type   : ', trim(interp_type)
-          write(*,*)'  - restrict_type : ', trim(restrict_type)
-          write(*,*)'  - aggressive    : ', aggressive
           write(*,*)'  - netcdf_output : ', netcdf_output
-          write(*,*)'  - check_output : ', check_output
-          write(*,*)'  - surface_neumann : ', surface_neumann
+          write(*,*)'  - surf neumann  : ', surface_neumann
+          write(*,*)'  - E/W periodic  : ', east_west_perio
+          write(*,*)'  - N/S periodic  : ', north_south_perio
           write(*,*)'  '
        endif
     endif

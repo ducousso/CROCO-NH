@@ -44,10 +44,9 @@ module mg_grids
      real(kind=rp),dimension(:,:)  ,pointer :: dy => null()   ! Mesh in y  (1 halo point)
      real(kind=rp),dimension(:,:)  ,pointer :: dxu => null()  ! Mesh in x  (1 halo point)
      real(kind=rp),dimension(:,:)  ,pointer :: dyv => null()  ! Mesh in y  (1 halo point)
-     real(kind=rp),dimension(:,:,:),pointer :: zr => null()   ! Mesh in z at rho point (nz  , 2 halo points)
      real(kind=rp),dimension(:,:,:),pointer :: dz => null()   ! Mesh in z at w point   (nz  , 2 halo points)
 
-     ! All these variables are dependant of dx, dy, zr and dz
+     ! All these variables are dependent on dx, dy, and dz
      real(kind=rp),dimension(:,:,:),pointer :: dzw   => null() ! Cell height at w-points
      real(kind=rp),dimension(:,:,:),pointer :: Arx   => null() ! Cell face surface at u-points
      real(kind=rp),dimension(:,:,:),pointer :: Ary   => null() ! Cell face surface at v-points
@@ -55,8 +54,6 @@ module mg_grids
      real(kind=rp),dimension(:,:)  ,pointer :: beta  => null() !
      real(kind=rp),dimension(:,:)  ,pointer :: gamu  => null() !
      real(kind=rp),dimension(:,:)  ,pointer :: gamv  => null() !
-     real(kind=rp),dimension(:,:,:),pointer :: zx    => null() 
-     real(kind=rp),dimension(:,:,:),pointer :: zy    => null() 
      real(kind=rp),dimension(:,:,:),pointer :: zxdy  => null() ! Slopes in x-direction defined at rho-points * dy
      real(kind=rp),dimension(:,:,:),pointer :: zydx  => null() ! Slopes in y-direction defined at rho-points * dx
      real(kind=rp),dimension(:,:,:),pointer :: alpha => null() ! All levels
@@ -70,7 +67,6 @@ module mg_grids
      real(kind=rp),dimension(:,:,:)    ,pointer :: dummy3 => null()         ! A dummy 3D array for gathering
      real(kind=rp),dimension(:,:,:,:)  ,pointer :: gatherbuffer2D => null() ! 2D
      real(kind=rp),dimension(:,:,:,:,:),pointer :: gatherbuffer   => null() ! 3D nz
-     real(kind=rp),dimension(:,:,:,:,:),pointer :: gatherbufferp  => null() ! 3D nz+1
 
      ! croco exchange arrays: resized and reshaped (i,j,k)=>(k,j,i)
      real(kind=rp),dimension(:,:,:)  ,pointer :: u  => null()
@@ -97,7 +93,7 @@ module mg_grids
   !-
   type mpi_buffers
 
-     ! MPI: 2D array buffers (halo=1 and halo=2 => h, zr, dz)
+     ! MPI: 2D array buffers (halo=1 and halo=2 => h, dz)
      real(kind=rp),dimension(:,:),pointer :: sendN2D1,recvN2D1,sendS2D1,recvS2D1
      real(kind=rp),dimension(:,:),pointer :: sendE2D1,recvE2D1,sendW2D1,recvW2D1
      real(kind=rp),dimension(:,:),pointer :: sendSW2D1,recvSW2D1,sendSE2D1,recvSE2D1
@@ -209,7 +205,6 @@ contains
        nx = grid(lev)%nx
        ny = grid(lev)%ny
        nz = grid(lev)%nz
-       allocate(grid(lev)%zr(nz,-1:ny+2,-1:nx+2)) ! 2 extra points
        allocate(grid(lev)%dz(nz,-1:ny+2,-1:nx+2)) ! 2 extra points
     enddo
 
@@ -224,8 +219,6 @@ contains
        allocate(grid(lev)%beta(     0:ny+1,0:nx+1)) !
        allocate(grid(lev)%gamu(     0:ny+1,0:nx+1)) !
        allocate(grid(lev)%gamv(     0:ny+1,0:nx+1)) !
-       allocate(grid(lev)%zx(nz  ,0:ny+1,0:nx+1)) ! at rho point
-       allocate(grid(lev)%zy(nz  ,0:ny+1,0:nx+1)) ! at rho point
        allocate(grid(lev)%zxdy(nz  ,0:ny+1,0:nx+1)) ! at rho point
        allocate(grid(lev)%zydx(nz  ,0:ny+1,0:nx+1)) ! at rho point
        allocate(grid(lev)%alpha(nz ,0:ny+1,0:nx+1)) ! at rho point
@@ -375,7 +368,7 @@ contains
        allocate(gbuffers(lev)%recvNEp(nz+1,1,1))
     enddo
 
-    ! MPI exhanges for 3D arrays (halo=2 ) zr and dz
+    ! MPI exhanges for 3D arrays (halo=2 ) and dz
     do lev=1,nlevs
        nx = grid(lev)%nx
        nz = grid(lev)%nz
@@ -509,8 +502,6 @@ contains
   end subroutine define_grids
 
   !------------------------------------------------------------!
-  !- Return the number of grid levels of the multigrid solver -!
-  !------------------------------------------------------------!
   subroutine find_grid_levels(npxg, npyg, nx,ny,nz)
 
     integer(kind=ip), intent(in) :: npxg, npyg ! Number of processes in x and y
@@ -518,30 +509,26 @@ contains
 
     integer(kind=ip) :: nxg, nyg, nzg
 
-    integer(kind=ip) :: ncoarsest,nhoriz,nzmin, nl1,nl2
+    integer(kind=ip) :: nhmin,nhg,nzmin, nl1,nl2
 
     nxg = npxg * nx ! Global domain dimension in x
     nyg = npyg * ny ! Global domain dimension in y
     nzg = nz        ! Global domain dimension in z
 
     ! Smallest horizontal dimension of the coarsest grid
-    ncoarsest = 4 ! TODO: put it into the namelist
+    nhmin = 4 ! TODO: put it into the namelist
 
-    ! Smallest vertical dimension of the coarsest grid
-    nzmin = 2
+    nzmin = 3 ! Smallest vertical dimension of the coarsest grid
 
-    ! smallest horizontal dimension of the finest grid
-    nhoriz = min(nxg,nyg)
+    nhg = min(nxg,nyg) ! smallest horizontal dimension of the finest grid
 
-    ! we have 
-    ! nhoriz = ncoarsest * 2^(nlevs-1)
-    ! thus nlevs = ...
-    nl1 = 1+floor( log( nhoriz* one / ncoarsest* one) / log(two) )
+    ! nhg = nhmin * 2^(nl1-1) and therefore:
 
-    nl2 = 1+floor( log( nzg   * one / nzmin    * one) / log(two) )
+    nl1 = 1+floor( log( nh  * one / nhmin * one) / log(two) )
 
-    ! NLEVS: global variable which store the number of grid levels
-    nlevs = min(nl1,nl2) 
+    nl2 = 1+floor( log( nzg * one / nzmin * one) / log(two) )
+
+    nlevs = min(nl1,nl2) ! The number of grid levels in the MG.
 
   end subroutine find_grid_levels
 
@@ -568,22 +555,13 @@ contains
 
     do lev = 2, nlevs
 
-       if (aggressive.and.(lev==2)) then
-          if (mod(nz,8) == 0) then
-             nz = nz/8
-          else
-             write(*,*)'Error: aggressive coarsening not possible'
-             stop -1
-          endif
-       else
-          if (nz.eq.1) then ! 2D coarsening
-             nx = nx/2
-             ny = ny/2
-          else              ! regular 3D coarsening
-             nx = nx/2
-             ny = ny/2
-             nz = nz/2
-          endif
+       if (nz.eq.1) then ! 2D coarsening
+          nx = nx/2
+          ny = ny/2
+       else              ! 3D coarsening
+          nx = nx/2
+          ny = ny/2
+          nz = nz/2
        endif
 
        ! determine if gathering is needed
@@ -710,7 +688,7 @@ contains
     enddo
 
     if (present(neighb)) then
-       ! Test for level 1 the coherency with the ocean model
+       ! Test for grid level 1 the consistancy with the ocean model
        If  ((grid(1)%neighb(1) /= neighb(1)).or. &
             (grid(1)%neighb(2) /= neighb(2)).or. &
             (grid(1)%neighb(3) /= neighb(3)).or. &
@@ -736,10 +714,9 @@ contains
     integer(kind=ip) :: ngx, ngy
     integer(kind=ip) :: N, family, nextfamily, color, key, localcomm, ierr
 
-    ! Watch out, I continue to use the global indexing
-    ! to locate each core
-    ! a core that has coordinates (2,3) on the finest decomposition
-    ! will remain at this location (2,3) after gathering
+    ! Global indexing is always used to locate each core
+    ! A core that has coordinates (2,3) on the finest decomposition
+    ! will remain at this location after gathering
     npx = grid(1)%npx ! grid(1) is not a bug!
     npy = grid(1)%npy
     pj = myrank/npx
@@ -758,14 +735,17 @@ contains
           ngx=grid(lev)%ngx
           ngy=grid(lev)%ngy
 
-          !gather cores by quadruplets (and marginally by pair, for the coarsest grid)
+          ! Gather cores by quadruplets (and marginally by pair, for the coarsest grid)
 
           ! cores having the same family index share the same subdomain
+          ! All cores in a family do the same work
+
+          ! Integer division; for instance, cores with pi=0,1 have the same family index
           family=(pi/incx)*incx*incy + (npx)*incy*(pj/incy)
 
           nextfamily = (pi/(2*incx))*incx*incy*4 + (npx)*2*incy*(pj/(incy*2))
 
-          ! - assign a color to each core: make a cycling ramp index
+          ! Assign a color to each core: make a cycling ramp index
           ! through 2 or 4 close families 
           ! - cores having the same color should be a pair or a quadruplet 
           ! - colors are all distinct *within* a family
@@ -788,7 +768,6 @@ contains
 
           allocate(grid(lev)%gatherbuffer2D(0:ny+1,0:nx+1,0:ngx-1,0:ngy-1))
           allocate(grid(lev)%gatherbuffer (1:nz  ,0:ny+1,0:nx+1,0:ngx-1,0:ngy-1))
-          allocate(grid(lev)%gatherbufferp(1:nz+1,0:ny+1,0:nx+1,0:ngx-1,0:ngy-1))
 
           ! number of elements of dummy3
           grid(lev)%Ng2D=(nx+2)*(ny+2)
@@ -830,7 +809,7 @@ contains
 
     integer(kind=ip) :: lev
 
-    ! TODO in coherence with the number of grids and the derived type type_grid
+    ! Check if we deallocate everything
 
     if (associated(grid)) then
 
@@ -842,11 +821,8 @@ contains
           if (associated(grid(lev)%r))              deallocate(grid(lev)%r)
           if (associated(grid(lev)%dx))             deallocate(grid(lev)%dx)
           if (associated(grid(lev)%dy))             deallocate(grid(lev)%dy)
-          if (associated(grid(lev)%zr))             deallocate(grid(lev)%zr)
           if (associated(grid(lev)%dz))             deallocate(grid(lev)%dz)
           if (associated(grid(lev)%dzw))            deallocate(grid(lev)%dzw)
-          if (associated(grid(lev)%zx))             deallocate(grid(lev)%zx)
-          if (associated(grid(lev)%zy))             deallocate(grid(lev)%zy)
           if (associated(grid(lev)%zxdy))           deallocate(grid(lev)%zxdy)
           if (associated(grid(lev)%zydx))           deallocate(grid(lev)%zydx)
           if (associated(grid(lev)%alpha))          deallocate(grid(lev)%alpha)
