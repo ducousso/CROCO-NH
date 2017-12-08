@@ -286,8 +286,8 @@ contains
 
   !--------------------------------------------------------------
   subroutine nhmg_checkdivergence(ua,va,wa,Hza)
-!! TODO change interface using halo and paddX
-!! TODO get rid of ishift
+!! Move this to the Croco side
+!! It's here to provide a template
 
     real(kind=rp), dimension(:,:,:), intent(in) :: ua
     real(kind=rp), dimension(:,:,:), intent(in) :: va
