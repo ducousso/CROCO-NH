@@ -515,7 +515,7 @@ contains
     nyg = npyg * ny ! Global domain dimension in y
     nzg = nz        ! Global domain dimension in z
 
-    nhmin = 4 ! Smallest horizontal dimension of the coarsest grid
+    nhmin = 6 ! Smallest horizontal dimension of the coarsest grid
 
     nzmin = 3 ! Smallest vertical dimension of the coarsest grid
 

@@ -26,12 +26,11 @@ contains
     real(kind=rp) :: rnxg,rnyg,rnzg
     real(kind=rp) :: rnpxg,rnpyg
 
-    integer, save :: count = 0
+    integer, save :: count = 1
     logical :: verbose
 
     verbose = .false.
-!!! TODO change 10 to namelist variable with a default large value
-    if (mod(count,10)==0) verbose=.true.
+    if (mod(count,output_freq)==0) verbose=.true.
     if (autotune)  verbose=.true.
     count = count+1
     if ((myrank==0).and.verbose) write(*,*)'     ---------------'
