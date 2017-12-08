@@ -515,8 +515,7 @@ contains
     nyg = npyg * ny ! Global domain dimension in y
     nzg = nz        ! Global domain dimension in z
 
-    ! Smallest horizontal dimension of the coarsest grid
-    nhmin = 4 ! TODO: put it into the namelist
+    nhmin = 4 ! Smallest horizontal dimension of the coarsest grid
 
     nzmin = 3 ! Smallest vertical dimension of the coarsest grid
 
@@ -524,7 +523,7 @@ contains
 
     ! nhg = nhmin * 2^(nl1-1) and therefore:
 
-    nl1 = 1+floor( log( nh  * one / nhmin * one) / log(two) )
+    nl1 = 1+floor( log( nhg * one / nhmin * one) / log(two) )
 
     nl2 = 1+floor( log( nzg * one / nzmin * one) / log(two) )
 
