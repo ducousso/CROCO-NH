@@ -95,6 +95,10 @@
      &       ,is
 # endif
 
+# ifdef NHMG
+      integer halo
+# endif
+
 # ifdef NHMG_CORR_SINH
       real L_dom, H_dom, k_wave
       parameter (L_dom=10.)
@@ -829,11 +833,14 @@
          enddo
 #  endif
 
-      call nhmg_solve(u(:,:,:,nnew),
-     &                v(:,:,:,nnew),
-     &                wz(:,:,:,nnew),
-     &                z_w(:,:,:),
-     &                Hz,.false.)
+# ifdef THREE_GHOST_POINTS
+      halo = 3
+# else
+      halo = 2
+# endif
+         call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
+     &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew),
+     &                              z_w(:,:,:),Hz,.false.)
 
       do k=1,N
          do j=Jstr,Jend

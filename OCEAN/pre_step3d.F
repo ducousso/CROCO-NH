@@ -103,6 +103,9 @@
 # ifndef NBQ
       real Hz_half(PRIVATE_2D_SCRATCH_ARRAY,N)
 # endif
+# ifdef NHMG
+      integer halo
+#  endif
 # ifdef WET_DRY
       real cff3,cff4,cff5
 #  endif
@@ -1185,14 +1188,21 @@
             enddo
          enddo
 # endif
-         call write_netcdf(wz(:,:,:,nnew),vname='wz',netcdf_file_name='pre.nc',
-     & rank=myrank,iter=1)
 
-         call nhmg_solve(u(:,:,:,nnew),
-     &                   v(:,:,:,nnew),
-     &                   wz(:,:,:,nnew),
-     &                   z_w(:,:,:),
-     &                   Hz_half,.true.)
+!     call nhmg_matrices(Lm,Mm,N,halo,padd_X,padd_E,dzdxi,dzdeta,Hz,
+!    &                   om_r(0:Lm+1,0:Mm+1),
+!    &                   on_r(0:Lm+1,0:Mm+1)    )
+
+
+
+# ifdef THREE_GHOST_POINTS
+      halo = 3
+# else
+      halo = 2
+# endif
+         call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
+     &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew),
+     &                              z_w(:,:,:),Hz_half,.true.)
          
          ! add the non-hydro correction (du, dv, dw are in flux form)
          ! add the non-hydrostatic pressure gradient to rufrc, rvfrc

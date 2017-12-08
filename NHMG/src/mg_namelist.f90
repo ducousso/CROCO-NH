@@ -23,6 +23,8 @@ module mg_namelist
 
   logical           :: netcdf_output = .false. !- .false. or .true.
 
+  integer(kind=ip)  :: output_freq = 100000000 ! Number of iterations between output of statistics
+
   logical           :: surface_neumann  = .true.
 
   logical           :: east_west_perio = .false.
@@ -39,6 +41,7 @@ module mg_namelist
        autotune_ts   , &
        relax_method  , &
        netcdf_output , &
+       output_freq   , &
        surface_neumann, &
        east_west_perio, &
        north_south_perio
@@ -110,6 +113,7 @@ contains
           write(*,*)'  - autotune_ts   : ', autotune_ts
           write(*,*)'  - relax_method  : ', trim(relax_method)
           write(*,*)'  - netcdf_output : ', netcdf_output
+          write(*,*)'  - output freq   : ', output_freq
           write(*,*)'  - surf neumann  : ', surface_neumann
           write(*,*)'  - E/W periodic  : ', east_west_perio
           write(*,*)'  - N/S periodic  : ', north_south_perio
