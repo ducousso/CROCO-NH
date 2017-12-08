@@ -838,7 +838,13 @@
 # else
       halo = 2
 # endif
+!!
+!!   We need to specify bounds for Hz because we call nhmg_solve in pre_step3d with Hz_half
+!!   and with Hz in step3d_uv2. Hz_half is a private scratch array, whereas Hz is a global array
+!!   and they have different dimensions
+!!
          call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
+     &          1-halo,Lm+halo+padd_X, 1-halo,Mm+halo+padd_E,    !! bounds for Hz
      &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew),
      &                              z_w(:,:,:),Hz,.false.)
 

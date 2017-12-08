@@ -772,10 +772,6 @@
 # ifdef NBQ
      &                                  +rv_nbq_avg1(i,j,k)
 # endif
-!# ifdef NHMG
-!     &                                  +nhdv(i,j,k,iprec2) 
-!     &                                  *on_v(i,j)
-!# endif
      &                                  )  )*cff
                 v(i,j,k,indx)=v(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                           Hz(i,j-1,k))
@@ -1048,34 +1044,15 @@
 # if defined NBQ || defined NHMG
       call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK)      
 # endif
+
+
+
+# ifdef NHMG
 !
 !======================================================================
 ! Non-hydro projection of momentum
 !======================================================================
 !
-
-# ifdef NHMG_DEBUG
-
-      write(*,*) 'pre_step3d : u,v,wz before nh projection. [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-      write(*,*) 'pre_step3d : rufrc,rvfrc before nh projection.'
-      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
-      write(*,*) maxval(rvfrc(1:Lm,1:Mm+1))
-
-      call nhmg_write_pred_inter1(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
-     &     rufrc(-1:Lm+2,-1:Mm+2),
-     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-
-# endif
-
-# ifdef NHMG
-
       cff = 1./cdt
 
 # ifdef NHMG_AB2
@@ -1106,10 +1083,6 @@
      &                 + nhdu(i,j,k,iprec2) 
      &                 * om_u(i,j)
 # endif
-# ifdef NHMG_WEIGHTED_FRC
-     &                 * 0.0
-!     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
-# endif
                enddo
             enddo
             
@@ -1130,10 +1103,6 @@
 # else
      &                 + nhdv(i,j,k,iprec2) 
      &                 * on_v(i,j)
-# endif
-# ifdef NHMG_WEIGHTED_FRC
-     &                 * 0.0
-!     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
 # endif
                enddo
             enddo
@@ -1189,23 +1158,25 @@
          enddo
 # endif
 
-!     call nhmg_matrices(Lm,Mm,N,halo,padd_X,padd_E,dzdxi,dzdeta,Hz,
-!    &                   om_r(0:Lm+1,0:Mm+1),
-!    &                   on_r(0:Lm+1,0:Mm+1)    )
-
-
 
 # ifdef THREE_GHOST_POINTS
       halo = 3
 # else
       halo = 2
 # endif
+!!
+!!   We need to specify bounds for Hz because we call nhmg_solve here with Hz_half
+!!   and with Hz in step3d_uv2. Hz_half is a private scratch array, whereas Hz is a global array
+!!   and they have different dimensions
+!!
          call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
+     &          -1,Lm+2,-1,Mm+2,                           ! bounds for Hz_half array
      &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew),
      &                              z_w(:,:,:),Hz_half,.true.)
          
          ! add the non-hydro correction (du, dv, dw are in flux form)
          ! add the non-hydrostatic pressure gradient to rufrc, rvfrc
+
          do k=1,N    
             do j=Jstr,Jend
                do i=IstrU,Iend

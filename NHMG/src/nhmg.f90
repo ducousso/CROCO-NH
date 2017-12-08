@@ -166,16 +166,17 @@ contains
 
   end subroutine fill_outer_halos
   !--------------------------------------------------------------
-  subroutine nhmg_solve(nx,ny,nz,hl,pdx,pdy,ua,va,wa,zwa,Hza,fill_hz)
+  subroutine nhmg_solve(nx,ny,nz,hl,pdx,pdy,i0,i1,j0,j1,ua,va,wa,zwa,Hza,fill_hz)
 
     integer(kind=ip), intent(in) :: nx,ny,nz
     integer(kind=ip), intent(in) :: hl,pdx,pdy
+    integer(kind=ip), intent(in) :: i0,i1,j0,j1
 
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in)   :: ua
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in)   :: va
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(inout):: wa
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in)   :: zwa
-    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in)   :: Hza
+    real(kind=rp), dimension(  i0:i1       ,  j0:j1       ,1:nz),intent(in)   :: Hza
     logical :: fill_hz
 
     real(kind=rp), dimension(:,:),   pointer :: dx,dy
