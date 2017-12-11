@@ -1048,6 +1048,7 @@
 
 
 # ifdef NHMG
+! TODO check this bit of code! It does appear that we always do AB2 or nearest reuse of du,dv and afterwards do another projection on top
 !
 !======================================================================
 ! Non-hydro projection of momentum
@@ -1168,6 +1169,10 @@
 !!   We need to specify bounds for Hz because we call nhmg_solve here with Hz_half
 !!   and with Hz in step3d_uv2. Hz_half is a private scratch array, whereas Hz is a global array
 !!   and they have different dimensions
+
+!!   TODO Can we make changes that keep u,v,w in flux units instead of velocities?
+!!   TODO If so, we can possibly avoid calling nhmg_solve with Hz at all and additionally
+!!   TODO make it easier to compute the 'barotropic' correction to w which is needed when using neumann for the solver.
 !!
          call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
      &          -1,Lm+2,-1,Mm+2,                           ! bounds for Hz_half array
@@ -1184,10 +1189,6 @@
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
      &                 * pn_u(i,j)
                   rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
-# ifdef NHMG_WEIGHTED_FRC
-     &                 * 0.0
-!     &                 * (1.-exp(z_r(i,j,k)*pm(i,j)))
-# endif
                enddo
             enddo
             
@@ -1197,10 +1198,6 @@
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
      &                 * pm_v(i,j)
                   rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
-# ifdef NHMG_WEIGHTED_FRC
-     &                 * 0.0
-!     &                 * (1.-exp(z_r(i,j,k)*pn(i,j)))
-# endif
                enddo
             enddo
             
@@ -1221,17 +1218,6 @@
       call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
 
 # endif
-
-# ifdef NHMG_DEBUG
-      write(*,*) 'pre_step3d : u,v,wz after nh projection. [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-      write(*,*) 'pre_step3d : rufrc,rvfrc after nh projection.'
-      write(*,*) maxval(rufrc(1:Lm+1,1:Mm))
-      write(*,*) maxval(rvfrc(1:Lm,1:Mm+1))
-# endif
-
 !
 !======================================================================
 ! Coupling, include ghost points associated with PHYSICAL

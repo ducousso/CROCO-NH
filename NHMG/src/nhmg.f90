@@ -59,41 +59,23 @@ contains
     real(kind=rp), dimension(0:nx+1,0:ny+1)     , optional, intent(in) :: dxa
     real(kind=rp), dimension(0:nx+1,0:ny+1)     , optional, intent(in) :: dya
 
-    real(kind=rp), dimension(:,:)  , pointer :: dx,dy
-
     integer(kind=ip) :: i,j,k
-    real(kind=rp), dimension(0:ny+1,0:nx+1),      target :: dxb,dyb
-
-    integer(kind=ip), save :: iter_matrices=0
-    iter_matrices = iter_matrices + 1
-
 
     call tic(1,'nhmg_matrices')
 
-    !--------------------!
-    !- Horizontal grids -!
-    !--------------------!
-!!!! TODO: put dx,dy directly into grid(1)%dx,dy
     if (present(dxa) .and. present(dya)) then
 
-       dxb = transpose(dxa)
-       dyb = transpose(dya)
-       dx => dxb
-       dy => dyb
+       do i = -1,nx+2
+          do j = -1,ny+2
+             grid(1)%dx(j,i) = dxa(i,j)
+             grid(1)%dy(j,i) = dya(i,j)
+          enddo
+       enddo
 
-       call set_horiz_grids(dx,dy)
-
-       if (associated(dx)) dx => null()
-       if (associated(dy)) dy => null()
+       call set_horiz_grids()
 
     end if
 
-    !------------------!
-    !- Vertical grids -!
-    !------------------!
-
-
-!!!  reshape arrays indexing ijk -> kji !!!
     do i = -1,nx+2
        do j = -1,ny+2
           do k = 1,nz
@@ -102,14 +84,14 @@ contains
        enddo
     enddo
 
-       do i = 0,nx+1
-          do j = 0,ny+1
-             do k = 1, nz
-                grid(1)%zxdy(k,j,i) = zxa(i,j,k) * grid(1)%dy(j,i)
-                grid(1)%zydx(k,j,i) = zya(i,j,k) * grid(1)%dx(j,i)
-             enddo
+    do i = 0,nx+1
+       do j = 0,ny+1
+          do k = 1, nz
+             grid(1)%zxdy(k,j,i) = zxa(i,j,k) * grid(1)%dy(j,i)
+             grid(1)%zydx(k,j,i) = zya(i,j,k) * grid(1)%dx(j,i)
           enddo
        enddo
+    enddo
 
     call fill_outer_halos(grid(1)%dz,nx,ny,nz)
 
@@ -193,6 +175,7 @@ contains
     dy => grid(1)%dy
 
     ! need to update dz because define_matrices may not be called every time step
+    ! Also, nhmg_solve is called from pre_step, and from step3d. The Hz's are different..
     dz => grid(1)%dz
     do k=1,nz
        do j=0,ny+1
@@ -369,7 +352,7 @@ contains
 
   subroutine nhmg_clean()
 
-    call grids_dealloc()
+!   call grids_dealloc()
 
     call print_tictoc()
 

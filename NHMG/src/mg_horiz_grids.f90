@@ -13,9 +13,7 @@ module mg_horiz_grids
 contains
 
   !----------------------------------------
-  subroutine set_horiz_grids(dx,dy)
-
-    real(kind=rp), dimension(:,:), pointer, intent(in) :: dx,dy
+  subroutine set_horiz_grids()
 
     integer(kind=ip) :: lev
     integer(kind=ip) :: nx,ny
@@ -34,14 +32,10 @@ contains
        nx=grid(lev)%nx
        ny=grid(lev)%ny
 
-       if (lev == 1) then ! dx,dy from croco
+       if (lev == 1) then
 
-!  comment out these lines because we'll fill grid(1) dx in nhmg
-          grid(lev)%dx(0:ny+1,0:nx+1) = dx
-          grid(lev)%dy(0:ny+1,0:nx+1) = dy
-
-          grid(lev)%dxu(0:ny+1,1:nx+1) = hlf*(dx(0:ny+1,0:nx)+dx(0:ny+1,1:nx+1))
-          grid(lev)%dyv(1:ny+1,0:nx+1) = hlf*(dy(0:ny,0:nx+1)+dy(1:ny+1,0:nx+1))
+          grid(lev)%dxu(0:ny+1,1:nx+1) = hlf*(grid(lev)%dx(0:ny+1,0:nx)+grid(lev)%dx(0:ny+1,1:nx+1))
+          grid(lev)%dyv(1:ny+1,0:nx+1) = hlf*(grid(lev)%dy(0:ny,0:nx+1)+grid(lev)%dy(1:ny+1,0:nx+1))
 
        else               ! coarsen dx,dy 
           ! (needed when directly discretizing on coarser grids)
