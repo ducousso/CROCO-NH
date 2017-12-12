@@ -213,8 +213,9 @@ contains
        enddo
        do j=1,ny+1
           do i=1,nx
-             v(k,j,i) = va(i,j,k) * &
-                  qrt * (dz(k,j,i) + dz(k,j-1,i)) * (dx(j,i)+dx(j-1,i))
+!            v(k,j,i) = va(i,j,k) * &
+!                 qrt * (dz(k,j,i) + dz(k,j-1,i)) * (dx(j,i)+dx(j-1,i))
+             v(k,j,i) = va(i,j,k)
              vbar(j,i) = vbar(j,i) + v(k,j,i)
           enddo
        enddo
@@ -227,8 +228,9 @@ contains
     if (surface_neumann)  then
        do j=1,ny
           do i=1,nx
-             wcorr(j,i) = wa(i,j,nz+1) + ( ubar(j,i+1) - ubar(j,i) + vbar(j+1,i) - vbar(j,i) ) &
-                            / (dx(j,i) * dy(j,i)) 
+             wcorr(j,i) = wa(i,j,nz+1) + ( ubar(j,i+1) - ubar(j,i) + vbar(j+1,i) - vbar(j,i) ) 
+!            wcorr(j,i) = wa(i,j,nz+1) + ( ubar(j,i+1) - ubar(j,i) + vbar(j+1,i) - vbar(j,i) ) &
+!                           / (dx(j,i) * dy(j,i)) 
           enddo
        enddo
        do k=1,nz+1
@@ -245,7 +247,8 @@ contains
     do k=1,nz
        do j=1,ny
           do i=1,nx
-             w(k+1,j,i) = wa(i,j,k+1) * dx(j,i) * dy(j,i)
+!            w(k+1,j,i) = wa(i,j,k+1) * dx(j,i) * dy(j,i)
+             w(k+1,j,i) = wa(i,j,k+1)
           enddo
        enddo
     enddo

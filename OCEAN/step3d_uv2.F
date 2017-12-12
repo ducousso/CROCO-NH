@@ -829,17 +829,17 @@
             enddo
          enddo
 
-         do j=Jstr,Jend
+         do j=Jstr,Jend+1
             do i=Istr,Iend
-!              v(i,j,k,nnew) = v(i,j,k,nnew)
-!    &              *(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) / pm_v(i,j)
+               v(i,j,k,nnew) = v(i,j,k,nnew)
+     &              *(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) / pm_v(i,j)
             enddo
          enddo
 
          do j=Jstr,Jend
             do i=Istr,Iend
-!              wz(i,j,k,nnew) = wz(i,j,k,nnew)
-!    &              / (pm(i,j)*pn(i,j))
+               wz(i,j,k,nnew) = wz(i,j,k,nnew)
+     &              / (pm(i,j)*pn(i,j))
             enddo
          enddo
       enddo
@@ -870,20 +870,20 @@
          do j=Jstr,Jend+1
             do i=Istr,Iend
                nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)/dt !stored as a trend
-!              v(i,j,k,nnew) = (v(i,j,k,nnew) + grid(1)%dv(k,j,i) )
-!    &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
-               v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
+               v(i,j,k,nnew) = (v(i,j,k,nnew) + grid(1)%dv(k,j,i) )
      &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
+!              v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
+!    &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
             enddo
          enddo
 
          do j=Jstr,Jend
             do i=Istr,Iend
                nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)/dt !stored as a trend
-!              wz(i,j,k,nnew) = (wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i) )
-!    &              * (pm(i,j)*pn(i,j))
-               wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
+               wz(i,j,k,nnew) = (wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i) )
      &              * (pm(i,j)*pn(i,j))
+!              wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
+!    &              * (pm(i,j)*pn(i,j))
             enddo
          enddo
       enddo

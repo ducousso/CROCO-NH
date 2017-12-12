@@ -1189,23 +1189,20 @@
                enddo
             enddo
 
-            do j=Jstr,Jend
+            do j=Jstr,Jend+1
                do i=Istr,Iend
-!                 v(i,j,k,nnew) = v(i,j,k,nnew)
-!    &                 *(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)))/pm_v(i,j)
+                  v(i,j,k,nnew) = v(i,j,k,nnew)
+     &                 *(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)))/pm_v(i,j)
                enddo
             enddo
 
             do j=Jstr,Jend
                do i=Istr,Iend
-!                 wz(i,j,k,nnew) = wz(i,j,k,nnew)/(pm(i,j)*pn(i,j))
+                  wz(i,j,k,nnew) = wz(i,j,k,nnew)/(pm(i,j)*pn(i,j))
                enddo
             enddo
          enddo
 
-!        if (mynode.eq.0) then
-!           write(*,*) 'pre_Step 1:  ',u(1,1,32,nnew),u(2,1,32,nnew)
-!        endif
 
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
 !!  TODO It should be possible, in the long term, to avoid these at all
@@ -1249,22 +1246,22 @@
             
             do j=JstrV,Jend
                do i=Istr,Iend
-!                 v(i,j,k,nnew) = (v(i,j,k,nnew) + grid(1)%dv(k,j,i))
-!    &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)))
-!    &                 * pm_v(i,j)
-                  v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
-     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
+                  v(i,j,k,nnew) = (v(i,j,k,nnew) + grid(1)%dv(k,j,i))
+     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)))
      &                 * pm_v(i,j)
+!                 v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
+!    &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
+!    &                 * pm_v(i,j)
                   rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
                enddo
             enddo
             
             do j=Jstr,Jend
                do i=Istr,Iend
-!                 wz(i,j,k,nnew) = (wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i))
-!    &                 * (pm(i,j)*pn(i,j))
-                  wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
+                  wz(i,j,k,nnew) = (wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i))
      &                 * (pm(i,j)*pn(i,j))
+!                 wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
+!    &                 * (pm(i,j)*pn(i,j))
                enddo
             enddo
          enddo
