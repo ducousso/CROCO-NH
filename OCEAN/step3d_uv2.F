@@ -781,31 +781,6 @@
 # endif
 !
 # ifdef NHMG
-!--------------------------------------------------------------------
-! Non-hydro projection of momentum
-!--------------------------------------------------------------------
-!
-#  ifdef NHMG_DEBUG
-
-      write(*,*) 'step3d_uv2 : u,v,wz before projection . [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-
-      call nhmg_write_corr_inter1(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-
-#  endif
-
-#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
-     &                        u(START_2D_ARRAY,1,nnew))
-      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
-     &                        v(START_2D_ARRAY,1,nnew))
-#  endif
 
       call tic(1,'swap corrector')
 
@@ -833,6 +808,7 @@
          enddo
 #  endif
 
+
 # ifdef THREE_GHOST_POINTS
       halo = 3
 # else
@@ -843,6 +819,38 @@
 !!   and with Hz in step3d_uv2. Hz_half is a private scratch array, whereas Hz is a global array
 !!   and they have different dimensions
 !!
+!   Multiply u,v,w to go from velocity units to fluxes
+
+      do k=1,N
+         do j=Jstr,Jend
+            do i=Istr,Iend+1
+               u(i,j,k,nnew) = u(i,j,k,nnew)
+     &              *(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) / pn_u(i,j)
+            enddo
+         enddo
+
+         do j=Jstr,Jend
+            do i=Istr,Iend
+!              v(i,j,k,nnew) = v(i,j,k,nnew)
+!    &              *(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) / pm_v(i,j)
+            enddo
+         enddo
+
+         do j=Jstr,Jend
+            do i=Istr,Iend
+!              wz(i,j,k,nnew) = wz(i,j,k,nnew)
+!    &              / (pm(i,j)*pn(i,j))
+            enddo
+         enddo
+      enddo
+
+#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+      call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+     &                        u(START_2D_ARRAY,1,nnew))
+      call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+     &                        v(START_2D_ARRAY,1,nnew))
+#  endif
+
          call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
      &          1-halo,Lm+halo+padd_X, 1-halo,Mm+halo+padd_E,    !! bounds for Hz
      &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew),
@@ -852,14 +860,18 @@
          do j=Jstr,Jend
             do i=Istr,Iend+1
                nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i)/dt !stored as a trend
-               u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
+               u(i,j,k,nnew) = (u(i,j,k,nnew) + grid(1)%du(k,j,i) )
      &              /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
+!              u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
+!    &              /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
             enddo
          enddo
 
          do j=Jstr,Jend+1
             do i=Istr,Iend
                nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)/dt !stored as a trend
+!              v(i,j,k,nnew) = (v(i,j,k,nnew) + grid(1)%dv(k,j,i) )
+!    &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
                v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
      &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
             enddo
@@ -868,6 +880,8 @@
          do j=Jstr,Jend
             do i=Istr,Iend
                nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)/dt !stored as a trend
+!              wz(i,j,k,nnew) = (wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i) )
+!    &              * (pm(i,j)*pn(i,j))
                wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
      &              * (pm(i,j)*pn(i,j))
             enddo
@@ -880,41 +894,8 @@
 
       call toc(1,'swap corrector')
 
-#  ifdef NHMG_CHECKDIV
-      call nhmg_checkdivergence(u(:,:,:,nnew),
-     &                          v(:,:,:,nnew),
-     &                          wz(:,:,:,nnew),
-     &                          Hz(:,:,:))
-#  endif
-
-#  ifdef NHMG_DIAG
-      call nhmg_diagnostics(u(:,:,:,nnew),
-     &                      v(:,:,:,nnew),
-     &                      wz(:,:,:,nnew),
-     &                      Hz(:,:,:))
-#  endif
-
 # endif    /* NHMG */
 
-# ifdef NHMG_DEBUG
-
-      write(*,*) 'step3d_uv2 : u,v,wz after projection . [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-
-      call nhmg_write_corr_inter2(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
-     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-     &     DU_avg1(-1:Lm+2,-1:Mm+2,nnew),
-     &     DV_avg1(-1:Lm+2,-1:Mm+2,nnew) )
-
-# endif
-
-!
 !
 !--------------------------------------------------------------------
 ! Coupling 2D and 3D momentum equations:

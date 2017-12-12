@@ -32,7 +32,9 @@
 # endif           
      &                A2d(1,1,trd), A2d(1,2,trd), A2d(1,3,trd)
 # ifndef NBQ
+#  ifndef NHMG
      &                                          , A3d(1,3,trd)
+#  endif
 # endif
      &                                                        )
       return
@@ -45,7 +47,9 @@
 # endif     
      &                                               FX,FE,WORK
 # ifndef NBQ
+#  ifndef NHMG
      &                                                 ,Hz_half
+#  endif
 # endif
      &                                                         )  
 !
@@ -101,7 +105,9 @@
       real   WC(PRIVATE_1D_SCRATCH_ARRAY,0:N) 
 # endif 
 # ifndef NBQ
+#  ifndef NHMG
       real Hz_half(PRIVATE_2D_SCRATCH_ARRAY,N)
+#  endif
 # endif
 # ifdef NHMG
       integer halo
@@ -577,38 +583,6 @@
 !
         enddo   !<-- itrc  !--> discard DC
       enddo     !<-- j
-
-!
-!======================================================================
-!
-
-# ifdef NHMG_DEBUG
-
-      write(*,*) 'pre_step3d : u,v,wz before applying rhs. [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nstp))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nstp))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nstp))
-      write(*,*) 'pred_step3d : ru,rv,rw. [Vol*u/dt]'
-      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
-      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
-      write(*,*) maxval(rw(1:Lm,1:Mm,:))
-
-      call nhmg_write_pred_in(
-     &     Lm, Mm, N,
-     &     Hz_bak(-1:Lm+2,-1:Mm+2,1:N),
-     &     Hz(-1:Lm+2,-1:Mm+2,1:N),
-     &     Hz_half(-1:Lm+2,-1:Mm+2,1:N),
-     &     u(-1:Lm+2,-1:Mm+2,1:N,indx),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,indx),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,indx),
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nstp),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nstp),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nstp),
-     &     ru(-1:Lm+2,-1:Mm+2,1:N),
-     &     rv(-1:Lm+2,-1:Mm+2,1:N),
-     &     rw(-1:Lm+2,-1:Mm+2,0:N) )
-
-# endif
 
 !
 !======================================================================
@@ -1128,13 +1102,6 @@
 
          call tic(1,'swap predictor')
          
-# if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-         call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
-     &        u(START_2D_ARRAY,1,nnew))
-         call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
-     &        v(START_2D_ARRAY,1,nnew))
-# endif
-       
 # if defined NHMG_MASKING
          do k=1,N    
             do j=Jstr,Jend
@@ -1160,11 +1127,6 @@
 # endif
 
 
-# ifdef THREE_GHOST_POINTS
-      halo = 3
-# else
-      halo = 2
-# endif
 !!
 !!   We need to specify bounds for Hz because we call nhmg_solve here with Hz_half
 !!   and with Hz in step3d_uv2. Hz_half is a private scratch array, whereas Hz is a global array
@@ -1174,8 +1136,98 @@
 !!   TODO If so, we can possibly avoid calling nhmg_solve with Hz at all and additionally
 !!   TODO make it easier to compute the 'barotropic' correction to w which is needed when using neumann for the solver.
 !!
+!
+!  Set lateral boundary conditions for Hz_half
+!
+#  ifndef EW_PERIODIC
+      if (WESTERN_EDGE) then
+        do k=0,N
+          do j=Jstr,Jend
+            Hz_half(0,j,k)=Hz_half(1,j,k)
+          enddo
+        enddo
+      endif
+      if (EASTERN_EDGE) then
+        do k=0,N
+          do j=Jstr,Jend
+            Hz_half(LOCALLM+1,j,k)=Hz_half(LOCALLM,j,k)
+          enddo
+        enddo
+      endif
+#  endif
+#  ifndef NS_PERIODIC
+      if (SOUTHERN_EDGE) then
+        do k=0,N
+          do i=Istr,Iend
+            Hz_half(i,0,k)=Hz_half(i,1,k)
+          enddo
+        enddo
+      endif
+      if (NORTHERN_EDGE) then
+        do k=0,N
+          do i=Istr,Iend
+            Hz_half(i,LOCALMM+1,k)=Hz_half(i,LOCALMM,k)
+          enddo
+        enddo
+      endif
+#  endif
+
+#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+      call exchange_r3d_tile (Istr,Iend,Jstr,Jend,
+     &                        Hz_half(START_2D_ARRAY,1))
+#  endif
+
+!    Multiply u,v,w to get back fluxes so we don't do that inside nhmg
+!    Also, compute a 'barotropic' correction to wz such that it matches
+!    the current ubar,vbar divergence
+
+         do k=1,N
+            do j=Jstr,Jend
+               do i=Istr,Iend+1
+                  u(i,j,k,nnew) = u(i,j,k,nnew)
+     &                *(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k)))/pn_u(i,j)
+               enddo
+            enddo
+
+            do j=Jstr,Jend
+               do i=Istr,Iend
+!                 v(i,j,k,nnew) = v(i,j,k,nnew)
+!    &                 *(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)))/pm_v(i,j)
+               enddo
+            enddo
+
+            do j=Jstr,Jend
+               do i=Istr,Iend
+!                 wz(i,j,k,nnew) = wz(i,j,k,nnew)/(pm(i,j)*pn(i,j))
+               enddo
+            enddo
+         enddo
+
+!        if (mynode.eq.0) then
+!           write(*,*) 'pre_Step 1:  ',u(1,1,32,nnew),u(2,1,32,nnew)
+!        endif
+
+# if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+!!  TODO It should be possible, in the long term, to avoid these at all
+         call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
+     &        u(START_2D_ARRAY,1,nnew))
+         call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
+     &        v(START_2D_ARRAY,1,nnew))
+# endif
+
+
+# ifdef THREE_GHOST_POINTS
+      halo = 3
+# else
+      halo = 2
+# endif
+!        write(*,*) 'going to mg_solve in prestep'
+!        if (mynode.eq.0) then
+!           write(*,*) 'pre_Step 2:  ',u(1,1,32,nnew)
+!        endif
          call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
-     &          -1,Lm+2,-1,Mm+2,                           ! bounds for Hz_half array
+!    &          -1,Lm+2,-1,Mm+2,                           ! bounds for Hz_half array
+     &          1-halo,Lm+halo+padd_X, 1-halo,Mm+halo+padd_E,    !! bounds for Hz_half, now that it is a global array
      &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew),
      &                              z_w(:,:,:),Hz_half,.true.)
          
@@ -1185,15 +1237,21 @@
          do k=1,N    
             do j=Jstr,Jend
                do i=IstrU,Iend
-                  u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
-     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
+                  u(i,j,k,nnew) = (u(i,j,k,nnew) + grid(1)%du(k,j,i))
+     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k)))
      &                 * pn_u(i,j)
+!                 u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
+!    &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
+!    &                 * pn_u(i,j)
                   rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
                enddo
             enddo
             
             do j=JstrV,Jend
                do i=Istr,Iend
+!                 v(i,j,k,nnew) = (v(i,j,k,nnew) + grid(1)%dv(k,j,i))
+!    &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)))
+!    &                 * pm_v(i,j)
                   v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
      &                 * pm_v(i,j)
@@ -1203,6 +1261,8 @@
             
             do j=Jstr,Jend
                do i=Istr,Iend
+!                 wz(i,j,k,nnew) = (wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i))
+!    &                 * (pm(i,j)*pn(i,j))
                   wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
      &                 * (pm(i,j)*pn(i,j))
                enddo

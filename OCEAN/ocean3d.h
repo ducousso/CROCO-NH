@@ -69,6 +69,7 @@
       real nhssh(GLOBAL_2D_ARRAY)
       real dzdxi(GLOBAL_2D_ARRAY,1:N)
       real dzdeta(GLOBAL_2D_ARRAY,1:N)
+      real Hz_half(GLOBAL_2D_ARRAY,N)
       common /ocean_wz/wz
       common /ocean_nhdu/nhdu 
       common /ocean_nhdv/nhdv
@@ -76,6 +77,7 @@
       common /ocean_nhssh/nhssh
       common /ocean_dzdxi/dzdxi
       common /ocean_dzdeta/dzdeta
+      common /grid_Hz_half/Hz_half
 # endif
 
 # if defined UV_VIS4 && defined UV_MIX_GEO

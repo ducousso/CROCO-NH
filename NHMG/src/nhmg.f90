@@ -169,6 +169,10 @@ contains
     integer(kind=ip), save :: iter_solve=0
     iter_solve = iter_solve + 1
 
+!   if (myrank.eq.0) then
+!    write(*,*) 'mg_Solve 1: ',ua(1,1,32)
+!   endif
+
     call tic(1,'nhmg_solve')
 
     dx => grid(1)%dx
@@ -197,11 +201,13 @@ contains
     vbar(:,:) = zero
 
 !TODO remove this bit to merge with set_rhs. get rid of grid(1).u,v,w
+! IN PROGRESS: first step, move the velocity 2 flux from here to croco
     do k=1,nz
        do j=1,ny
           do i=1,nx+1
-             u(k,j,i) = ua(i,j,k) * &
-                  qrt * (dz(k,j,i) + dz(k,j,i-1)) * (dy(j,i)+dy(j,i-1))
+!            u(k,j,i) = ua(i,j,k) * &
+!                 qrt * (dz(k,j,i) + dz(k,j,i-1)) * (dy(j,i)+dy(j,i-1))
+             u(k,j,i) = ua(i,j,k)
              ubar(j,i) = ubar(j,i) + u(k,j,i)
           enddo
        enddo
@@ -213,6 +219,10 @@ contains
           enddo
        enddo
     enddo
+    
+!   if (myrank.eq.0) then
+!      write(*,*) 'mg_solve 2: ',u(32,1,1)
+!   endif
 
     if (surface_neumann)  then
        do j=1,ny
