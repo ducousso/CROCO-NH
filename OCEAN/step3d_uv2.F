@@ -62,17 +62,6 @@
       USE nhmg, only : nhmg_solve
       USE mg_grids
       USE mg_tictoc
-# ifdef NHMG_CHECKDIV
-      USE nhmg, only : nhmg_checkdivergence
-# endif
-# ifdef NHMG_DIAG
-      USE nhmg, only : nhmg_diagnostics
-# endif
-# ifdef NHMG_DEBUG
-      USE nhmg_debug, only : nhmg_write_corr_inter1
-      USE nhmg_debug, only : nhmg_write_corr_inter2
-      USE nhmg_debug, only : nhmg_write_corr_out
-# endif
 #endif
       implicit none
 # include "param.h"
@@ -97,14 +86,6 @@
 
 # ifdef NHMG
       integer halo
-# endif
-
-# ifdef NHMG_CORR_SINH
-      real L_dom, H_dom, k_wave
-      parameter (L_dom=10.)
-      parameter (H_dom=10.)
-      parameter (k_wave=2*3.14/L_dom)
-      real ND(PRIVATE_1D_SCRATCH_ARRAY,0:N)
 # endif
 
       real BC(PRIVATE_1D_SCRATCH_ARRAY,0:N),
@@ -133,13 +114,6 @@
       else                      ! time smoothing
        cfilt=csmooth            ! coefficient
       endif
-# endif
-
-#ifdef NHMG_DEBUG
-      write(*,*) 'step3d_uv2 : u,v,wz before imp vert visc. [h*u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
 # endif
 
 !
@@ -448,143 +422,6 @@
 !        enddo
 # endif
 
-# if defined NHMG_WMIX_GR
-!Guillaume 's code
-        do k=0,N-1 !<- starts at k=0
-          do i=Istr,Iend
-            !FC(i,k) sits above w(i,j,k) and connects
-            !w(i,j,k) with w(i,j,k+1) 
-            !FC(i,:) is defined for k=0,1...N-1
-            !FC(i,N) should not be used for w
-            FC(i,k)=-0.5*dt*(Akv(i,j,k)+Akv(i,j,k+1))/Hz(i,j,k+1)
-#  ifdef VADV_ADAPT_IMP
-            DC(i,0)=pm(i,j)*pn(i,j)
-            WC(i,k)=dt*DC(i,0)*0.5*(Wi(i,j,k)+Wi(i,j,k+1))
-#  endif
-          enddo
-        enddo
-
-        do k=1,N-1 ! <= difference with u and v
-          do i=Istr,Iend
-            ! here we multiply wz by dz
-            DC(i,k)=wz(i,j,k,nnew)*0.5*(Hz(i,j,k)+Hz(i,j,k+1))
-            BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1))
-     &              -FC(i,k)-FC(i,k-1)
-#  ifdef VADV_ADAPT_IMP
-     &              +max(WC(i,k  ),0.)-min(WC(i,k-1),0.)
-#  endif
-          enddo
-        enddo      !--> discard DC(:,0); keep FC
-        ! Dirichlet condition = we keep the wz(:,:,N) identical
-        ! it is almost zero but not exactly, it differs from 0 by
-        ! the breathing term
-        ! since we don't update wz(:,:,N) we keep it as a velocity
-        k=N-1
-        ! this is the surface Dirichlet BC for vertical mixing
-        do i=Istr,Iend
-#  ifdef VADV_ADAPT_IMP
-              cc = FC(i,k  )+min(WC(i,k  ),0.)
-#  else
-              cc = FC(i,k  )
-#  endif
-           DC(i,k)=DC(i,k)- cc* wz(i,j,N,nnew)
-        enddo
-        k=1
-        do i=Istr,Iend
-!#  ifdef VADV_ADAPT_IMP
-!           CF(i,k) = (FC(i,k)+min(WC(i,k),0.))/BC(i,k) !<-- q(1) = c(1)/b(1)
-!#  else
-!           CF(i,k) = (FC(i,k)                )/BC(i,k) !<-- q(1) = c(1)/b(1)
-!#  endif
-           CF(i,0) = 0.
-           DC(i,0) = 0.         !<=Dirichlet BC, no flux
-        enddo
-
-        do k=1,N-1 !<= starts at 1, unlike for u and v (starts at 2)
-          do i=Istr,Iend
-#  ifdef VADV_ADAPT_IMP
-              aa = FC(i,k-1)-max(WC(i,k-1),0.)   !<-- a = sub   (lower) diagonal
-              cc = FC(i,k  )+min(WC(i,k  ),0.)   !<-- c = super (upper) diagonal
-#  else
-              aa = FC(i,k-1)
-              cc = FC(i,k  )
-#  endif
-            cff=1./(BC(i,k)-aa*CF(i,k-1))        !<-- p    = 1/(b(k)-a(k)*q(k))
-            CF(i,k)=cff*cc
-            ! DC was a velocity * Hz, after this operation
-            ! it becomes a velocity (cff is one over a length)
-            DC(i,k)=cff*(DC(i,k)-aa*DC(i,k-1))          
-          enddo
-        enddo
-        k=N-1
-        do i=Istr,Iend
-           wz(i,j,k,nnew)=DC(i,k)
-        enddo
-        do k=N-2,1,-1
-          do i=Istr,Iend
-! note that DC(i,N) is used here (even though wz(:,:,N) is not changed)
-! from the line below applied at k=N-1, it can be seen why DC(i,N) should
-! be a velocity and not a velocity * Hz 
-            DC(i,k)=DC(i,k)-CF(i,k)*DC(i,k+1)
-!- idem: three lines below are for the barotropic correction
-!            cff=0.5*(Hz(i,j,k)+Hz(i-1,j,k))
-!            CF(i,0)=CF(i,0)+cff
-!            DC(i,0)=DC(i,0)+cff*DC(i,k)
-            wz(i,j,k,nnew)=DC(i,k) SWITCH rmask(i,j)
-#  ifdef DIAGNOSTICS_UV
-!todo            MVmix(i,j,k,1)=
-#  endif 
-          enddo
-        enddo      !--> discard FC,BC; keep DC,CF(:,0)
-
-# elif defined NHMG_WMIX_FA
-!F. Auclair's code
-        do k=1,N-1
-           do i=Istr,Iend
-              FC(i,k)=-0.5*dt*( Akv(i,j,k+1)+Akv(i,j,k) )
-     &             /    ( z_w(i,j,k+1)-z_w(i,j,k) )
-           enddo
-        enddo
-        do i=Istr,Iend
-           FC(i,0)=0.
-           FC(i,N)=0.
-        enddo
-
-        do k=1,N-1
-          do i=Istr,Iend
-            DC(i,k)=wz(i,j,k,nnew)
-            BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1)) - FC(i,k) - FC(i,k-1) 
-          enddo
-        enddo  
-        do i=Istr,Iend            
-          DC(i,N)=wz(i,j,N,nnew)
-          BC(i,N)=0.5*Hz(i,j,N) - FC(i,N) - FC(i,N-1)    
-        enddo 
-        
-        do i=Istr,Iend
-          cff=1./BC(i,1)
-          CF(i,1)=cff*FC(i,1)
-          DC(i,1)=cff*DC(i,1)
-        enddo
-        do k=2,N-1
-          do i=Istr,Iend
-            cff=1./(BC(i,k)-FC(i,k-1)*CF(i,k-1))
-            CF(i,k)=cff*FC(i,k)
-            DC(i,k)=cff*(DC(i,k)-FC(i,k-1)*DC(i,k-1))
-          enddo
-        enddo
-        do i=Istr,Iend
-          wz(i,j,N,nnew)=(DC(i,N)-FC(i,N-1)*DC(i,N-1))
-     &                  /(BC(i,N)-FC(i,N-1)*CF(i,N-1))
-        enddo
-        do k=N-1,1,-1
-          do i=Istr,Iend
-             wz(i,j,k,nnew)=DC(i,k)-CF(i,k)*wz(i,j,k+1,nnew)
-          enddo
-        enddo      
-
-# elif defined NHMG_WMIX_ND
-!Nico Jr code
         do k=1,N
           do i=Istr,Iend
             FC(i,k)=-0.5*dt*( Akv(i,j,k)+Akv(i,j,k-1) )
@@ -655,19 +492,8 @@
              wz(i,j,k,nnew)=DC(i,k)-CF(i,k+1)*wz(i,j,k+1,nnew)
           enddo
         enddo 
-# else
-!if no mixing, only division by Hz
-        do k=1,N-1
-          do i=Istr,Iend
-            wz(i,j,k,nnew)=2.*wz(i,j,k,nnew)/(Hz(i,j,k)+Hz(i,j,k+1))
-          enddo
-        enddo
-        do i=Istr,Iend
-          wz(i,j,N,nnew)=2.*wz(i,j,N,nnew)/Hz(i,j,N)
-        enddo
-# endif
 
-# endif
+# endif  /* NHMG */
 
       enddo      ! <-- j
 
