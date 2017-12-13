@@ -367,14 +367,6 @@ C$    integer omp_get_thread_num
         enddo
       enddo
 
-#if defined NHMG && defined NHMG_NHSSH
-      do j=Jstr-1,Jend
-         do i=Istr-1,Iend
-            nhssh(i,j)=z_w(i,j,N) ! for the predictor stage
-         enddo
-      enddo
-#endif
-
 #  undef IU_RANGE
 #  undef JU_RANGE
 #  undef IV_RANGE
@@ -828,17 +820,6 @@ C$    integer omp_get_thread_num
         enddo
 # endif
       enddo
-
-#if defined NHMG && defined NHMG_NHSSH
-        do j=Jstr-1,Jend
-           do i=Istr-1,Iend
-              nhssh(i,j)=0.5*(nhssh(i,j)+z_w(i,j,N)) ! for the corrector
-              ! it is the average between 
-              ! the ssh at n+1 (z_w) and
-              ! the former ssh at n
-           enddo
-        enddo
-#endif
 
 #  undef IU_RANGE
 #  undef JU_RANGE

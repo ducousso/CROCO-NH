@@ -185,11 +185,7 @@ c********************************************************************
         enddo
 
         do i=IstrU-1,Iend+1
-#if defined NHMG && defined NHMG_NHSSH
-          P(i,j,N)=g*nhssh(i,j) + GRho*( rho(i,j,N)
-#else
           P(i,j,N)=g*z_w(i,j,N) + GRho*( rho(i,j,N)
-#endif
      &            +0.5*(rho(i,j,N)-rho(i,j,N-1))*(z_w(i,j,N)-z_r(i,j,N))
      &              /(z_r(i,j,N)-z_r(i,j,N-1)) )*(z_w(i,j,N)-z_r(i,j,N))
 # ifdef POT_TIDES
