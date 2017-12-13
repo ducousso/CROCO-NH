@@ -809,15 +809,6 @@
 #  endif
 
 
-# ifdef THREE_GHOST_POINTS
-      halo = 3
-# else
-      halo = 2
-# endif
-!!
-!!   We need to specify bounds for Hz because we call nhmg_solve in pre_step3d with Hz_half
-!!   and with Hz in step3d_uv2. Hz_half is a private scratch array, whereas Hz is a global array
-!!   and they have different dimensions
 !!
 !   Multiply u,v,w to go from velocity units to fluxes
 
@@ -851,19 +842,54 @@
      &                        v(START_2D_ARRAY,1,nnew))
 #  endif
 
-         call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
-     &          1-halo,Lm+halo+padd_X, 1-halo,Mm+halo+padd_E,    !! bounds for Hz
-     &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew),
-     &                              z_w(:,:,:),Hz,.false.)
+!! only do this for neumann nhmg conditions
+       nh_ubar = 0.
+       nh_vbar = 0.
+       do k=1,N
+         do j=Jstr,Jend
+            do i=Istr,Iend+1
+                nh_ubar(i,j) = nh_ubar(i,j) + u(i,j,k,nnew)
+            enddo
+         enddo
+         do j=Jstr,Jend+1
+           do i=Istr,Iend
+              nh_vbar(i,j) = nh_vbar(i,j) + v(i,j,k,nnew)
+           enddo
+         enddo
+       enddo
+       do j=Jstr,Jend
+          do i=Istr,Iend
+             nh_wcor(i,j) = wz(i,j,N,nnew) + 
+     &         (nh_ubar(i+1,j)-nh_ubar(i,j)+nh_vbar(i,j+1)-nh_vbar(i,j))
+          enddo
+       enddo
+       do k=1,N
+          do j=Jstr,Jend
+             do i=Istr,Iend
+                wz(i,j,k,nnew) = wz(i,j,k,nnew) - nh_wcor(i,j)
+     &                         * (z_w(i,j,k)-z_w(i,j,0))
+     &                         / (z_w(i,j,N)-z_w(i,j,0))
+             enddo
+          enddo
+       enddo
 
+# ifdef THREE_GHOST_POINTS
+      halo = 3
+# else
+      halo = 2
+# endif
+
+         call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
+     &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew) )
+!    &                              z_w(:,:,:)  )
+
+!     At this point u,v,w are fluxes with the dimension of m^3/s
       do k=1,N
          do j=Jstr,Jend
             do i=Istr,Iend+1
                nhdu(i,j,k,iprec1) = grid(1)%du(k,j,i)/dt !stored as a trend
                u(i,j,k,nnew) = (u(i,j,k,nnew) + grid(1)%du(k,j,i) )
      &              /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
-!              u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
-!    &              /(0.5*(Hz(i,j,k) + Hz(i-1,j,k))) * pn_u(i,j)
             enddo
          enddo
 
@@ -872,8 +898,6 @@
                nhdv(i,j,k,iprec1) = grid(1)%dv(k,j,i)/dt !stored as a trend
                v(i,j,k,nnew) = (v(i,j,k,nnew) + grid(1)%dv(k,j,i) )
      &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
-!              v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
-!    &              /(0.5*(Hz(i,j,k) + Hz(i,j-1,k))) * pm_v(i,j)
             enddo
          enddo
 
@@ -882,8 +906,6 @@
                nhdw(i,j,k,iprec1) = grid(1)%dw(k+1,j,i)/dt !stored as a trend
                wz(i,j,k,nnew) = (wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i) )
      &              * (pm(i,j)*pn(i,j))
-!              wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
-!    &              * (pm(i,j)*pn(i,j))
             enddo
          enddo
       enddo

@@ -1128,10 +1128,6 @@
 
 
 !!
-!!   We need to specify bounds for Hz because we call nhmg_solve here with Hz_half
-!!   and with Hz in step3d_uv2. Hz_half is a private scratch array, whereas Hz is a global array
-!!   and they have different dimensions
-
 !!   TODO Can we make changes that keep u,v,w in flux units instead of velocities?
 !!   TODO If so, we can possibly avoid calling nhmg_solve with Hz at all and additionally
 !!   TODO make it easier to compute the 'barotropic' correction to w which is needed when using neumann for the solver.
@@ -1181,6 +1177,8 @@
 !    Also, compute a 'barotropic' correction to wz such that it matches
 !    the current ubar,vbar divergence
 
+         nh_ubar = 0.
+         nh_vbar = 0.
          do k=1,N
             do j=Jstr,Jend
                do i=Istr,Iend+1
@@ -1212,21 +1210,46 @@
      &        v(START_2D_ARRAY,1,nnew))
 # endif
 
+!! only do this for neumann nhmg conditions
+         nh_ubar = 0.
+         nh_vbar = 0.
+         do k=1,N
+            do j=Jstr,Jend
+               do i=Istr,Iend+1
+                  nh_ubar(i,j) = nh_ubar(i,j) + u(i,j,k,nnew)
+               enddo
+            enddo
+            do j=Jstr,Jend+1
+               do i=Istr,Iend
+                  nh_vbar(i,j) = nh_vbar(i,j) + v(i,j,k,nnew)
+               enddo
+            enddo
+         enddo
+
+       do j=Jstr,Jend
+          do i=Istr,Iend
+             nh_wcor(i,j) = wz(i,j,N,nnew) + 
+     &         (nh_ubar(i+1,j)-nh_ubar(i,j)+nh_vbar(i,j+1)-nh_vbar(i,j))
+          enddo
+       enddo
+       do k=1,N
+          do j=Jstr,Jend
+             do i=Istr,Iend
+                wz(i,j,k,nnew) = wz(i,j,k,nnew) - nh_wcor(i,j) 
+     &                         * (z_w(i,j,k)-z_w(i,j,0))
+     &                         / (z_w(i,j,N)-z_w(i,j,0))
+             enddo
+          enddo
+       enddo
 
 # ifdef THREE_GHOST_POINTS
       halo = 3
 # else
       halo = 2
 # endif
-!        write(*,*) 'going to mg_solve in prestep'
-!        if (mynode.eq.0) then
-!           write(*,*) 'pre_Step 2:  ',u(1,1,32,nnew)
-!        endif
          call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
-!    &          -1,Lm+2,-1,Mm+2,                           ! bounds for Hz_half array
-     &          1-halo,Lm+halo+padd_X, 1-halo,Mm+halo+padd_E,    !! bounds for Hz_half, now that it is a global array
-     &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew),
-     &                              z_w(:,:,:),Hz_half,.true.)
+     &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew) )
+!    &                              z_w(:,:,:)  )
          
          ! add the non-hydro correction (du, dv, dw are in flux form)
          ! add the non-hydrostatic pressure gradient to rufrc, rvfrc
@@ -1237,9 +1260,6 @@
                   u(i,j,k,nnew) = (u(i,j,k,nnew) + grid(1)%du(k,j,i))
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k)))
      &                 * pn_u(i,j)
-!                 u(i,j,k,nnew) = u(i,j,k,nnew) + grid(1)%du(k,j,i)
-!    &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) 
-!    &                 * pn_u(i,j)
                   rufrc(i,j) = rufrc(i,j) + om_u(i,j)*grid(1)%du(k,j,i)*cff
                enddo
             enddo
@@ -1249,9 +1269,6 @@
                   v(i,j,k,nnew) = (v(i,j,k,nnew) + grid(1)%dv(k,j,i))
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k)))
      &                 * pm_v(i,j)
-!                 v(i,j,k,nnew) = v(i,j,k,nnew) + grid(1)%dv(k,j,i)
-!    &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) 
-!    &                 * pm_v(i,j)
                   rvfrc(i,j) = rvfrc(i,j) + on_v(i,j)*grid(1)%dv(k,j,i)*cff
                enddo
             enddo
@@ -1260,8 +1277,6 @@
                do i=Istr,Iend
                   wz(i,j,k,nnew) = (wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i))
      &                 * (pm(i,j)*pn(i,j))
-!                 wz(i,j,k,nnew) = wz(i,j,k,nnew) + grid(1)%dw(k+1,j,i)
-!    &                 * (pm(i,j)*pn(i,j))
                enddo
             enddo
          enddo

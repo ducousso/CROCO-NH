@@ -148,119 +148,49 @@ contains
 
   end subroutine fill_outer_halos
   !--------------------------------------------------------------
-  subroutine nhmg_solve(nx,ny,nz,hl,pdx,pdy,i0,i1,j0,j1,ua,va,wa,zwa,Hza,fill_hz)
+! subroutine nhmg_solve(nx,ny,nz,hl,pdx,pdy,ua,va,wa,zwa)
+  subroutine nhmg_solve(nx,ny,nz,hl,pdx,pdy,ua,va,wa)
 
     integer(kind=ip), intent(in) :: nx,ny,nz
     integer(kind=ip), intent(in) :: hl,pdx,pdy
-    integer(kind=ip), intent(in) :: i0,i1,j0,j1
 
-    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in)   :: ua
-    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in)   :: va
-    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(inout):: wa
-    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in)   :: zwa
-    real(kind=rp), dimension(  i0:i1       ,  j0:j1       ,1:nz),intent(in)   :: Hza
-    logical :: fill_hz
+    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz  ),intent(in)   :: ua
+    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz  ),intent(in)   :: va
+    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz+1),intent(inout):: wa
+!   real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in)   :: zwa
 
-    real(kind=rp), dimension(:,:),   pointer :: dx,dy
-    real(kind=rp), dimension(:,:,:), pointer :: u,v,w,dz
+!   real(kind=rp), dimension(:,:),   pointer :: dx,dy
+!   real(kind=rp), dimension(:,:,:), pointer :: u,v,w,dz
 
     integer(kind=ip) :: i,j,k
 
-    integer(kind=ip), save :: iter_solve=0
-    iter_solve = iter_solve + 1
-
-!   if (myrank.eq.0) then
-!    write(*,*) 'mg_Solve 1: ',ua(1,1,32)
-!   endif
-
     call tic(1,'nhmg_solve')
 
-    dx => grid(1)%dx
-    dy => grid(1)%dy
-
-    ! need to update dz because define_matrices may not be called every time step
-    ! Also, nhmg_solve is called from pre_step, and from step3d. The Hz's are different..
-    dz => grid(1)%dz
-    do k=1,nz
-       do j=0,ny+1
-          do i=0,nx+1
-             dz(k,j,i) = Hza(i,j,k)
-          enddo
-       enddo
-    enddo
-    if (fill_hz) then
-       call fill_halo(1,dz)
-    endif
+!   dx => grid(1)%dx
+!   dy => grid(1)%dy
 
     ! set fluxes
-    u  => grid(1)%u
-    v  => grid(1)%v
-    w  => grid(1)%w
+!   u  => grid(1)%u
+!   v  => grid(1)%v
+!   w  => grid(1)%w
 
-    ubar(:,:) = zero
-    vbar(:,:) = zero
 
-!TODO remove this bit to merge with set_rhs. get rid of grid(1).u,v,w
-! IN PROGRESS: first step, move the velocity 2 flux from here to croco
-    do k=1,nz
-       do j=1,ny
-          do i=1,nx+1
-!            u(k,j,i) = ua(i,j,k) * &
-!                 qrt * (dz(k,j,i) + dz(k,j,i-1)) * (dy(j,i)+dy(j,i-1))
-             u(k,j,i) = ua(i,j,k)
-             ubar(j,i) = ubar(j,i) + u(k,j,i)
-          enddo
-       enddo
-       do j=1,ny+1
-          do i=1,nx
-!            v(k,j,i) = va(i,j,k) * &
-!                 qrt * (dz(k,j,i) + dz(k,j-1,i)) * (dx(j,i)+dx(j-1,i))
-             v(k,j,i) = va(i,j,k)
-             vbar(j,i) = vbar(j,i) + v(k,j,i)
+    !  Fill the rhs for the poisson equation
+    do i = 1,nx
+       do j = 1,ny 
+          do k = 1,nz
+             grid(1)%b(k,j,i) = ua(i+1,j,k) - ua(i,j,k) &
+                              + va(i,j+1,k) - va(i,j,k) &
+                              + wa(i,j,k+1) - wa(i,j,k)
           enddo
        enddo
     enddo
-    
-!   if (myrank.eq.0) then
-!      write(*,*) 'mg_solve 2: ',u(32,1,1)
-!   endif
-
-    if (surface_neumann)  then
-       do j=1,ny
-          do i=1,nx
-             wcorr(j,i) = wa(i,j,nz+1) + ( ubar(j,i+1) - ubar(j,i) + vbar(j+1,i) - vbar(j,i) ) 
-!            wcorr(j,i) = wa(i,j,nz+1) + ( ubar(j,i+1) - ubar(j,i) + vbar(j+1,i) - vbar(j,i) ) &
-!                           / (dx(j,i) * dy(j,i)) 
-          enddo
-       enddo
-       do k=1,nz+1
-          do j=1,ny
-             do i=1,nx
-                wa(i,j,k) = wa(i,j,k) - wcorr(j,i) &
-                            * (zwa(i,j,k   )-zwa(i,j,1)) &
-                            / (zwa(i,j,nz+1)-zwa(i,j,1))
-             enddo
-          enddo
-       enddo
-    endif 
-
-    do k=1,nz
-       do j=1,ny
-          do i=1,nx
-!            w(k+1,j,i) = wa(i,j,k+1) * dx(j,i) * dy(j,i)
-             w(k+1,j,i) = wa(i,j,k+1)
-          enddo
-       enddo
-    enddo
-    w(1,:,:) = zero
 
     !- auto tuning tests if autotune = .true.
     if ((tscount == autotune_ts).and.(autotune)) then
        call sb_autotune()  !- test of autotuning
     end if
 
-    !- set rhs, solve for p, and compute correction for u,v,w
-    call set_rhs()
     call solve_p()   
 
     tscount = tscount + 1
@@ -268,12 +198,12 @@ contains
     call correction_uvw()
 
     if (netcdf_output) then
-       call write_netcdf(grid(1)%b,vname='b',netcdf_file_name='so.nc',rank=myrank,iter=iter_solve)
-       call write_netcdf(grid(1)%p,vname='p',netcdf_file_name='so.nc',rank=myrank,iter=iter_solve)
-       call write_netcdf(grid(1)%r,vname='r',netcdf_file_name='so.nc',rank=myrank,iter=iter_solve)
-       call write_netcdf(grid(1)%du,vname='du',netcdf_file_name='so.nc',rank=myrank,iter=iter_solve)
-       call write_netcdf(grid(1)%dv,vname='dv',netcdf_file_name='so.nc',rank=myrank,iter=iter_solve)
-       call write_netcdf(grid(1)%dw,vname='dw',netcdf_file_name='so.nc',rank=myrank,iter=iter_solve)
+       call write_netcdf(grid(1)%b,vname='b',netcdf_file_name='so.nc',rank=myrank,iter=1)
+       call write_netcdf(grid(1)%p,vname='p',netcdf_file_name='so.nc',rank=myrank,iter=1)
+       call write_netcdf(grid(1)%r,vname='r',netcdf_file_name='so.nc',rank=myrank,iter=1)
+       call write_netcdf(grid(1)%du,vname='du',netcdf_file_name='so.nc',rank=myrank,iter=1)
+       call write_netcdf(grid(1)%dv,vname='dv',netcdf_file_name='so.nc',rank=myrank,iter=1)
+       call write_netcdf(grid(1)%dw,vname='dw',netcdf_file_name='so.nc',rank=myrank,iter=1)
     endif
 
     call toc(1,'nhmg_solve')

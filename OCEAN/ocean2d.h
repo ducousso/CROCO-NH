@@ -29,6 +29,13 @@
       real DVom(GLOBAL_2D_ARRAY)
 #endif
 
+#ifdef NHMG
+      real nh_ubar(GLOBAL_2D_ARRAY)
+      real nh_vbar(GLOBAL_2D_ARRAY)
+      real nh_wcor(GLOBAL_2D_ARRAY)
+      common /nh_wcor/nh_ubar,nh_vbar,nh_wcor
+#endif 
+
 #ifdef OXYGEN
       real u10(GLOBAL_2D_ARRAY)
       real Kv_O2(GLOBAL_2D_ARRAY)
