@@ -12,23 +12,19 @@ module list
 # set source, compilation and run directories
 #
 SOURCE=../OCEAN
-#SCRDIR=./Compile
-#SCRDIR=/local/tmp/1/${LOGNAME}/CROCO-NH/Compile
-SCRDIR=/net/alpha/exports/sciences/roullet/CROCO-NH/Compile
+SCRDIR=/local/tmp/1/${LOGNAME}/Compile
 RUNDIR=`pwd`
 ROOT_DIR=$SOURCE/..
 #
-# set where the NHMG library will be installed
-# (if you want use CROCO in Non-Hydostatic mode!)
-# (Please choose a directory different than SCRDIR)
-NHMGPATH=/net/alpha/exports/sciences/roullet/CROCO-NH/NHMG
-
-#
-# determine operating system
-#
-OS=`uname`
-echo "OPERATING SYSTEM IS: $OS"
-
+# -- NHMG --
+# The NHMG library will be installed in the directory up to $SRCDIR.
+# To run CROCO you have to add in your LD_LIBRARY_PATH the directory where NHMG lib will be installed.
+# example:
+#     SCRDIR   =/local/tmp/1/${LOGNAME}/CROCO-NH/Compile
+#     NHMGPATH => /local/tmp/1/${LOGNAME}/CROCO-NH
+#     setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:/local/tmp/1/${LOGNAME}/CROCO-NH
+#  or export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/local/tmp/1/${LOGNAME}/CROCO-NH
+# -- NHMG --
 #
 # compiler options
 #
@@ -43,7 +39,6 @@ NETCDFINC=-I$NETCDF/include
 #
 # set MPI directories if needed
 #
-#attention au module
 MPIF90="mpif90"
 MPILIB="-L/opt/linux/mpich2/1.5-intel12.1/lib -lmpich"
 MPIINC="-I/opt/linux/mpich2/1.5-intel12.1/include"
@@ -59,9 +54,16 @@ PRISM_ROOT_DIR=../../../oasis3-mct/compile_oa3-mct
 XIOS_ROOT_DIR=$HOME/xios-1.0
 #
 
-
-# END OF USER'S MODIFICATIONS
-####################################################
+#
+#
+####################################
+# END OF PARAMETER'S MODIFICATIONS #
+####################################
+#
+# determine operating system
+#
+OS=`uname`
+echo "OPERATING SYSTEM IS: $OS"
 #
 # Use GNU Make command
 #
@@ -69,46 +71,52 @@ MAKE=make
 #
 # clean scratch area
 #
-#rm -rf $SCRDIR
-mkdir $SCRDIR
+#rm -rf $SCRDIR # this line was commented to avoid a complet CROCO recompilation
+mkdir -p $SCRDIR
 #
 # AGRIF sources directory
 #
 AGRIF_SRC=${ROOT_DIR}/AGRIF
 #
+# COPY command (set here cp, rsink, etc and options)
+#
+COPY="/bin/cp -fup"
+#
 # copy SOURCE code
 #
-/bin/cp -fup ${SOURCE}/*.F90 $SCRDIR
-/bin/cp -fup ${SOURCE}/*.h90 $SCRDIR
-/bin/cp -fup ${SOURCE}/*.F   $SCRDIR
-/bin/cp -fup ${SOURCE}/*.h   $SCRDIR
-/bin/cp -fup ${SOURCE}/Make* $SCRDIR
-/bin/cp -fup ${SOURCE}/testkeys.F $SCRDIR
-/bin/cp -fup ${SOURCE}/jobcomp $SCRDIR
-/bin/cp -fup ${SOURCE}/amr.in $SCRDIR
-## NHMG ## Don't remove the cp options -RLfu ###
-# /bin/cp -RLfu ${ROOT_DIR}/NHMG $SCRDIR
+echo ""
+echo "**************************"
+echo "** Copy SOURCE codes... **"
+echo "**************************"
+${COPY} ${SOURCE}/*.F90 $SCRDIR
+${COPY} ${SOURCE}/*.h90 $SCRDIR
+${COPY} ${SOURCE}/*.F   $SCRDIR
+${COPY} ${SOURCE}/*.h   $SCRDIR
+${COPY} ${SOURCE}/Make* $SCRDIR
+${COPY} ${SOURCE}/testkeys.F $SCRDIR
+${COPY} ${SOURCE}/jobcomp $SCRDIR
+${COPY} ${SOURCE}/amr.in $SCRDIR
 /bin/cp -RLf ${AGRIF_SRC} $SCRDIR
-/bin/cp -fup ${ROOT_DIR}/XIOS/*.F $SCRDIR
-/bin/cp -fup ${ROOT_DIR}/PISCES/* $SCRDIR
-/bin/cp -fup ${ROOT_DIR}/PISCES/kRGB61* $RUNDIR
+${COPY} ${ROOT_DIR}/XIOS/*.F $SCRDIR
+${COPY} ${ROOT_DIR}/PISCES/* $SCRDIR
+${COPY} ${ROOT_DIR}/PISCES/kRGB61* $RUNDIR
 
 if [[ -e "namelist_pisces" ]] ; then
 	echo "  file namelist_pisces exists in Run directory"
 else
-	/bin/cp -fup ${SOURCE}/PISCES/namelist_pisces* $RUNDIR
+	${COPY} ${SOURCE}/PISCES/namelist_pisces* $RUNDIR
 	echo "  file namelist_pisces copied from source directory"
 fi
 
 #
 # overwrite with local files
 #
-/bin/cp -fup *.F90 $SCRDIR
-/bin/cp -fup *.h90 $SCRDIR
-/bin/cp -fup *.F $SCRDIR
-/bin/cp -fup *.h $SCRDIR
-/bin/cp -fup Make* $SCRDIR
-/bin/cp -fup jobcomp $SCRDIR
+${COPY} *.F90   $SCRDIR
+${COPY} *.h90   $SCRDIR
+${COPY} *.F     $SCRDIR
+${COPY} *.h     $SCRDIR
+${COPY} Make*   $SCRDIR
+${COPY} jobcomp $SCRDIR
 #
 # Change directory
 #
@@ -189,20 +197,26 @@ fi
 # determine if AGRIF compilation is required
 #
 unset COMPILEAGRIF
-echo "Checking COMPILEAGRIF..."
+echo ""
+echo "******************************"
+echo "** Checking COMPILEAGRIF... **"
+echo "******************************"
 if $($CPP1 testkeys.F | grep -i -q agrifisdefined) ; then
 	echo " => AGRIF activated"
 	COMPILEAGRIF=TRUE
 	FFLAGS1="$FFLAGS1 -IAGRIF"
 	LDFLAGS1="-LAGRIF -lagrif $LDFLAGS1"
 # we use the AGRIF Makedefs.generic definition
-	/bin/cp -fup Makedefs.generic.AGRIF Makedefs.generic
+	${COPY} Makedefs.generic.AGRIF Makedefs.generic
 fi
 #
 # determine if MPI compilation is required
 #
 unset COMPILEMPI
-echo "Checking COMPILEMPI..."
+echo ""
+echo "****************************"
+echo "** Checking COMPILEMPI... **"
+echo "****************************"
 if $($CPP1 testkeys.F | grep -i -q mpiisdefined) ; then
 	echo " => MPI activated"
 	COMPILEMPI=TRUE
@@ -215,7 +229,10 @@ fi
 # determine if NBQ related solvers (BLAS/LAPACK) are required
 #
 unset COMPILENBQ
-echo "Checking COMPILENBQ..."
+echo ""
+echo "****************************"
+echo "** Checking COMPILENBQ... **"
+echo "****************************"
 if $($CPP1 testkeys.F | grep -i -q nbqisdefined) ; then
 	echo " => NBQ activated"
 	COMPILENBQ=TRUE
@@ -223,10 +240,16 @@ if $($CPP1 testkeys.F | grep -i -q nbqisdefined) ; then
 	FFLAGS1="$FFLAGS1 -ffree-line-length-none"
 fi
 #
-# determine if NHMG is required
+# Determine if NHMG is required
+# and check if a configuration submition is needed.
+# To force a configuration submition, 
+# please remove the "config.log" file in CROCO's NHMG directory.
+# (Nicolas.Grima@univ-brest.fr nov 2107)
 #
-unset COMPILENHMG
-echo "Checking COMPILENHMG..."
+echo ""
+echo "*****************************"
+echo "** Checking COMPILENHMG... **"
+echo "*****************************"
 if $($CPP1 testkeys.F | grep -i -q nhmgisdefined) ; then
     if [[ $COMPILEAGRIF ]] ; then
         echo ""
@@ -244,29 +267,65 @@ if $($CPP1 testkeys.F | grep -i -q nhmgisdefined) ; then
         echo ""
         exit
     fi
-	echo " => NHMG activated"
+	echo "=> NHMG key is activated in cppdefs.h file"
 
     # NHMG source directory
     NHMG_SRCDIR="${RUNDIR}/../NHMG"
 
-    # Check if a config.log file exist ?
-    if [[ -f $NHMG_SRCDIR/config.log ]] ; then
-        # Test if options are the same ?
-        
-        # Check if exit = 0 in config.log file ?
-        toto=`tail -n1 ${NHMG_SRCDIR}/config.log` # take last line
-        lt=$((${#toto}-1))                        # lenth of the last line
-        res="${toto:$lt:1}"                       # take the last character
-        echo "res: $res"                          # print result
-        if [[ $res == '0' ]] ; then               # if res=0 no configuration is needed
+    # The NHMG library will be installed in the directory up to $SRCDIR
+    NHMGPATH=${SCRDIR%/*}
+    # Transform relative path to absolute path (if needed).
+    # Because configure command accept only absolute path.
+    NHMGPATH=`readlink -f ${NHMGPATH}`
+    echo "NHMGPATH: ${NHMGPATH}"
+
+    # Check if a config.log file exist in CROCO's NHMG directory?
+    if [[ -f ${NHMG_SRCDIR}/config.log ]] ; then
+
+        # Check if exit = 0 in the CROCO's NHMG config.log file ?
+        oexit=`grep -e 'exit' ${NHMG_SRCDIR}/config.log | grep -Po 'exit \K[^ ]+'`
+        # if oexit='0' no configuration is needed except if options are different
+        if [[ ${oexit} == '0' ]] ; then   
            CONFIGNHMG=FALSE
+
+           # Test if configure options are similar or different !
+           # If one of them is different a configuration step will be made.
+           #
+           # Test prefix
+           oprefix=`grep -e '$ ./configure' ${NHMG_SRCDIR}/config.log | grep -Po 'prefix=\K[^ ]+'`
+           if [[ ! ${oprefix} == ${NHMGPATH} ]] ; then
+               echo "NHMGPATH is different: ${oprefix} <=> ${NHMGPATH}"       
+               CONFIGNHMG=TRUE
+           fi
+           # Test the mpi fortran compiler
+           ompif90=`grep -e '$ ./configure' ${NHMG_SRCDIR}/config.log | grep -Po 'MPI_F90=\K[^ ]+'`
+           if [[ ! ${ompif90} == ${MPIF90} ]] ; then 
+               echo "MPIF90 is different: ${ompif90} <=> ${MPIF90}"  
+               CONFIGNHMG=TRUE
+           fi
+           # Test the mpi include path
+           ompiinc=`grep -e '$ ./configure' ${NHMG_SRCDIR}/config.log | grep -Po 'MPI_INC=\K[^ ]+'`
+           dummy="${MPIINC%% *}"
+           if [[ ! ${ompiinc} == ${dummy} ]] ; then               
+               echo "MPIINC is different: ${ompiinc} <=> ${dummy}" 
+               CONFIGNHMG=TRUE
+           fi
+           # test the mpi library path
+           ompilib=`grep -e '$ ./configure' ${NHMG_SRCDIR}/config.log | grep -Po 'MPI_LIB=\K[^ ]+'`
+           dummy="${MPILIB%% *}"
+           if [[ ! ${ompilib} == ${dummy} ]] ; then
+               echo "MPILIB is different: ${ompilib} <=> ${dummy}"
+               CONFIGNHMG=TRUE
+           fi
         else
-	       CONFIGNHMG=TRUE                        # else configuration is needed
+           echo "oexit: $oexit"
+	       CONFIGNHMG=TRUE       # else configuration is needed
         fi
     else
-       CONFIGNHMG=TRUE                            # no config.log file => configuraiton
+       CONFIGNHMG=TRUE           # no config.log file => submit ./configure
     fi
     echo 'Configure NHMG: '${CONFIGNHMG}
+
     # Compilation will be made and managed by the command make
 	COMPILENHMG=TRUE
     echo 'Compile NHMG: '${COMPILENHMG}
@@ -278,7 +337,10 @@ fi
 # determine if XIOS compilation is required
 #
 unset COMPILEXIOS
-echo "Checking COMPILEXIOS..."
+echo ""
+echo "*****************************"
+echo "** Checking COMPILEXIOS... **"
+echo "*****************************"
 if $($CPP1 testkeys.F | grep -i -q xiosisdefined) ; then
         echo " => XIOS activated"
         COMPILEXIOS=TRUE
@@ -292,7 +354,10 @@ fi
 # determine if OASIS compilation is required
 #
 unset COMPILEOASIS
-echo "Checking COMPILEOASIS..."
+echo ""
+echo "******************************"
+echo "** Checking COMPILEOASIS... **"
+echo "******************************"
 if $($CPP1 testkeys.F | grep -i -q oacplisdefined) ; then
     echo " => OASIS activated"
     CHAN=MPI1
@@ -343,12 +408,20 @@ rm -f flags.tmp
 #
 # compile the precompiling program
 #
-#$MAKE mpc
+if [[ ! -f ${SCRDIR}/mpc ]] ; then
+    echo ""
+    echo "Compiling  mpc tool..."
+    $MAKE mpc
+fi
 
 #
 # prepare and compile the library
 #
 if [[ $COMPILEAGRIF ]] ; then
+    echo ""
+    echo "***********************"
+    echo "** AGRIF compilation **"
+    echo "***********************"
 #
 # compile the AGRIF librairy
 #
@@ -378,17 +451,26 @@ if [[ $COMPILEAGRIF ]] ; then
 fi
 
 #
-# Configure (if needed) NHMG library
+# Configure NHMG library (if needed)
 #
 if [[ $CONFIGNHMG == 'TRUE' ]] ; then
     echo ""
     echo "************************"
     echo "** NHMG configuration **"
     echo "************************"
-    echo ""
     wwa=`pwd`
     cd ${NHMG_SRCDIR}
-    ./configure --prefix="${NHMGPATH}" \
+    #
+    # To know "configure" available options
+    # please enter "../NHMG/configure --help | grep -e '--enable-'"
+    # If you change here an option, you have to remove the config.log file
+    # in the CROCO's NHMG directory (if it is present).
+    # "rm ../NHMG/config.log"
+    #
+    # Options "--prefix=","--enable-mpicroco","MPI_F90=","MPI_INC", "MPI_LIB"
+    # have to be present and set (they are not options :-)
+    #
+    ./configure --prefix="${NHMGPATH}" --enable-netcdf \
         --enable-mpicroco MPI_F90="${MPIF90}" MPI_INC="${MPIINC}" MPI_LIB="${MPILIB}"
 #  Enables netcdf for NHMG development
 #   ./configure --prefix="${NHMGPATH}" --enable-netcdf \
@@ -398,17 +480,17 @@ if [[ $CONFIGNHMG == 'TRUE' ]] ; then
 fi
 
 #
-# Compile NHMG library
+# Compile NHMG library and install it in NHMGPATH
 #
 if [[ $COMPILENHMG == 'TRUE' ]] ; then
     echo ""
     echo "**********************"
     echo "** NHMG compilation **"
     echo "**********************"
-    echo ""
     wwa=`pwd`
     cd ${NHMG_SRCDIR}
-    ${MAKE} install
+    # make command check timestamp source files and compile them only if it is necessary
+    ${MAKE} install 
     cd ${wwa}
 fi
 
@@ -464,7 +546,6 @@ echo ""
 echo "***********************"
 echo "** CROCO compilation **"
 echo "***********************"
-echo ""
 $MAKE 
-mv croco $RUNDIR
+cp -vfu croco $RUNDIR
 #
