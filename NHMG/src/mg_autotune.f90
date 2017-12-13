@@ -72,7 +72,6 @@ contains
           ns_post = ipost !- ns_post is declared in namelist.f90
 
           grid(1)%p = 0._rp
-          call set_rhs()
 
           call tic(1,trim(testname))
 

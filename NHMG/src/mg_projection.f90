@@ -12,37 +12,6 @@ module mg_projection
   implicit none
 
 contains
-  !-------------------------------------------------------------------------     
-  subroutine set_rhs
-    
-    integer(kind=ip):: k,j,i
-    integer(kind=ip):: nx,ny,nz
-
-    real(kind=rp), dimension(:,:,:), pointer :: u,v,w,rhs
-
-    nx = grid(1)%nx
-    ny = grid(1)%ny
-    nz = grid(1)%nz
-   
-    u => grid(1)%u
-    v => grid(1)%v
-    w => grid(1)%w
-
-    rhs => grid(1)%b
-
-    !! What comes into nhmg_solve are area integrated u,v,w.
-    do i = 1,nx
-       do j = 1,ny 
-          do k = 1,nz
-             rhs(k,j,i) = u(k,j,i+1) - u(k,j,i) &
-                        + v(k,j+1,i) - v(k,j,i) &
-                        + w(k+1,j,i) - w(k,j,i)
-          enddo
-       enddo
-    enddo
-    
-  end subroutine set_rhs
-
   !-----------------------------------------------------------------------------------
   subroutine set_matrices()
 

@@ -148,7 +148,6 @@ contains
 
   end subroutine fill_outer_halos
   !--------------------------------------------------------------
-! subroutine nhmg_solve(nx,ny,nz,hl,pdx,pdy,ua,va,wa,zwa)
   subroutine nhmg_solve(nx,ny,nz,hl,pdx,pdy,ua,va,wa)
 
     integer(kind=ip), intent(in) :: nx,ny,nz
@@ -157,23 +156,10 @@ contains
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz  ),intent(in)   :: ua
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz  ),intent(in)   :: va
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz+1),intent(inout):: wa
-!   real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in)   :: zwa
-
-!   real(kind=rp), dimension(:,:),   pointer :: dx,dy
-!   real(kind=rp), dimension(:,:,:), pointer :: u,v,w,dz
 
     integer(kind=ip) :: i,j,k
 
     call tic(1,'nhmg_solve')
-
-!   dx => grid(1)%dx
-!   dy => grid(1)%dy
-
-    ! set fluxes
-!   u  => grid(1)%u
-!   v  => grid(1)%v
-!   w  => grid(1)%w
-
 
     !  Fill the rhs for the poisson equation
     do i = 1,nx
@@ -283,7 +269,7 @@ contains
     enddo
     w(1,:,:) = zero
 
-    call set_rhs()
+!   call set_rhs()
 
     write(*,*) 'check div',maxval(abs(grid(1)%b))
 
