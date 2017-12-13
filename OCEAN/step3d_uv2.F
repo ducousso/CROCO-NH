@@ -552,20 +552,12 @@
 
         do k=1,N-1
           do i=Istr,Iend
-#  ifdef NHMG_W_VOL
             DC(i,k)=wz(i,j,k,nnew)
-#  else
-            DC(i,k)=wz(i,j,k,nnew) *0.5*(Hz(i,j,k)+Hz(i,j,k+1))
-#  endif
             BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1)) - FC(i,k) - FC(i,k-1) 
           enddo
         enddo  
         do i=Istr,Iend            
-#  ifdef NHMG_W_VOL
           DC(i,N)=wz(i,j,N,nnew)
-#  else
-          DC(i,N)=wz(i,j,N,nnew) *0.5*Hz(i,j,N)
-#  endif
           BC(i,N)=0.5*Hz(i,j,N) - FC(i,N) - FC(i,N-1)    
         enddo 
         
@@ -611,11 +603,7 @@
         enddo
         do k=1,N-1
           do i=Istr,Iend
-#  ifdef NHMG_W_VOL
             DC(i,k)=wz(i,j,k,nnew)
-#  else
-            DC(i,k)=wz(i,j,k,nnew) *0.5*(Hz(i,j,k)+Hz(i,j,k+1))
-#  endif
             BC(i,k)=0.5*(Hz(i,j,k)+Hz(i,j,k+1)) - FC(i,k) - FC(i,k+1)
 #  ifdef VADV_ADAPT_IMP
      &              +max(WC(i,k+1),0.)-min(WC(i,k),0.)
@@ -623,11 +611,7 @@
           enddo
         enddo  
         do i=Istr,Iend            
-#  ifdef NHMG_W_VOL
           DC(i,N)=wz(i,j,N,nnew)
-#  else
-          DC(i,N)=wz(i,j,N,nnew) *0.5*Hz(i,j,N)
-#  endif
           BC(i,N)=0.5*Hz(i,j,N) - FC(i,N)
 #  ifdef VADV_ADAPT_IMP
      &              -min(WC(i,N),0.)
@@ -673,7 +657,6 @@
         enddo 
 # else
 !if no mixing, only division by Hz
-#  ifdef NHMG_W_VOL
         do k=1,N-1
           do i=Istr,Iend
             wz(i,j,k,nnew)=2.*wz(i,j,k,nnew)/(Hz(i,j,k)+Hz(i,j,k+1))
@@ -682,19 +665,12 @@
         do i=Istr,Iend
           wz(i,j,N,nnew)=2.*wz(i,j,N,nnew)/Hz(i,j,N)
         enddo
-#  endif
 # endif
 
 # endif
 
       enddo      ! <-- j
 
-#ifdef NHMG_DEBUG
-      write(*,*) 'step3d_uv2 : u,v,wz after imp vert visc. [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-# endif
 !
 !--------------------------------------------------------------------
 !  Diagnostics

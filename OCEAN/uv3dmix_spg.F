@@ -670,11 +670,7 @@
 !
         do j=Jstr,Jend
           do i=Istr,Iend
-#  ifdef NHMG_W_VOL
             cff1=pm(i,j)*pn(i,j)
-#  else
-            cff1=pm(i,j)*pn(i,j) /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
-#  endif
             wz(i,j,k,indx)=wz(i,j,k,indx)+dt*cff1*(FX(i+1,j)-FX(i,j)
      &                                           + FE(i,j+1)-FE(i,j))
           enddo
@@ -701,11 +697,7 @@
       enddo
       do j=Jstr,Jend
         do i=Istr,Iend
-#  ifdef NHMG_W_VOL
           cff1=pm(i,j)*pn(i,j)
-#  else
-          cff1=pm(i,j)*pn(i,j) /(0.5*(Hz(i,j,N)))
-#  endif
           wz(i,j,N,indx)=wz(i,j,N,indx)+dt*cff1*(FX(i+1,j)-FX(i,j)
      &                                         + FE(i,j+1)-FE(i,j))
         enddo

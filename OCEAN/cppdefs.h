@@ -738,11 +738,11 @@
 # define NHMG
 # ifdef NHMG
 # define NONTRAD_COR
-#  undef NHMG_W_VOL
+#  define NHMG_W_VOL
 #  undef NHMG_2D_DAMPING
-#  undef NHMG_WEIGHTED_FRC
-#  define NHMG_WMIX_GR   /* implicit mixing by guillaume     */
+#  undef NHMG_WMIX_GR   /* implicit mixing by guillaume     */
 #  undef NHMG_WMIX_FA    /* implicit mixing by Francis Auclair. No implicit advection!!!     */
+#  define NHMG_WMIX_ND
 #  undef NHMG_MASKING
 #  undef NHMG_AB2        /* the default is to use nearest neighbor interpolation for the pressure at the predictor stage     */
 #  undef NHMG_NHSSH      /* a change in the pressure gradient routine to use the zeta at n+1/2     */
@@ -798,7 +798,7 @@
                       /* Sponge */
 # undef SPONGE
                       /* Semi-implicit Vertical Tracer/Mom Advection */
-# undef  VADV_ADAPT_IMP
+# define  VADV_ADAPT_IMP
                       /* Vertical Mixing */
 # undef  BODYFORCE
 # undef  BVF_MIXING

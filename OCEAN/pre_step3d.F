@@ -79,11 +79,6 @@
       USE mg_netcdf_out
       USE mg_grids
       use mg_tictoc
-# ifdef NHMG_DEBUG
-      USE nhmg_debug, only : nhmg_write_pred_in
-      USE nhmg_debug, only : nhmg_write_pred_inter1
-      USE nhmg_debug, only : nhmg_write_pred_inter2
-# endif
 #endif
       implicit none
 # include "param.h"
@@ -889,33 +884,18 @@
 
         do k=1,N-1
           do i=Istr,Iend
-#  ifdef NHMG_W_VOL
              wz(i,j,k,nnew)=( wz(i,j,k,nstp)*0.5*(Hz(i,j,k)+Hz(i,j,k+1))
      &                                 +cdt*pn(i,j)*pm(i,j)*rw(i,j,k)
      &                     ) / (0.5*(Hz_half(i,j,k)+Hz_half(i,j,k+1)))
              wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+Hz(i,j,k+1))
-#  else
-             ! rw is a tendency*horizontal area
-             ! wz(:,:,:,nstp) and wz(:,:,:,indx) are velocity
-             ! wz(:,:,:,nnew) is velocity 
-             cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
-             wz(i,j,k,nnew)=wz(i,j,k,nstp) + cdt * rw(i,j,k)*cff
-             wz(i,j,k,indx)=wz(i,j,k,nstp)
-#  endif
           enddo
         enddo
         !surface special treatment
         do i=Istr,Iend
-#  ifdef NHMG_W_VOL
              wz(i,j,N,nnew)=( wz(i,j,N,nstp)*0.5*Hz(i,j,N)
      &                            +cdt*pn(i,j)*pm(i,j)*rw(i,j,N)
      &                     ) / (0.5*Hz_half(i,j,N))
             wz(i,j,N,indx)=wz(i,j,N,nstp)*0.5*Hz(i,j,N)
-#  else
-            cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,N)))
-            wz(i,j,N,nnew)=wz(i,j,N,nstp) + cdt * rw(i,j,N)*cff
-            wz(i,j,N,indx)=wz(i,j,N,nstp)
-#  endif
         enddo
         
       else  ! NOT FIRST_TIME_STEP
@@ -924,45 +904,25 @@
         cff2=0.5-gamma       
         do k=1,N-1
            do i=Istr,Iend
-#  ifdef NHMG_W_VOL
               wz(i,j,k,nnew)=(cff1*wz(i,j,k,nstp)*(Hz(i,j,k  )+     
      &                                             Hz(i,j,k+1))   
      &                       +cff2*wz(i,j,k,indx)*(Hz_bak(i,j,k  )+ 
      &                                             Hz_bak(i,j,k+1)) 
      &                       +2.*cdt*pn(i,j)*pm(i,j)*(rw(i,j,k)
-!     &                       + nhdw(i,j,k,iprec2) 
-!     &                         * 0.5*(Hz(i,j,k)+Hz(i,j,k+1)) 
      &                         )   
      &                       ) / (Hz_half(i,j,k)+Hz_half(i,j,k+1)) 
               wz(i,j,k,indx)=wz(i,j,k,nstp)*0.5*(Hz(i,j,k  )+
      &                                          Hz(i,j,k+1)) 
-#  else
-              cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,k)+Hz(i,j,k+1)))
-              wz(i,j,k,nnew)= 
-     &             (cff1*wz(i,j,k,nstp) + cff2*wz(i,j,k,indx)) 
-     &             +cdt*rw(i,j,k)*cff
-              wz(i,j,k,indx)=wz(i,j,k,nstp)
-#  endif
            enddo
         enddo     
         !surface special treatment
         do i=Istr,Iend
-#  ifdef NHMG_W_VOL
              wz(i,j,N,nnew)=( cff1*wz(i,j,N,nstp)*Hz(i,j,N)
      &                       +cff2*wz(i,j,N,indx)*Hz_bak(i,j,N)
      &                       +2.*cdt*pn(i,j)*pm(i,j)*(rw(i,j,N)
-!     &                       + nhdw(i,j,k,iprec2) 
-!     &                         * 0.5*Hz(i,j,N) 
      &                         )
      &                      ) / Hz_half(i,j,N)              
              wz(i,j,N,indx)=wz(i,j,N,nstp)*0.5*Hz(i,j,N)   
-#  else
-             cff = (pn(i,j)*pm(i,j)) /(0.5*(Hz(i,j,N)))
-             wz(i,j,N,nnew)= 
-     &            (cff1*wz(i,j,N,nstp) + cff2*wz(i,j,N,indx)) 
-     &            +cdt*rw(i,j,N)*cff
-             wz(i,j,N,indx)=wz(i,j,N,nstp)
-#  endif
         enddo
   
       endif

@@ -131,45 +131,22 @@
           ! dt is hidden in DC(i,0)
           if (k.eq.N)then
              do i=Istr,Iend
-#  ifdef NHMG_W_VOL
                 DC(i,0)=dt*pm(i,j)*pn(i,j)
-#  else
-                DC(i,0)=dt*pm(i,j)*pn(i,j)*2./Hz(i,j,k)
-#  endif
              enddo
           else
              do i=Istr,Iend
-#  ifdef NHMG_W_VOL
                 DC(i,0)=dt*pm(i,j)*pn(i,j)
-#  else
-                DC(i,0)=dt*pm(i,j)*pn(i,j)*2./(Hz(i,j,k)+Hz(i,j,k+1))
-#  endif
              enddo
           endif
           do i=Istr,Iend
-             ! BIG difference between (u,v) and w:
-             ! on exit of step3d_uv1
-             ! u and v are velocity * Hz (expected on entry of step3d_uv2)
-             ! w is a velocity !!! no Hz factor
              wz(i,j,k,nnew)=wz(i,j,k,nnew)+DC(i,0)*rw(i,j,k)
 #  if defined MASKING
-             ! MRL_WCI is not yet compatible with NHMG
-             ! TODO
              wz(i,j,k,nnew)=wz(i,j,k,nnew)*rmask(i,j)
 #  endif
           enddo
         enddo
 # endif
       enddo 
-
-# if defined NHMG_DEBUG
-      write(*,*) 'step3d_uv1 : u,v,wz after applying rhs. [h*u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-      write(*,*) 'step3d_uv1 : wz after [16,32,62:64]' 
-      write(*,*) wz(16,32,62:64,nnew)
-# endif
 
 #else
       subroutine step3d_uv1_empty
