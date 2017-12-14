@@ -408,18 +408,11 @@
 !
 # ifdef NHMG
 !--------------------------------------------------------------------
-! Time step momentum equation in the s-direction.
-!
-
-!--------------------------------------------------------------------
+! Time step w equation
 !
 # ifdef DIAGNOSTICS_UV
         write(*,*)"DIAGNOSTICS_UV and NHMG cpp keys are incompatible"
         stop
-!        do k=1,N
-!          do i=Istr,Iend
-!          enddo
-!        enddo
 # endif
 
         do k=1,N
@@ -610,7 +603,6 @@
          enddo
 #  endif
 
-
 !!
 !   Multiply u,v,w to go from velocity units to fluxes
 
@@ -638,6 +630,8 @@
       enddo
 
 #  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+     !! Todo: we should be able to avoid this. We only need u and v at the boundaries
+     !! Todo: computational ranges for u and v need to be extended to Iend+1, Jend+1
       call exchange_u3d_tile (Istr,Iend,Jstr,Jend,
      &                        u(START_2D_ARRAY,1,nnew))
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
@@ -711,6 +705,7 @@
             enddo
          enddo
       enddo
+!     Now: u,v,w are fluxes with the dimension of m/s
 
       call u3dbc_tile (Istr,Iend,Jstr,Jend, grad)
       call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)

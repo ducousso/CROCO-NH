@@ -300,6 +300,8 @@ C$    integer omp_get_thread_num
 
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
+
+      real grad(PRIVATE_2D_SCRATCH_ARRAY)
 #  include "param.h"
 #  include "grid.h"
 #  include "ocean3d.h"
@@ -396,21 +398,7 @@ C$    integer omp_get_thread_num
 !     TODO: We should be able to specify if we can do better in either ana_initial of reading netcdf files
 
 
-        if (mynode.eq.0) then
-          write(*,*) 'initializing wz using continuity and zeros'
-        endif
-        
-        ! First, we initialize to zero everywhere because 
-        ! the mpi exchange does not fill physical boundary buffers
-        do j=Jstr-1,Jend+1
-          do k=1,N
-            do i=Istr-1,Iend+1
-               wz(i,j,k,1) = 0.0
-            enddo
-          enddo
-        enddo
-
-        ! Second, we initialize using continuity in the interior
+        ! We initialize using continuity in the interior
         do j=Jstr,Jend
           do k=1,N
             do i=Istr,Iend
@@ -421,7 +409,8 @@ C$    integer omp_get_thread_num
           enddo
         enddo
 
-        ! Third, we fill internal buffers (but not physical boundaries, see above)
+        call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+
 #   if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
         call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,1))
@@ -542,25 +531,14 @@ C$    integer omp_get_thread_num
       end
 
       subroutine set_HUV2_tile (Istr,Iend,Jstr,Jend,DC,FC)
-#ifdef NHMG
-# ifdef NHMG_DEBUG
-      USE nhmg_debug, only : nhmg_write_pred_out
-# endif
-#endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
 #  include "param.h"
 
-#ifdef NHMG_CORR_SINH
-      real L_dom, H_dom, k_wave
-      parameter (L_dom=10.)
-      parameter (H_dom=10.)
-      parameter (k_wave=2*3.14/L_dom)
-      real ND(PRIVATE_1D_SCRATCH_ARRAY,0:N)
-#endif
-
       real DC(PRIVATE_1D_SCRATCH_ARRAY,0:N),
      &     FC(PRIVATE_1D_SCRATCH_ARRAY,0:N)
+
+      real grad(PRIVATE_2D_SCRATCH_ARRAY)
 #  include "grid.h"
 #  include "ocean3d.h"
 #  include "scalars.h"
@@ -705,95 +683,8 @@ C$    integer omp_get_thread_num
         enddo
       enddo
 
-! set lateral boundary conditions
-# ifdef NHMG_WBRY_COUPLING
-# ifndef EW_PERIODIC
-      if (WESTERN_EDGE) then
-        do k=1,N
-          do j=Jstr,Jend
-#  if defined NHMG_WBRY_ZERO
-            wz(0,j,k,nrhs)=0.
-#  elif defined NHMG_WBRY_COPY
-            wz(0,j,k,nrhs)=wz(1,j,k,nrhs)
-#  endif
-          enddo
-        enddo
-      endif
-      if (EASTERN_EDGE) then
-        do k=1,N
-          do j=Jstr,Jend
-#  if defined NHMG_WBRY_ZERO
-            wz(LOCALLM+1,j,k,nrhs)=0.
-#  elif defined NHMG_WBRY_COPY
-            wz(LOCALLM+1,j,k,nrhs)=wz(LOCALLM,j,k,nrhs)
-#  endif
-          enddo
-        enddo
-      endif
-# endif
-# ifndef NS_PERIODIC
-      if (SOUTHERN_EDGE) then
-        do k=1,N
-          do i=Istr,Iend
-#  if defined NHMG_WBRY_ZERO
-            wz(i,0,k,nrhs)=0.
-#  elif defined NHMG_WBRY_COPY
-            wz(i,0,k,nrhs)=wz(i,1,k,nrhs)
-#  endif
-          enddo
-        enddo
-      endif
-      if (NORTHERN_EDGE) then
-        do k=1,N
-          do i=Istr,Iend
-#  if defined NHMG_WBRY_ZERO
-            wz(i,LOCALMM+1,k,nrhs)=0.
-#  elif defined NHMG_WBRY_COPY
-            wz(i,LOCALMM+1,k,nrhs)=wz(i,LOCALMM,k,nrhs)
-#  endif
-          enddo
-        enddo
-      endif
-#  ifndef EW_PERIODIC
-      if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
-        do k=1,N
-#  if defined NHMG_WBRY_ZERO
-          wz(0,0,k,nrhs)=0.
-#  elif defined NHMG_WBRY_COPY
-          wz(0,0,k,nrhs)=wz(1,1,k,nrhs)
-#  endif
-        enddo
-      endif
-      if (WESTERN_EDGE .and. NORTHERN_EDGE) then
-        do k=1,N
-#  if defined NHMG_WBRY_ZERO
-          wz(0,LOCALMM+1,k,nrhs)=0.
-#  elif defined NHMG_WBRY_COPY
-          wz(0,LOCALMM+1,k,nrhs)=wz(1,LOCALMM,k,nrhs)
-#  endif
-        enddo
-      endif
-      if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
-        do k=1,N
-#  if defined NHMG_WBRY_ZERO
-          wz(LOCALLM+1,0,k,nrhs)=0.
-#  elif defined NHMG_WBRY_COPY
-          wz(LOCALLM+1,0,k,nrhs)=wz(LOCALLM,1,k,nrhs)
-#  endif
-        enddo
-      endif
-      if (EASTERN_EDGE .and. NORTHERN_EDGE) then
-        do k=1,N
-#  if defined NHMG_WBRY_ZERO
-          wz(LOCALLM+1,LOCALMM+1,k,nrhs)=0.
-#  elif defined NHMG_WBRY_COPY
-          wz(LOCALLM+1,LOCALMM+1,k,nrhs)=wz(LOCALLM,LOCALMM,k,nrhs)
-#  endif
-        enddo
-      endif
-#  endif
-# endif
-# endif
+      call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)
+
 
 ! exchange
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI

@@ -1233,19 +1233,6 @@
 !
 !======================================================================
 !
-
-# ifdef NHMG_DEBUG
-
-      call nhmg_write_pred_inter2(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
-     &     rufrc(-1:Lm+2,-1:Mm+2),
-     &     rvfrc(-1:Lm+2,-1:Mm+2) )
-
-# endif
-
 !
 !======================================================================
 ! Prepare to start two-dimensional time stepping:

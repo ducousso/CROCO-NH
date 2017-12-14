@@ -32,11 +32,6 @@
      &                                           rw,
 #endif
      &                                           DC)
-#ifdef NHMG
-# ifdef NHMG_DEBUG
-      USE nhmg_debug, only : nhmg_write_corr_in
-# endif
-#endif
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
 # include "param.h"
@@ -58,32 +53,6 @@
 !
 # include "compute_auxiliary_bounds.h"
 !
-
-#ifdef NHMG_DEBUG
-
-      write(*,*) 'step3d_uv1 : u,v,wz before applying rhs. [h*u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-      write(*,*) 'step3d_uv1 : ru,rv,rw.'
-      write(*,*) maxval(ru(1:Lm+1,1:Mm,:))
-      write(*,*) maxval(rv(1:Lm,1:Mm+1,:))
-      write(*,*) maxval(rw(1:Lm,1:Mm,:))
-      write(*,*) 'step3d_uv1 : wz before and rw [16,32,62:64]' 
-      write(*,*) wz(16,32,62:64,nnew)
-      write(*,*) rw(16,32,62:64)
-
-      call nhmg_write_corr_in(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew),
-     &     ru(-1:Lm+2,-1:Mm+2,1:N),
-     &     rv(-1:Lm+2,-1:Mm+2,1:N),
-     &     rw(-1:Lm+2,-1:Mm+2,0:N) )
-
-#endif
-
       cff=0.25*dt
       do j=Jstr,Jend
         do i=IstrU,Iend
