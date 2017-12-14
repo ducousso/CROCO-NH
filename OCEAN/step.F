@@ -668,9 +668,6 @@ C$OMP END MASTER
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_matrices
-# ifdef NHMG_DEBUG
-      USE nhmg_debug, only : nhmg_write_pred_2d
-# endif
 #endif
       implicit none
 #include "param.h"
@@ -722,18 +719,6 @@ C$OMP BARRIER
       my_last=min(my_first + range-1, NSUB_X*NSUB_E-1)
 
 C$OMP BARRIER
-
-# ifdef NHMG_DEBUG
-
-      call nhmg_write_pred_2d(
-     &     Lm, Mm,
-     &     Zt_avg1(-1:Lm+2,-1:Mm+2),
-     &     DU_avg1(-1:Lm+2,-1:Mm+2,nnew),
-     &     DV_avg1(-1:Lm+2,-1:Mm+2,nnew),
-     &     DU_avg2(-1:Lm+2,-1:Mm+2),
-     &     DV_avg2(-1:Lm+2,-1:Mm+2) )
-
-# endif
 
 #ifdef SOLVE3D
       do tile=my_first,my_last

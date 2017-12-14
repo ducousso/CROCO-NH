@@ -750,13 +750,6 @@
 !--------------------------------------------------------------------
 !
 
-#ifdef NHMG_DEBUG
-      write(*,*) 'step3d_uv2 : u,v,wz before coupling . [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-#endif
-
 # ifdef EW_PERIODIC
 #  define IU_RANGE Istr,Iend
 #  define IV_RANGE Istr,Iend

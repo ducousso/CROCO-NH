@@ -643,10 +643,6 @@
 # ifdef NBQ
      &                                    +ru_nbq_avg1(i,j,k)
 # endif
-!# ifdef NHMG
-!     &                                    +nhdu(i,j,k,iprec2) 
-!     &                                    *om_u(i,j)
-!# endif
      &                                    ) )*cff
               u(i,j,k,indx)=u(i,j,k,nstp)*0.5*(Hz(i,j,k)+
      &                                         Hz(i-1,j,k))
