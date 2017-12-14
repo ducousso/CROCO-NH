@@ -48,10 +48,6 @@ c********************************************************************
 # endif
      &                                       dR,dZ, FC,dZx,rx,dRx)
 !
-!# ifdef NHMG
-!      USE nhmg, only : nhmg_rw
-!# endif
-!
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k, imin,imax,jmin,jmax
 # include "param.h"
@@ -674,7 +670,7 @@ c********************************************************************
 !
 !--------------------------------------------------------------------
 ! hydrostatic pressure gradient for the vertical flux
-!       dpdz = -zx*dpdx - zy*dpdy (See paper)
+!       dpdz = -zx*dpdx - zy*dpdy (See Molemaker et al., 2018)
 !--------------------------------------------------------------------
 !
 !     We are re-using dR as a work arrayo

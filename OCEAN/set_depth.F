@@ -225,10 +225,7 @@ C$    integer omp_get_thread_num
 #  endif 
 
 #ifdef NHMG
-! compute slopes
-! zr is buffer filled in the interior halos but not in the outer halos
-
-
+!     Compute slopes
       do k = 1, N
          do j = 0,Mm+1
             do i = 0,Lm+1
@@ -237,6 +234,7 @@ C$    integer omp_get_thread_num
             enddo
          enddo
       enddo
+      ! z_r is buffer filled in the interior halos but not in the outer halos
       if (WESTERN_EDGE) then
          do k = 1, N
             do j = 0,Mm+1
@@ -393,114 +391,41 @@ C$    integer omp_get_thread_num
 
 # ifdef NHMG
 !
-! initialize wz variable from Huon and Hvom
-!
-      if (iic.eq.0) then
-       do j=Jstr,Jend
-         do k=1,N
-           do i=Istr,Iend
-             wz(i,j,k,1)=wz(i,j,k-1,1)
-     &       - pm(i,j)*pn(i,j)*( Huon(i+1,j,k)-Huon(i,j,k)
-     &                          +Hvom(i,j+1,k)-Hvom(i,j,k) )
-           enddo
-         enddo
-       enddo
+      if (iic.eq.0) then !! Only during initialization
+!     TODO: If you had better information, this will overwrite it
+!     TODO: We should be able to specify if we can do better in either ana_initial of reading netcdf files
 
-! set lateral boundary conditions
-# ifdef NHMG_WBRY_INIT
-# ifndef EW_PERIODIC
-      if (WESTERN_EDGE) then
-        do k=1,N
-          do j=Jstr,Jend
-#  if defined NHMG_WBRY_ZERO
-            wz(0,j,k,1)=0.
-#  elif defined NHMG_WBRY_COPY
-            wz(0,j,k,1)=wz(1,j,k,1)
-#  endif
-          enddo
-        enddo
-      endif
-      if (EASTERN_EDGE) then
-        do k=1,N
-          do j=Jstr,Jend
-#  if defined NHMG_WBRY_ZERO
-            wz(LOCALLM+1,j,k,1)=0.
-#  elif defined NHMG_WBRY_COPY
-            wz(LOCALLM+1,j,k,1)=wz(LOCALLM,j,k,1)           
-#  endif
-          enddo
-        enddo
-      endif
-# endif
-# ifndef NS_PERIODIC
-      if (SOUTHERN_EDGE) then
-        do k=1,N
-          do i=Istr,Iend
-#  if defined NHMG_WBRY_ZERO
-            wz(i,0,k,1)=0.
-#  elif defined NHMG_WBRY_COPY
-            wz(i,0,k,1)=wz(i,1,k,1)             
-#  endif
-          enddo
-        enddo
-      endif
-      if (NORTHERN_EDGE) then
-        do k=1,N
-          do i=Istr,Iend
-#  if defined NHMG_WBRY_ZERO
-            wz(i,LOCALMM+1,k,1)=0.
-#  elif defined NHMG_WBRY_COPY
-            wz(i,LOCALMM+1,k,1)=wz(i,LOCALMM,k,1)
-#  endif
-          enddo
-        enddo
-      endif
-#  ifndef EW_PERIODIC
-      if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
-        do k=1,N
-#  if defined NHMG_WBRY_ZERO
-          wz(0,0,k,1)=0.
-#  elif defined NHMG_WBRY_COPY
-          wz(0,0,k,1)=wz(1,1,k,1)           
-#  endif
-        enddo
-      endif
-      if (WESTERN_EDGE .and. NORTHERN_EDGE) then
-        do k=1,N
-#  if defined NHMG_WBRY_ZERO
-          wz(0,LOCALMM+1,k,1)=0.
-#  elif defined NHMG_WBRY_COPY
-          wz(0,LOCALMM+1,k,1)=wz(1,LOCALMM,k,1)           
-#  endif
-        enddo
-      endif
-      if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
-        do k=1,N
-#  if defined NHMG_WBRY_ZERO
-          wz(LOCALLM+1,0,k,1)=0.
-#  elif defined NHMG_WBRY_COPY
-          wz(LOCALLM+1,0,k,1)=wz(LOCALLM,1,k,1) 
-#  endif
-        enddo
-      endif
-      if (EASTERN_EDGE .and. NORTHERN_EDGE) then
-        do k=1,N
-#  if defined NHMG_WBRY_ZERO
-          wz(LOCALLM+1,LOCALMM+1,k,1)=0.
-#  elif defined NHMG_WBRY_COPY
-          wz(LOCALLM+1,LOCALMM+1,k,1)=wz(LOCALLM,LOCALMM,k,1)        
-#  endif
-        enddo
-      endif
-#  endif
-# endif
-# endif
 
-! exchange
-#  if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
-      call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
+        if (mynode.eq.0) then
+          write(*,*) 'initializing wz using continuity and zeros'
+        endif
+        
+        ! First, we initialize to zero everywhere because 
+        ! the mpi exchange does not fill physical boundary buffers
+        do j=Jstr-1,Jend+1
+          do k=1,N
+            do i=Istr-1,Iend+1
+               wz(i,j,k,1) = 0.0
+            enddo
+          enddo
+        enddo
+
+        ! Second, we initialize using continuity in the interior
+        do j=Jstr,Jend
+          do k=1,N
+            do i=Istr,Iend
+               wz(i,j,k,1)=wz(i,j,k-1,1)
+     &        - pm(i,j)*pn(i,j)*( Huon(i+1,j,k)-Huon(i,j,k)
+     &                           +Hvom(i,j+1,k)-Hvom(i,j,k) )
+            enddo
+          enddo
+        enddo
+
+        ! Third, we fill internal buffers (but not physical boundaries, see above)
+#   if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+        call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,1))
-#  endif
+#   endif
       endif
 # endif
       return
@@ -662,13 +587,6 @@ C$    integer omp_get_thread_num
 #   define JV_RANGE Jstr,JendR
 #  endif
 
-# ifdef NHMG_DEBUG
-      write(*,*) 'set_HUV2 : u,v,wz before coupling. [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
-# endif
-
       do j=JU_RANGE
         do i=IU_RANGE
           DC(i,0)=0.
@@ -682,40 +600,7 @@ C$    integer omp_get_thread_num
           enddo
         enddo
 
-# ifdef NHMG_CORR_SINH
-! sinh coupling
-        do i=IU_RANGE
-          ND(i,0)=0.
-        enddo
-        do k=1,N
-          do i=IU_RANGE
-            ND(i,k)=cosh(k_wave*(0.5*(z_r(i,j,k)+z_r(i-1,j,k))+H_dom))
-     &              *DC(i,k)
-            ND(i,0)=ND(i,0)+ND(i,k)
-          enddo
-        enddo
-        do i=IU_RANGE
-          FC(i,0)=(FC(i,0)-DU_avg2(i,j))/ND(i,0)
-        enddo
-        do k=1,N
-          do i=IU_RANGE
-             u(i,j,k,nrhs)=(u(i,j,k,nrhs)-ND(i,k)/DC(i,k)*FC(i,0))
-#  ifdef MASKING
-     &                                *umask(i,j)
-#    ifdef MRL_WCI
-     &               +ust(i,j,k)*(umask(i,j)-1.0)
-#    endif
-#  endif
-            Huon(i,j,k)=DC(i,k)*( u(i,j,k,nrhs)
-#  ifdef MRL_WCI
-     &                             + ust(i,j,k)
-#  endif
-     &                                        )
-          enddo
-        enddo
 
-# else
-! original coupling
         do i=IU_RANGE
           FC(i,0)=(FC(i,0)-DU_avg2(i,j))/DC(i,0)
 #  ifdef MRL_WCI
@@ -742,7 +627,7 @@ C$    integer omp_get_thread_num
      &                                        )
           enddo
         enddo
-# endif
+
       enddo
 
       do j=JV_RANGE
@@ -758,40 +643,6 @@ C$    integer omp_get_thread_num
           enddo
         enddo
 
-# ifdef NHMG_CORR_SINH
-! sinh coupling
-        do i=IV_RANGE
-          ND(i,0)=0.
-        enddo
-        do k=1,N
-          do i=IV_RANGE
-            ND(i,k)=cosh(k_wave*(0.5*(z_r(i,j,k)+z_r(i,j-1,k))+H_dom))
-     &              *DC(i,k)
-            ND(i,0)=ND(i,0)+ND(i,k)
-          enddo
-        enddo
-        do i=IV_RANGE
-          FC(i,0)=(FC(i,0)-DV_avg2(i,j))/ND(i,0)
-        enddo
-        do k=1,N
-          do i=IV_RANGE
-            v(i,j,k,nrhs)=(v(i,j,k,nrhs)-ND(i,k)/DC(i,k)*FC(i,0))
-#  ifdef MASKING
-     &                                *vmask(i,j)
-#    ifdef MRL_WCI
-     &               +vst(i,j,k)*(vmask(i,j)-1.0)
-#    endif
-#  endif
-            Hvom(i,j,k)=DC(i,k)*( v(i,j,k,nrhs)
-#  ifdef MRL_WCI
-     &                             + vst(i,j,k)
-#  endif
-     &                                        )
-          enddo
-        enddo
-
-# else
-! original coupling
         do i=IV_RANGE
           FC(i,0)=(FC(i,0)-DV_avg2(i,j))/DC(i,0)
 #  ifdef MRL_WCI
@@ -818,7 +669,6 @@ C$    integer omp_get_thread_num
      &                                        )
           enddo
         enddo
-# endif
       enddo
 
 #  undef IU_RANGE
@@ -841,7 +691,7 @@ C$    integer omp_get_thread_num
 
 # if defined NHMG && !defined NO_SPLIT
 
-! Coupling wz
+!     Since we have corrected u and v in the 2D to 3D coupling, we now need to make wz consistent again
       do j=Jstr,Jend
         do k=1,N          
           do i=Istr,Iend
@@ -952,21 +802,6 @@ C$    integer omp_get_thread_num
 # endif
 
 # endif
-
-#ifdef NHMG_DEBUG
-
-      write(*,*) 'set_HUV2 : u,v,wz after coupling. u'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nrhs))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nrhs))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nrhs))
-
-      call nhmg_write_pred_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs) )
-
-#endif
 
 # endif /* SOLVE3D */
       return

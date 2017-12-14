@@ -1010,12 +1010,6 @@
      &                  +vst2d(i,j)*(vmask(i,j)-1.0)
 #  endif
 # endif
-!to add a correction to vbar?
-!# ifdef NHMG
-!          do k=1,N   
-!             vbar(i,j,knew)=vbar(i,j,knew)+DC(i,0)*grid(1)%dv(k,j,i)
-!          enddo
-!# endif
 # ifdef WET_DRY
           vbar(i,j,knew)=vbar(i,j,knew)*vmask_wet(i,j)
 # endif
@@ -1297,7 +1291,7 @@
 !
 # ifdef NHMG
 #  ifndef NO_SPLIT
-
+      ! We've modified u and v, wz needs to be made consistent
       do j=Jstr,Jend
         do k=1,N          
           do i=Istr,Iend
@@ -1314,121 +1308,17 @@
         enddo
       enddo
 !
-#  ifdef NHMG_WBRY_COUPLING 
-! set lateral boundary conditions
-#  ifndef EW_PERIODIC
-      if (WESTERN_EDGE) then
-        do k=1,N
-          do j=Jstr,Jend
-#   if defined NHMG_WBRY_ZERO
-            wz(0,j,k,nnew)=0.
-#   elif defined NHMG_WBRY_COPY
-            wz(0,j,k,nnew)=wz(1,j,k,nnew)
-#   endif
-          enddo
-        enddo
-      endif
-      if (EASTERN_EDGE) then
-        do k=1,N
-          do j=Jstr,Jend
-#   if defined NHMG_WBRY_ZERO
-            wz(LOCALLM+1,j,k,nnew)=0.
-#   elif defined NHMG_WBRY_COPY
-            wz(LOCALLM+1,j,k,nnew)=wz(LOCALLM,j,k,nnew)
-#   endif
-          enddo
-        enddo
-      endif
-#  endif
-#  ifndef NS_PERIODIC
-      if (SOUTHERN_EDGE) then
-        do k=1,N
-          do i=Istr,Iend
-#   if defined NHMG_WBRY_ZERO
-            wz(i,0,k,nnew)=0.
-#   elif defined NHMG_WBRY_COPY
-            wz(i,0,k,nnew)=wz(i,1,k,nnew)
-#   endif
-          enddo
-        enddo
-      endif
-      if (NORTHERN_EDGE) then
-        do k=1,N
-          do i=Istr,Iend
-#   if defined NHMG_WBRY_ZERO
-            wz(i,LOCALMM+1,k,nnew)=0.
-#   elif defined NHMG_WBRY_COPY
-            wz(i,LOCALMM+1,k,nnew)=wz(i,LOCALMM,k,nnew)
-#   endif
-          enddo
-        enddo
-      endif
-#  ifndef EW_PERIODIC
-      if (WESTERN_EDGE .and. SOUTHERN_EDGE) then
-        do k=1,N
-#   if defined NHMG_WBRY_ZERO
-          wz(0,0,k,nnew)=0.
-#   elif defined NHMG_WBRY_COPY
-          wz(0,0,k,nnew)=wz(1,1,k,nnew)
-#   endif
-        enddo
-      endif
-      if (WESTERN_EDGE .and. NORTHERN_EDGE) then
-        do k=1,N
-#   if defined NHMG_WBRY_ZERO
-          wz(0,LOCALMM+1,k,nnew)=0.
-#   elif defined NHMG_WBRY_COPY
-          wz(0,LOCALMM+1,k,nnew)=wz(1,LOCALMM,k,nnew)
-#   endif
-        enddo
-      endif
-      if (EASTERN_EDGE .and. SOUTHERN_EDGE) then
-        do k=1,N
-#   if defined NHMG_WBRY_ZERO
-          wz(LOCALLM+1,0,k,nnew)=0.
-#   elif defined NHMG_WBRY_COPY
-          wz(LOCALLM+1,0,k,nnew)=wz(LOCALLM,1,k,nnew)
-#   endif
-        enddo
-      endif
-      if (EASTERN_EDGE .and. NORTHERN_EDGE) then
-        do k=1,N
-#   if defined NHMG_WBRY_ZERO
-          wz(LOCALLM+1,LOCALMM+1,k,nnew)=0.
-#   elif defined NHMG_WBRY_COPY
-          wz(LOCALLM+1,LOCALMM+1,k,nnew)=wz(LOCALLM,LOCALMM,k,nnew)
-#   endif
-        enddo
-      endif
-#  endif
-#  endif
 #  endif
 
-#  endif
-
-! exchange
+!--------------------------------------------------------------------
+! Exchange periodic boundaries and computational margins.
+!--------------------------------------------------------------------
 # if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,nnew)) 
 # endif
 
 # endif
-
-# ifdef NHMG_DEBUG
-
-      write(*,*) 'step3d_uv2 : u,v,wz after coupling . [u]'
-      write(*,*) maxval(u(1:Lm+1,1:Mm,:,nnew))
-      write(*,*) maxval(v(1:Lm,1:Mm+1,:,nnew))
-      write(*,*) maxval(wz(1:Lm,1:Mm,:,nnew))
-
-      call nhmg_write_corr_out(
-     &     Lm, Mm, N,
-     &     u(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     v(-1:Lm+2,-1:Mm+2,1:N,nnew),
-     &     wz(-1:Lm+2,-1:Mm+2,0:N,nnew) )
-
-# endif
-
 !
       return
       end

@@ -737,14 +737,9 @@
 # define MPI
 # define NHMG
 # ifdef NHMG
-# define NONTRAD_COR
-
+#  define NONTRAD_COR      /* Include the horizontal components of the Coriolis force */
 #  undef NHMG_2D_DAMPING
-#  define NHMG_WMIX
 #  undef NHMG_MASKING
-#  undef NHMG_AB2        /* the default is to use nearest neighbor interpolation for the pressure at the predictor stage     */
-#  undef NHMG_NHSSH      /* a change in the pressure gradient routine to use the zeta at n+1/2     */
-#  undef NHMG_DEBUG
 # endif
 # undef CLOSED
 # ifdef CLOSED
@@ -1197,22 +1192,13 @@
 # undef NO_SPLIT
 # define NHMG
 # ifdef NHMG
-#  define NHMG_W_VOL
-#  undef NHMG_WMIX_GR
-#  undef NHMG_WMIX_FA
-#  undef NHMG_WMIX_ND
 #  define NHMG_WBRY_INIT
 #  define NHMG_WBRY_COUPLING
 #  define NHMG_WBRY_COPY
 #  undef NHMG_WBRY_ZERO
 #  undef NHMG_CHECKDIV
 #  undef NHMG_DIAG
-#  undef NHMG_WEIGHTED_FRC
 #  undef NHMG_2D_DAMPING
-#  undef NHMG_CORR_SINH
-#  undef NHMG_AB2
-#  undef NHMG_NHSSH
-#  undef NHMG_DEBUG
 # endif
 # define SOLVE3D
 # define UV_ADV
@@ -1234,21 +1220,13 @@
 # undef NO_SPLIT
 # define NHMG
 # ifdef NHMG
-#  define NHMG_W_VOL
-#  undef NHMG_WMIX_GR
-#  undef NHMG_WMIX_FA
-#  undef NHMG_WMIX_ND
 #  define NHMG_WBRY_INIT
 #  define NHMG_WBRY_COUPLING
 #  define NHMG_WBRY_COPY
 #  undef NHMG_WBRY_ZERO
 #  undef NHMG_CHECKDIV
 #  undef NHMG_DIAG
-#  undef NHMG_WEIGHTED_FRC
 #  undef NHMG_2D_DAMPING
-#  undef NHMG_AB2
-#  undef NHMG_NHSSH
-#  undef NHMG_DEBUG
 # endif
 # define SOLVE3D
 # define UV_ADV

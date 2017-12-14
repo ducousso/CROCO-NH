@@ -220,9 +220,7 @@ CR      write(*,*) '-11' MYID
 !----------------------------------------------------------------------
 !
 #ifdef NHMG
-      call nhmg_init(
-     & Lm,Mm,N,
-     & NP_XI,NP_ETA )
+      call nhmg_init(Lm,Mm,N,NP_XI,NP_ETA)
 #endif
 !
 !----------------------------------------------------------------------
@@ -754,6 +752,7 @@ CR      write(*,*) '  0' MYID
       iic = ntstart
 
 #ifdef  NHMG
+      ! indexes for nhmg ab2 pressure corrections
       iprec1 = 1
       iprec2 = 2
 #endif
@@ -815,21 +814,13 @@ C$OMP PARALLEL DO PRIVATE(tile)            ! Stop timers and
 
  100  continue
 
-!
-!----------------------------------------------------------------------
-!  Clean NHMG memory
-!----------------------------------------------------------------------
-!
-#ifdef NHMG
+#ifdef NHMG  
+      ! write nhmg statistics to fort.10
       call nhmg_clean()
 #endif
 
 #ifdef MPI
       call MPI_Barrier(MPI_COMM_WORLD, ierr)  ! XIOS
-
-!     start_time2=PMPI_Wtime()
-!     exe_time = start_time2 - start_time1
-!     if(mynode.eq.0) print*,'exe_time =',exe_time
 
 # if defined OA_COUPLING || defined OW_COUPLING
       call prism_terminate_proto(ierr)       ! Finalize OASIS3

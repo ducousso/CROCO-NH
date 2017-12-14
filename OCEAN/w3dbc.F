@@ -34,7 +34,7 @@
 ! Set lateral boundary conditions for field wz(:,:,:,nnew)
 ! for the parent grid.
 !
-# endif /* NBQ */
+# endif /* NBQ, NHMG */
 #else
 # if defined NBQ || defined NHMG
 !

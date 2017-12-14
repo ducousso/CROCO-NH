@@ -76,6 +76,7 @@
 #endif
 #ifdef NHMG
       USE nhmg, only : nhmg_solve
+      USE mg_namelist
       USE mg_netcdf_out
       USE mg_grids
       use mg_tictoc
@@ -982,116 +983,59 @@
 
 
 # ifdef NHMG
-! TODO check this bit of code! It does appear that we always do AB2 or nearest reuse of du,dv and afterwards do another projection on top
-!
 !======================================================================
 ! Non-hydro projection of momentum
 !======================================================================
 !
       cff = 1./cdt
 
-# ifdef NHMG_AB2
-      if (iic.ge.(ntstart+2)) then
+# ifdef NHMG_DOUBLE_PROJ
+      if (icc.lt.0) then !! this will never be true and we will always do a projection in pre_step ('double projection')
 # else
-      if (iic.ge.(ntstart+1)) then
+      if (iic.ge.(ntstart+2)) then
 # endif
-!      if (iic.lt.0) then
-
-         call tic(1,'AB2 del q')
-
          do k=1,N
             do j=Jstr,Jend
                do i=IstrU,Iend
                   u(i,j,k,nnew) = u(i,j,k,nnew)
-# ifdef NHMG_AB2
      &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1))*cdt
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
-# else
-     &                 + nhdu(i,j,k,iprec2)*cdt
-     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i-1,j,k))) * pn_u(i,j)
+# if defined NHMG_MASKING
+                  u(i,j,k,nnew) = u(i,j,k,nnew)*umask(i,j)
 # endif
                   rufrc(i,j) = rufrc(i,j) 
-# ifdef NHMG_AB2
      &                 + (1.5*nhdu(i,j,k,iprec2)-0.5*nhdu(i,j,k,iprec1)) 
      &                 * om_u(i,j)
-# else
-     &                 + nhdu(i,j,k,iprec2) 
-     &                 * om_u(i,j)
-# endif
                enddo
             enddo
             
             do j=JstrV,Jend
                do i=Istr,Iend
                   v(i,j,k,nnew) = v(i,j,k,nnew)
-# ifdef NHMG_AB2
      &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1))*cdt
      &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
-# else
-     &                 + nhdv(i,j,k,iprec2)*cdt
-     &                 /(0.5*(Hz_half(i,j,k) + Hz_half(i,j-1,k))) * pm_v(i,j)
+# if defined NHMG_MASKING
+                  v(i,j,k,nnew) = v(i,j,k,nnew)*vmask(i,j)
 # endif
                   rvfrc(i,j) = rvfrc(i,j)
-# ifdef NHMG_AB2
      &                 + (1.5*nhdv(i,j,k,iprec2)-0.5*nhdv(i,j,k,iprec1)) 
      &                 * on_v(i,j)
-# else
-     &                 + nhdv(i,j,k,iprec2) 
-     &                 * on_v(i,j)
-# endif
                enddo
             enddo
             
             do j=Jstr,Jend
                do i=Istr,Iend
                   wz(i,j,k,nnew) = wz(i,j,k,nnew) 
-# ifdef NHMG_AB2
      &                 + (1.5*nhdw(i,j,k,iprec2)-0.5*nhdw(i,j,k,iprec1))*cdt
      &                 * (pm(i,j)*pn(i,j))
-# else
-     &                 + nhdw(i,j,k,iprec2)*cdt
-     &                 * (pm(i,j)*pn(i,j))
-# endif
-               enddo
-            enddo
-         enddo
-         
-         call toc(1,'AB2 del q')
-         
-      else
-
-         call tic(1,'swap predictor')
-         
 # if defined NHMG_MASKING
-         do k=1,N    
-            do j=Jstr,Jend
-               do i=IstrU,Iend
-                  u(i,j,k,nnew) = u(i,j,k,nnew)*umask(i,j)
-               enddo
-            enddo
-         enddo
-        do k=1,N    
-            do j=JstrV,Jend
-               do i=Istr,Iend
-                  v(i,j,k,nnew) = v(i,j,k,nnew)*vmask(i,j)
-               enddo
-            enddo
-         enddo
-         do k=1,N    
-            do j=Jstr,Jend
-               do i=Istr,Iend
                   wz(i,j,k,nnew) = wz(i,j,k,nnew)*rmask(i,j)
+# endif
                enddo
             enddo
          enddo
-# endif
-
-
-!!
-!!   TODO Can we make changes that keep u,v,w in flux units instead of velocities?
-!!   TODO If so, we can possibly avoid calling nhmg_solve with Hz at all and additionally
-!!   TODO make it easier to compute the 'barotropic' correction to w which is needed when using neumann for the solver.
-!!
+         
+      else  !! instead of using AB2 to extrapolate the nh pressure gradient from corrector steps, we project here
 !
 !  Set lateral boundary conditions for Hz_half
 !
@@ -1133,12 +1077,7 @@
      &                        Hz_half(START_2D_ARRAY,1))
 #  endif
 
-!    Multiply u,v,w to get back fluxes so we don't do that inside nhmg
-!    Also, compute a 'barotropic' correction to wz such that it matches
-!    the current ubar,vbar divergence
-
-         nh_ubar = 0.
-         nh_vbar = 0.
+!    Multiply u,v,w to get back fluxes for use inside mg_solve
          do k=1,N
             do j=Jstr,Jend
                do i=Istr,Iend+1
@@ -1170,7 +1109,9 @@
      &        v(START_2D_ARRAY,1,nnew))
 # endif
 
-!! only do this for neumann nhmg conditions
+!     Compute a 'barotropic' correction to wz such that it matches
+!     the current ubar,vbar divergence (see Molemaker et al., 2018)
+      if (surface_neumann) then
          nh_ubar = 0.
          nh_vbar = 0.
          do k=1,N
@@ -1186,21 +1127,22 @@
             enddo
          enddo
 
-       do j=Jstr,Jend
-          do i=Istr,Iend
-             nh_wcor(i,j) = wz(i,j,N,nnew) + 
+         do j=Jstr,Jend
+            do i=Istr,Iend
+               nh_wcor(i,j) = wz(i,j,N,nnew) + 
      &         (nh_ubar(i+1,j)-nh_ubar(i,j)+nh_vbar(i,j+1)-nh_vbar(i,j))
-          enddo
-       enddo
-       do k=1,N
-          do j=Jstr,Jend
-             do i=Istr,Iend
-                wz(i,j,k,nnew) = wz(i,j,k,nnew) - nh_wcor(i,j) 
-     &                         * (z_w(i,j,k)-z_w(i,j,0))
-     &                         / (z_w(i,j,N)-z_w(i,j,0))
-             enddo
-          enddo
-       enddo
+            enddo
+         enddo
+         do k=1,N
+            do j=Jstr,Jend
+               do i=Istr,Iend
+                  wz(i,j,k,nnew) = wz(i,j,k,nnew) - nh_wcor(i,j) 
+     &                           * (z_w(i,j,k)-z_w(i,j,0))
+     &                           / (z_w(i,j,N)-z_w(i,j,0))
+               enddo
+            enddo
+         enddo
+      endif  ! surface_neumann !
 
 # ifdef THREE_GHOST_POINTS
       halo = 3
@@ -1241,8 +1183,6 @@
             enddo
          enddo
         
-         call toc(1,'swap predictor')
-
       endif     
 
       call u3dbc_tile (Istr,Iend,Jstr,Jend, WORK)

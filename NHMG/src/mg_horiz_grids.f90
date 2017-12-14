@@ -25,8 +25,6 @@ contains
     real(kind=rp), dimension(:,:), pointer :: dxuf,dxuc
     real(kind=rp), dimension(:,:), pointer :: dyvf,dyvc
 
-    if (myrank==0) write(*,*)'   - set horizontal grids:' 
-
     do lev = 1, nlevs
 
        nx=grid(lev)%nx

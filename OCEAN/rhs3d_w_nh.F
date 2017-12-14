@@ -73,38 +73,6 @@
 # include "compute_auxiliary_bounds.h"
 !
 
-!# if defined UV_COR
-!!====================================================================
-!!  Add in Coriolis  FWcor = +e (U cos(angle) - V sin(angle) ) 
-!!  with e = 2 Omega cos Phi, an interpolation at W points is necessary
-!!  rw(:,:,0) is no longer 0 for convenience but never used
-!!====================================================================
-!      do k=1,N-1
-!        do j=JstrV-1,jend
-!          do i=IstrU-1,iend
-!            cff = 0.25*(Hz(i,j,k)+Hz(i,j,k+1))*eomn(i,j)*  ( !<-- e is 2 Omega cos(lat)
-!     &          - cosa(i,j)*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
-!     &          + sina(i,j)*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs)) 
-!     &                                                     ) !<-- Hz contains rho Hz 
-!                                                             !<-- units of cff : kg.m.s-2       
-!            rw(i,j,k  ) =               0.5*cff
-!            rw(i,j,k-1) = rw(i,j,k-1) + 0.5*cff
-!          enddo
-!        enddo
-!      enddo     
-!      
-!        do j=JstrV-1,jend
-!          do i=IstrU-1,iend
-!            cff = 0.25*Hz(i,j,N)*eomn(i,j)*(                  !<-- e is 2 Omega cos(lat)
-!     &          - cosa(i,j)*(u(i,j,N,nrhs)+u(i+1,j,N,nrhs))
-!     &          + sina(i,j)*(v(i,j,N,nrhs)+v(i,j+1,N,nrhs)) 
-!     &                                                     ) !<-- Hz contains rho Hz 
-!                                                             !<-- units of cff : kg.m.s-2       
-!            rw(i,j,N  ) = cff
-!          enddo W_VADV
-!        enddo      
-!!====================================================================         
-!# endif
 
 !====================================================================      
 !  Horizontal advection
@@ -261,7 +229,6 @@
             enddo
           enddo 
                     
-!== Store horizontal advection in rw [units of rw : kg.m.s-2]
           do j=Jstr,Jend
             do i=Istr,Iend
              rw(i,j,k)=rw(i,j,k)-WFx(i+1,j)+WFx(i,j)-WFe(i,j+1)+WFe(i,j)    
@@ -335,7 +302,6 @@
             kp   = min(k+1,N-1)    !<-- extrapolation at k=N
             Omeg_r = 0.5625*(We(i  ,j,k)+We(i,j,k+1))
      &              -0.0625*(We(i,j,kp+1)+We(i,j,k-1))
-!            Omeg_r = 0.5*(W(i,j,k)+W(i,j,k+1))
             FC(i,k)=FC(i,k)*Omeg_r
           enddo
         enddo
@@ -353,15 +319,12 @@
         enddo
 
         do i=Istr,Iend
-!          FC(i,0)=0.     
           Omeg_r  = 0.5*(We(i,j,0     ) + We(i,j,1     ))
           FC(i,0) = 0.5*(wz(i,j,0,nrhs) + wz(i,j,1,nrhs))*Omeg_r
 
           FC(i,N)=0.    
         enddo
 #  endif
-!
-!== Store vertical advection in rw [units of rw : kg.m.s-2]
 !
            do k=1,N
             do i=Istr,Iend
@@ -378,20 +341,9 @@
 
 # if defined NHMG && defined UV_ADV
 !====================================================================      
-!  Pseudo forces 
+!  Pseudo forces for the equation of vertical Flux (Molemaker et al., 2018)
 !==================================================================== 
-!     call nhmg_rw_advection(
-!    &     Lm, Mm, N,
-!    &     Huon(-1:Lm+2,-1:Mm+2,1:N),
-!    &     Hvom(-1:Lm+2,-1:Mm+2,1:N),
-!    &     We(-1:Lm+2,-1:Mm+2,0:N),
-!    &     z_w(-1:Lm+2,-1:Mm+2,0:N),
-!    &     u(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-!    &     v(-1:Lm+2,-1:Mm+2,1:N,nrhs),
-!    &     wz(-1:Lm+2,-1:Mm+2,0:N,nrhs),
-!    &     rw(-1:Lm+2,-1:Mm+2,0:N))
 
-!      if(mynode.eq.0)write(*,*)"dzdxi=",dzdxi(0,3,1),dzdxi(1,3,1)
       do j=jstr,jend
         do k=1,N
           do i=Istr,Iend
@@ -458,4 +410,4 @@
 #else
       subroutine rhs3d_w_empty
       end
-#endif /* SOLVE3D && NBQ */       
+#endif /* SOLVE3D && NBQ || NHMG */       
