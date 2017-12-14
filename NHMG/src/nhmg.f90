@@ -16,10 +16,6 @@ module nhmg
 
   implicit none
 
-    real(kind=rp), dimension(:,:),allocatable :: ubar
-    real(kind=rp), dimension(:,:),allocatable :: vbar
-    real(kind=rp), dimension(:,:),allocatable :: wcorr
-
     integer(kind=ip) :: tscount = 1
 
 contains
@@ -42,10 +38,6 @@ contains
 
     call print_grids()
 
-    allocate(ubar(1:ny,1:nx+1))
-    allocate(vbar(1:ny+1,1:nx))
-    allocate(wcorr(1:ny,1:nx))
-    
   end subroutine nhmg_init
 
   !--------------------------------------------------------------
