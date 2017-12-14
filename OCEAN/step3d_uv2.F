@@ -795,25 +795,9 @@
             CF(i,0)=CF(i,0)+DC(i,k)*u(i,j,k,nnew)
           enddo
         enddo
-# ifdef NHMG_CORR_SINH
-        do i=IU_RANGE
-          ND(i,0)=0.
-        enddo
-        do k=1,N
-          do i=IU_RANGE
-            ND(i,k)=cosh(k_wave*(0.5*(z_r(i,j,k)+z_r(i-1,j,k))+H_dom))
-     &              *DC(i,k)
-            ND(i,0)=ND(i,0)+ND(i,k)
-          enddo
-        enddo
-# endif
         do i=IU_RANGE
           DC(i,0)=1./DC(i,0)
-# ifdef NHMG_CORR_SINH
-          CF(i,0)=(CF(i,0)-DU_avg1(i,j,nnew))/ND(i,0)
-# else
           CF(i,0)=DC(i,0)*(CF(i,0)-DU_avg1(i,j,nnew))
-# endif
 # ifdef MRL_WCI
      &                               +ust2d(i,j)
 # endif
@@ -825,35 +809,17 @@
      &                +ust2d(i,j)*(umask(i,j)-1.0)
 #  endif
 # endif
-!to add a correction to ubar??
-!# ifdef NHMG
-!          do k=1,N    
-!             ubar(i,j,knew)=ubar(i,j,knew)+DC(i,0)*grid(1)%du(k,j,i)
-!          enddo
-!# endif
 # ifdef WET_DRY
           ubar(i,j,knew)=ubar(i,j,knew)*umask_wet(i,j)
 # endif
         enddo
         do k=N,1,-1
           do i=IU_RANGE
-# ifndef NHMG
-#  ifndef NO_SPLIT
+#  ifdef NO_SPLIT
+            u(i,j,k,nnew)=u(i,j,k,nnew)
+#  else
             u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0)) 
-#  else
-            u(i,j,k,nnew)=u(i,j,k,nnew)
 #  endif
-# else
-#  ifndef NO_SPLIT
-#   ifdef NHMG_CORR_SINH
-            u(i,j,k,nnew)=(u(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
-#   else
-            u(i,j,k,nnew)=(u(i,j,k,nnew)-CF(i,0))
-#   endif
-#  else
-            u(i,j,k,nnew)=u(i,j,k,nnew)
-#  endif
-# endif
 # ifdef MASKING
      &                                *umask(i,j)
 #  ifdef MRL_WCI
@@ -892,22 +858,14 @@
           enddo
         enddo
         do i=IU_RANGE
-# ifndef NHMG_CORR_SINH
           FC(i,0)=DC(i,0)*(FC(i,0)-DU_avg2(i,j))
-# else
-          FC(i,0)=(FC(i,0)-DU_avg2(i,j))/ND(i,0)
-# endif
         enddo
         do k=1,N,+1
           do i=IU_RANGE
-# ifndef NO_SPLIT
-#  ifndef NHMG_CORR_SINH
-            Huon(i,j,k)=FC(i,k)-DC(i,k)*FC(i,0)
-#  else
-            Huon(i,j,k)=FC(i,k)-ND(i,k)*FC(i,0)
-#  endif
-# else
+# ifdef NO_SPLIT
             Huon(i,j,k)=FC(i,k)
+# else
+            Huon(i,j,k)=FC(i,k)-DC(i,k)*FC(i,0)
 # endif
           enddo
         enddo
@@ -980,25 +938,9 @@
               CF(i,0)=CF(i,0)+DC(i,k)*v(i,j,k,nnew)
             enddo
           enddo
-# ifdef NHMG_CORR_SINH
-          do i=IV_RANGE
-             ND(i,0)=0.
-          enddo
-          do k=1,N
-             do i=IV_RANGE
-                ND(i,k)=cosh(k_wave*(0.5*(z_r(i,j,k)+z_r(i,j-1,k))+H_dom))
-     &               *DC(i,k)
-                ND(i,0)=ND(i,0)+ND(i,k)
-             enddo
-          enddo
-# endif
           do i=IV_RANGE
             DC(i,0)=1./DC(i,0)
-# ifdef NHMG_CORR_SINH
-            CF(i,0)=(CF(i,0)-DV_avg1(i,j,nnew))/ND(i,0)
-# else
             CF(i,0)=DC(i,0)*(CF(i,0)-DV_avg1(i,j,nnew))
-# endif
 # ifdef MRL_WCI
      &                                 +vst2d(i,j)
 # endif
@@ -1016,22 +958,10 @@
           enddo
           do k=N,1,-1
             do i=IV_RANGE
-# ifndef NHMG
-#  ifndef NO_SPLIT
-              v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
-#  else
+# ifdef NO_SPLIT
               v(i,j,k,nnew)=v(i,j,k,nnew)
-#  endif
 # else
-#  ifndef NO_SPLIT
-#   ifdef NHMG_CORR_SINH
-              v(i,j,k,nnew)=(v(i,j,k,nnew)-ND(i,k)/DC(i,k)*CF(i,0))
-#   else
               v(i,j,k,nnew)=(v(i,j,k,nnew)-CF(i,0)) 
-#   endif
-#  else
-              v(i,j,k,nnew)=v(i,j,k,nnew)
-#  endif
 # endif
 # ifdef MASKING
      &                                  *vmask(i,j)
@@ -1070,22 +1000,14 @@
             enddo
           enddo
           do i=IV_RANGE
-# ifndef NHMG_CORR_SINH
             FC(i,0)=DC(i,0)*(FC(i,0)-DV_avg2(i,j))
-# else
-            FC(i,0)=(FC(i,0)-DV_avg2(i,j))/ND(i,0)
-# endif
           enddo
           do k=1,N,+1
             do i=IV_RANGE
-# ifndef NO_SPLIT
-#  ifndef NHMG_CORR_SINH
-              Hvom(i,j,k)=FC(i,k)-DC(i,k)*FC(i,0)
-#  else
-              Hvom(i,j,k)=FC(i,k)-ND(i,k)*FC(i,0)
-#  endif
-# else
+# ifdef NO_SPLIT
               Hvom(i,j,k)=FC(i,k)
+# else
+              Hvom(i,j,k)=FC(i,k)-DC(i,k)*FC(i,0)
 # endif
             enddo
           enddo
@@ -1290,7 +1212,8 @@
 !--------------------------------------------------------------------
 !
 # ifdef NHMG
-#  ifndef NO_SPLIT
+#  ifdef NO_SPLIT
+#  else
       ! We've modified u and v, wz needs to be made consistent
       do j=Jstr,Jend
         do k=1,N          
@@ -1308,15 +1231,20 @@
         enddo
       enddo
 !
-#  endif
 
+!--------------------------------------------------------------------
+! Update physical boundary values
+!--------------------------------------------------------------------
+      call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)
 !--------------------------------------------------------------------
 ! Exchange periodic boundaries and computational margins.
 !--------------------------------------------------------------------
-# if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
+#   if defined EW_PERIODIC || defined NS_PERIODIC || defined MPI
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
      &                                 wz(START_2D_ARRAY,0,nnew)) 
-# endif
+#   endif
+
+#  endif
 
 # endif
 !
