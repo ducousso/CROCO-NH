@@ -559,6 +559,7 @@ fi
 rm -f conftest.f90 a.out \$\<.log
 AC_MSG_RESULT([$nc_ans])
 if test "x$nc_ans" = xno; then
+  AC_MSG_NOTICE([$FC ${FCFLAGS} ${FCFLAGS_f90} ])
   AC_MSG_ERROR([A simple Fortran 90 test doesn't work.])
 fi
 

@@ -15200,6 +15200,8 @@ rm -f conftest.f90 a.out \$\<.log
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $nc_ans" >&5
 $as_echo "$nc_ans" >&6; }
 if test "x$nc_ans" = xno; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: $FC ${FCFLAGS} ${FCFLAGS_f90} " >&5
+$as_echo "$as_me: $FC ${FCFLAGS} ${FCFLAGS_f90} " >&6;}
   as_fn_error $? "A simple Fortran 90 test doesn't work." "$LINENO" 5
 fi
 
