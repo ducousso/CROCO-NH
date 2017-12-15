@@ -40,6 +40,10 @@ module mg_grids
      real(kind=rp),dimension(:,:,:),pointer :: b => null()    ! Right-hand side
      real(kind=rp),dimension(:,:,:),pointer :: r => null()    ! Residual
 
+     real(kind=rp),dimension(:,:,:),pointer :: px => null()    ! Pressure
+     real(kind=rp),dimension(:,:,:),pointer :: py => null()    ! Right-hand side
+     real(kind=rp),dimension(:,:,:),pointer :: pz => null()    ! Residual
+
      real(kind=rp),dimension(:,:)  ,pointer :: dx => null()   ! Mesh in x  (1 halo point)
      real(kind=rp),dimension(:,:)  ,pointer :: dy => null()   ! Mesh in y  (1 halo point)
      real(kind=rp),dimension(:,:)  ,pointer :: dxu => null()  ! Mesh in x  (1 halo point)
@@ -169,6 +173,13 @@ contains
 
     grid(1)%incx=1
     grid(1)%incy=1
+
+    nx = grid(1)%nx
+    ny = grid(1)%ny
+    nz = grid(1)%nz
+    allocate(grid(1)%px(nz,0:ny+1,0:nx+1))
+    allocate(grid(1)%py(nz,0:ny+1,0:nx+1))
+    allocate(grid(1)%pz(nz,0:ny+1,0:nx+1))
 
     if (myrank==0) write(*,*)'    - define grid dims'
     ! define grid dimensions at each level

@@ -283,9 +283,9 @@ contains
 
     !! Pressure gradient -
 
-    px => grid(1)%u
-    py => grid(1)%v
-    pz => grid(1)%w
+    px => grid(1)%px
+    py => grid(1)%py
+    pz => grid(1)%pz
 
     do i = 1,nx+1
         do j = 0,ny+1
