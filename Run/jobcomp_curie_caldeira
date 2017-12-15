@@ -70,6 +70,7 @@ MAKE=make
 # clean scratch area
 #
 #rm -rf $SCRDIR # this line was commented to avoid a complet CROCO recompilation
+rm -rf $SCRDIR/croco
 mkdir -p $SCRDIR
 #
 # AGRIF sources directory
@@ -551,3 +552,10 @@ echo "***********************"
 $MAKE 
 cp -vfu croco $RUNDIR
 #
+echo ""
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+echo "** Please verify your LD_LIBRARY_PATH for NHMG library. "
+echo "** You can update it using one of these two commands: "
+echo "** (csh)  setenv LD_LIBRARY_PATH \$LD_LIBRARY_PATH:${NHMGPATH}/lib"
+echo "** (bash) export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${NHMGPATH}/lib"
+echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"

@@ -33,8 +33,8 @@ LINUX_FC=ifort
 #
 # If needed set your own NETCDF directories
 #
-NETCDFLIB="-L$NETCDF/lib -lnetcdff"
-NETCDFINC=-I$NETCDF/include
+NETCDFLIB=`nc-config --flibs`
+NETCDFINC=`nc-config --fflags`
 
 #
 # set MPI directories if needed
@@ -72,6 +72,7 @@ MAKE=make
 # clean scratch area
 #
 #rm -rf $SCRDIR # this line was commented to avoid a complet CROCO recompilation
+rm -rf $SCRDIR/croco
 mkdir -p $SCRDIR
 #
 # AGRIF sources directory
@@ -330,8 +331,8 @@ if $($CPP1 testkeys.F | grep -i -q nhmgisdefined) ; then
 	COMPILENHMG=TRUE
     echo 'Compile NHMG: '${COMPILENHMG}
 
-	LDFLAGS1="-L${NHMGPATH}/lib -lnhmg $LDFLAGS1"
-	FFLAGS1="-I${NHMGPATH}/include $FFLAGS1"
+	LDFLAGS1=" $LDFLAGS1 -L${NHMGPATH}/lib -lnhmg"
+	FFLAGS1="$FFLAGS1 -I${NHMGPATH}/include"
 fi
 #
 # determine if XIOS compilation is required
@@ -458,6 +459,10 @@ if [[ $CONFIGNHMG == 'TRUE' ]] ; then
     echo "************************"
     echo "** NHMG configuration **"
     echo "************************"
+    echo "  - prefix: ", ${NHMGPATH}
+    echo "  - MPI_F90:", ${MPIF90}
+    echo "  - MPI_INC:", ${MPIINC}
+    echo "  - MPI_LIB:", ${MPILIB}
     wwa=`pwd`
     cd ${NHMG_SRCDIR}
     #
@@ -549,3 +554,10 @@ echo "***********************"
 $MAKE 
 cp -vfu croco $RUNDIR
 #
+echo ""
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+echo "** Please verify your LD_LIBRARY_PATH for NHMG library. "
+echo "** You can update it using one of these two commands: "
+echo "** (csh)  setenv LD_LIBRARY_PATH \$LD_LIBRARY_PATH:${NHMGPATH}/lib"
+echo "** (bash) export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${NHMGPATH}/lib"
+echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
