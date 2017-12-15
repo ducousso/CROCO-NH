@@ -5,6 +5,7 @@
 
 # module unload intel
 # module load intel/16.0.2.181 bullxmpi netcdf/4.2
+module list
 
 #
 # set source, compilation and run directories
@@ -39,8 +40,8 @@ NETCDFINC=`nf-config --fflags`
 #
 #attention au module
 MPIF90="mpif90"
-MPILIB=""
-MPIINC=""
+MPILIB="-I${MPI_ROOT}/lib"  # mpi.mod
+MPIINC="-L${MPI_ROOT}/lib"  # libmpi*
 
 #
 # set OASIS-MCT (or OASIS3) directories if needed
@@ -445,6 +446,54 @@ if [[ $COMPILEAGRIF ]] ; then
 		cat cppdefs.h $i | cpp -P | grep -v -e ! -e '#' -e % -e '*' > ROMSFILES/$i
 	done
 	mv -f ROMSFILES/private_scratch_AMR.h ROMSFILES/private_scratch.h
+fi
+
+#
+# Configure NHMG library (if needed)
+#
+if [[ $CONFIGNHMG == 'TRUE' ]] ; then
+    echo ""
+    echo "************************"
+    echo "** NHMG configuration **"
+    echo "************************"
+    echo "  - prefix: ", ${NHMGPATH}
+    echo "  - MPI_F90:", ${MPIF90}
+    echo "  - MPI_INC:", ${MPIINC}
+    echo "  - MPI_LIB:", ${MPILIB}
+    wwa=`pwd`
+    cd ${NHMG_SRCDIR}
+    #
+    # To know "configure" available options
+    # please enter "../NHMG/configure --help | grep -e '--enable-'"
+    # If you change here an option, you have to remove the config.log file
+    # in the CROCO's NHMG directory (if it is present).
+    # "rm ../NHMG/config.log"
+    #
+    # Options "--prefix=","--enable-mpicroco","MPI_F90=","MPI_INC", "MPI_LIB"
+    # have to be present and set (they are not options :-)
+    #
+    ./configure --prefix="${NHMGPATH}" --enable-netcdf \
+        --enable-mpicroco MPI_F90="${MPIF90}" MPI_INC="${MPIINC}" MPI_LIB="${MPILIB}"
+#  Enables netcdf for NHMG development
+#   ./configure --prefix="${NHMGPATH}" --enable-netcdf \
+#       --enable-mpicroco MPI_F90="${MPIF90}" MPI_INC="${MPIINC}" MPI_LIB="${MPILIB}"
+    ${MAKE} clean
+    cd ${wwa}
+fi
+
+#
+# Compile NHMG library and install it in NHMGPATH
+#
+if [[ $COMPILENHMG == 'TRUE' ]] ; then
+    echo ""
+    echo "**********************"
+    echo "** NHMG compilation **"
+    echo "**********************"
+    wwa=`pwd`
+    cd ${NHMG_SRCDIR}
+    # make command check timestamp source files and compile them only if it is necessary
+    ${MAKE} install 
+    cd ${wwa}
 fi
 
 #
