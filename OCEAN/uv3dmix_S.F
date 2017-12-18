@@ -294,7 +294,7 @@
       enddo ! <-- k
 # undef FX
 # undef FE
-#endif
+#endif /* NHMG */
 !
       return
       end

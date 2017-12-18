@@ -276,7 +276,7 @@ C$    integer omp_get_thread_num
          enddo
        endif
 
-#endif
+#endif /* NHMG */
       return
       end
 !
@@ -416,7 +416,7 @@ C$    integer omp_get_thread_num
      &                                 wz(START_2D_ARRAY,0,1))
 #   endif
       endif
-# endif
+# endif /* NHMG */
       return
       end
 !
@@ -692,7 +692,7 @@ C$    integer omp_get_thread_num
      &                                 wz(START_2D_ARRAY,0,nrhs)) 
 # endif
 
-# endif
+# endif /* NHMG */
 
 # endif /* SOLVE3D */
       return

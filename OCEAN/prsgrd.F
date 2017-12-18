@@ -472,10 +472,6 @@ c********************************************************************
 #  endif
      &                                           )
 !
-# ifdef NHMG
-      USE nhmg, only : nhmg_rw
-# endif
-!
       implicit none
       integer Istr,Iend,Jstr,Jend, i,j,k
 #  include "param.h"
@@ -697,13 +693,6 @@ c********************************************************************
          enddo
       enddo
 
-!     call nhmg_rw(
-!    &     Lm, Mm, N,
-!    &     ru(-1:Lm+2,-1:Mm+2,1:N),
-!    &     rv(-1:Lm+2,-1:Mm+2,1:N),
-!    &     rw(-1:Lm+2,-1:Mm+2,1:N))
-! caution : initialize if commented
-!      rw(:,:,:)=0.
 # endif
    
 !

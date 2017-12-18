@@ -10,6 +10,7 @@ module mg_tictoc
   integer(kind = lg) , dimension(levmax,submax) :: ntic
   integer(kind = lg) , dimension(levmax,submax) :: ntoc
   real(kind = lg)    , dimension(levmax,submax) :: time_tictoc
+  real(kind = lg)    , dimension(levmax,submax) :: time_tictoc_sort
   integer(kind=st)   , dimension(levmax,submax) :: calls
   character(len=32)  , dimension(submax)        :: subname
   integer(kind=st)                              :: nblev = 0
@@ -147,6 +148,77 @@ contains
   subroutine print_tictoc(myrank)
     integer(kind=st), optional, intent(in)::myrank
 
+    integer(kind=st)  :: lev  ! level
+    integer(kind=st)  :: ii
+    integer(kind=st)  :: lun  ! logical unit number
+    integer(kind=st)  :: mr   ! my rank
+    CHARACTER(len=32) :: filename
+    CHARACTER(len=14) :: cmftf, cmfti
+    real(kind=lg), dimension(1:nblev):: tmp
+    real(kind=lg)     :: sum1, sum2
+    logical           :: end_sort
+
+    if (present(myrank)) then
+       mr  = myrank
+       lun = myrank + 10
+    else
+       mr  = 9999
+       lun =  10
+    endif
+
+# Sort results
+    time_tictoc_sort(:,:) = time_tictoc(:,:)
+    do                
+       end_sort = .true.
+       do ii=2,nbsub
+          sum1=sum(time_tictoc_sort(1:nblev,ii  ))
+          sum2=sum(time_tictoc_sort(1:nblev,ii-1))
+          if (sum1 > sum2) then
+             end_sort = .false.
+             tmp(:) = time_tictoc_sort(1:nblev,ii-1)
+             time_tictoc_sort(1:nblev,ii-1) = time_tictoc_sort(1:nblev,ii)
+             time_tictoc_sort(1:nblev,ii) = tmp(:)
+          end if
+       end do
+       if (end_sort) exit
+    end do
+
+ write(filename, '(A14,I4.4,A4)')'nhmg_prof_rank',mr,'.log'
+
+ open(unit=lun,file=trim(filename),form='FORMATTED')
+
+ WRITE(cmftf , 1000) nblev
+ WRITE(cmfti , 1001) nblev
+1000 FORMAT('(', I3, '(x,E9.3))')
+1001 FORMAT('(', I3, '(x,I9))')
+
+ write(lun,'(t22)', ADVANCE="no")
+ write(lun,'(A10)', ADVANCE="no") 'Total'
+ do lev=1, nblev
+    write(lun,'(x,I9)', ADVANCE="no") lev
+ enddo
+
+ write(lun,'(x)', ADVANCE="yes")
+
+ do ii=1, nbsub
+    write(lun,'(x,A20)' , ADVANCE="no" ) TRIM(subname(ii))
+    write(lun,'(x,E9.3)', ADVANCE="no" ) sum(time_tictoc_sort(1:nblev,ii))
+    write(lun,FMT=cmftf , ADVANCE="no" ) time_tictoc_sort(1:nblev,ii)
+    write(lun,'(x)'     , ADVANCE="yes")
+    write(lun,'(t22)'   , ADVANCE="no" )
+    write(lun,'(x,I9)'  , ADVANCE="no" ) sum(calls(1:nblev,ii))
+    write(lun,FMT=cmfti , ADVANCE="no" ) calls(1:nblev,ii)
+    write(lun,'(x)'     , ADVANCE="yes")
+ end do
+
+ close(lun)
+
+end subroutine print_tictoc
+
+  !------------------------------------------------
+  subroutine print_tictoc_old(myrank)
+    integer(kind=st), optional, intent(in)::myrank
+
     integer(kind=st)  :: lev
     integer(kind=st)  :: ii
     integer(kind=st)  :: lun
@@ -182,37 +254,6 @@ contains
        write(lun,FMT=cmfti , ADVANCE="no" ) calls(1:nblev,ii)
        write(lun,'(x)'     , ADVANCE="yes")
     end do
-
-  end subroutine print_tictoc
-
-  !------------------------------------------------
-  subroutine print_tictoc_old(myrank)
-    integer(kind=st), optional, intent(in)::myrank
-
-    integer(kind=st) :: lev
-
-    integer(kind=st) :: ii
-
-    integer(kind=st) ::lun
-
-    if (present(myrank)) then
-       lun = myrank + 10
-    else
-       lun = 10
-    endif
-
-    write(lun,'(A)',ADVANCE="no")'   '
-    do ii=1, nbsub
-       write(lun,'(x,A10)',ADVANCE="no") TRIM(subname(ii))
-    end do
-
-    do lev=1, nblev
-       write(lun,'(I2,x,7f10.2)', ADVANCE="yes")lev, time_tictoc(lev,1:nbsub)
-    enddo
-    write(lun,'(I2,x,I10)', ADVANCE="yes")''
-    do lev=1, nblev
-       write(lun,'(I2,x,I10)', ADVANCE="yes")lev, calls(lev,1:nbsub)
-    enddo
 
   end subroutine print_tictoc_old
 

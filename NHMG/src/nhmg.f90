@@ -276,9 +276,11 @@ contains
 
   subroutine nhmg_clean()
 
-!   call grids_dealloc()
+    !   call grids_dealloc()
 
-    call print_tictoc(0)
+    if (myrank==0) then
+       call print_tictoc(myrank)
+    endif
 
   end subroutine nhmg_clean
 

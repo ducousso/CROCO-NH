@@ -59,9 +59,9 @@
 !-------------------------------------------------------------------- 
 !
 #ifdef NHMG
-      USE nhmg, only : nhmg_solve
-      USE mg_grids
-      USE mg_tictoc
+      use nhmg, only : nhmg_solve
+      use mg_grids
+      use mg_tictoc, only : tic, toc
 #endif
       implicit none
 # include "param.h"
@@ -407,6 +407,7 @@
         endif
 !
 # ifdef NHMG
+        call tic(1,'croco_step3d_uv2_1')
 !--------------------------------------------------------------------
 ! Time step w equation
 !
@@ -486,6 +487,7 @@
           enddo
         enddo 
 
+        call toc(1,'croco_step3d_uv2_1')
 # endif  /* NHMG */
 
       enddo      ! <-- j
@@ -577,7 +579,7 @@
 !
 # ifdef NHMG
 
-      call tic(1,'swap corrector')
+      call tic(1,'croco_swap corrector')
 
 #  if defined NHMG_MASKING
          do k=1,N    
@@ -711,7 +713,7 @@
       call v3dbc_tile (Istr,Iend,Jstr,Jend, grad)
       call w3dbc_tile (Istr,Iend,Jstr,Jend, grad)
 
-      call toc(1,'swap corrector')
+      call toc(1,'croco_swap corrector')
 
 # endif    /* NHMG */
 
@@ -1234,7 +1236,7 @@
 
 #  endif
 
-# endif
+# endif /* NHMG */
 !
       return
       end

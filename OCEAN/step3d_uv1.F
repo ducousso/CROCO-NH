@@ -114,7 +114,7 @@
 #  endif
           enddo
         enddo
-# endif
+# endif /* NHMG */
       enddo 
 
 #else
