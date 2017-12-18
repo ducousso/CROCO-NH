@@ -75,11 +75,9 @@
       use module_nbq
 #endif
 #ifdef NHMG
-      USE nhmg, only : nhmg_solve
-      USE mg_namelist
-      USE mg_netcdf_out
-      USE mg_grids
-      use mg_tictoc
+      use nhmg, only : nhmg_solve
+      use mg_grids
+      use mg_tictoc, only : tic, toc
 #endif
       implicit none
 # include "param.h"
@@ -875,6 +873,7 @@
 !<-- at this point 
 !<-- rw            contains internal 3D advection + Coriolis
 !----------------------------------------------------------
+      call tic(1,'croco_pre_step3D_1')
       do j=Jstr,Jend
 
       if (FIRST_TIME_STEP) then
@@ -944,6 +943,7 @@
 !
       enddo
 !==
+      call toc(1,'croco_pre_step3D_1')
 
 # endif /* NHMG */
 
@@ -973,7 +973,9 @@
       call u3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
       call v3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
 # if defined NBQ || defined NHMG
-      call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK)      
+      call tic(1,'croco_w3dbc_tile')
+      call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
+      call toc(1,'croco_w3dbc_tile')
 # endif
 
 
@@ -983,6 +985,7 @@
 ! Non-hydro projection of momentum
 !======================================================================
 !
+      call tic(1,'croco_pre_step3d_2')
       cff = 1./cdt
 
 # ifdef NHMG_DOUBLE_PROJ
@@ -1037,14 +1040,14 @@
 !
 #  ifndef EW_PERIODIC
       if (WESTERN_EDGE) then
-        do k=0,N
+        do k=1,N               !NG 18dec2017: replace 0 by 1
           do j=Jstr,Jend
             Hz_half(0,j,k)=Hz_half(1,j,k)
           enddo
         enddo
       endif
       if (EASTERN_EDGE) then
-        do k=0,N
+        do k=1,N               !NG 18dec2017: replace 0 by 1
           do j=Jstr,Jend
             Hz_half(LOCALLM+1,j,k)=Hz_half(LOCALLM,j,k)
           enddo
@@ -1053,14 +1056,14 @@
 #  endif
 #  ifndef NS_PERIODIC
       if (SOUTHERN_EDGE) then
-        do k=0,N
+        do k=1,N               !NG 18dec2017: replace 0 by 1
           do i=Istr,Iend
             Hz_half(i,0,k)=Hz_half(i,1,k)
           enddo
         enddo
       endif
       if (NORTHERN_EDGE) then
-        do k=0,N
+        do k=1,N               !NG 18dec2017: replace 0 by 1
           do i=Istr,Iend
             Hz_half(i,LOCALMM+1,k)=Hz_half(i,LOCALMM,k)
           enddo
@@ -1185,7 +1188,8 @@
       call v3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
       call w3dbc_tile (Istr,Iend,Jstr,Jend, WORK)
 
-# endif
+      call toc(1,'croco_pre_step3d_2')
+# endif /* NHMG */
 !
 !======================================================================
 ! Coupling, include ghost points associated with PHYSICAL
@@ -1221,8 +1225,10 @@
       call exchange_v3d_tile (Istr,Iend,Jstr,Jend,
      &                        v(START_2D_ARRAY,1,nnew))
 #  if defined NBQ || defined NHMG
+      call tic(1,'croco_exchange_w3d_tile')
       call exchange_w3d_tile (Istr,Iend,Jstr,Jend,
-     &                        wz(START_2D_ARRAY,0,nnew))     
+     &                        wz(START_2D_ARRAY,0,nnew))
+      call tic(1,'croco_exchange_w3d_tile')
 #  endif
 # endif
 
