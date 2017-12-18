@@ -2,7 +2,7 @@ title:
 	Caldeira
 
 time_stepping: NTIMES   dt[sec]  NDTFAST  NINFO
-                5      12       50       1
+                200      12       50       1
 
 S-coord: THETA_S,   THETA_B,    Hc (m)
          1.0d0      4.0d0       10.d0
