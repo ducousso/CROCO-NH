@@ -179,7 +179,7 @@ contains
     nz = grid(1)%nz
     allocate(grid(1)%px(nz,0:ny+1,0:nx+1))
     allocate(grid(1)%py(nz,0:ny+1,0:nx+1))
-    allocate(grid(1)%pz(nz,0:ny+1,0:nx+1))
+    allocate(grid(1)%pz(nz+1,0:ny+1,0:nx+1))
 
     if (myrank==0) write(*,*)'    - define grid dims'
     ! define grid dimensions at each level

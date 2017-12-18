@@ -25,6 +25,8 @@ contains
     integer(kind=ip), intent(in) :: nx, ny, nz
     integer(kind=ip), intent(in) :: npxg, npyg
 
+    call tic(1,'nhmg_init')
+
     call mg_mpi_init()
 
     if (myrank==0) write(*,*)' nhmg_init:'
@@ -36,6 +38,8 @@ contains
     call define_neighbours()
 
     call print_grids()
+
+    call toc(1,'nhmg_init')
 
   end subroutine nhmg_init
 
@@ -56,8 +60,8 @@ contains
 
     if (present(dxa) .and. present(dya)) then
 
-       do i = -1,nx+2
-          do j = -1,ny+2
+       do i = 0,nx+1
+          do j = 0,ny+1
              grid(1)%dx(j,i) = dxa(i,j)
              grid(1)%dy(j,i) = dya(i,j)
           enddo
@@ -274,7 +278,7 @@ contains
 
 !   call grids_dealloc()
 
-    call print_tictoc()
+    call print_tictoc(0)
 
   end subroutine nhmg_clean
 
