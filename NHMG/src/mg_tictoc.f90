@@ -12,7 +12,9 @@ module mg_tictoc
   real(kind = lg)    , dimension(levmax,submax) :: time_tictoc
   real(kind = lg)    , dimension(levmax,submax) :: time_tictoc_sort
   integer(kind=st)   , dimension(levmax,submax) :: calls
+  integer(kind=st)   , dimension(levmax,submax) :: calls_sort
   character(len=32)  , dimension(submax)        :: subname
+  character(len=32)  , dimension(submax)        :: subname_sort
   integer(kind=st)                              :: nblev = 0
   integer(kind=st)                              :: nbsub = 0
 
@@ -154,7 +156,9 @@ contains
     integer(kind=st)  :: mr   ! my rank
     CHARACTER(len=32) :: filename
     CHARACTER(len=14) :: cmftf, cmfti
-    real(kind=lg), dimension(1:nblev):: tmp
+    character(len=32) :: ctmp
+    real(kind=lg)   , dimension(1:nblev) :: tmp
+    integer(kind=st), dimension(1:nblev) :: itmp
     real(kind=lg)     :: sum1, sum2
     logical           :: end_sort
 
@@ -168,18 +172,37 @@ contains
 
 # Sort results
     time_tictoc_sort(:,:) = time_tictoc(:,:)
+    subname_sort(:) = subname(:)
+    calls_sort(:,:) = calls(:,:)
+
     do                
        end_sort = .true.
+
        do ii=2,nbsub
+
           sum1=sum(time_tictoc_sort(1:nblev,ii  ))
           sum2=sum(time_tictoc_sort(1:nblev,ii-1))
+
           if (sum1 > sum2) then
+
              end_sort = .false.
+
              tmp(:) = time_tictoc_sort(1:nblev,ii-1)
              time_tictoc_sort(1:nblev,ii-1) = time_tictoc_sort(1:nblev,ii)
              time_tictoc_sort(1:nblev,ii) = tmp(:)
+
+             ctmp   = trim(subname_sort(ii-1))
+             subname_sort(ii-1) = trim(subname_sort(ii))
+             subname_sort(ii) = trim(ctmp)
+
+             itmp(:) = calls_sort(1:nblev,ii-1)
+             calls_sort(1:nblev,ii-1) = calls_sort(1:nblev,ii)
+             calls_sort(1:nblev,ii) = itmp(:)
+
           end if
+
        end do
+
        if (end_sort) exit
     end do
 
@@ -201,15 +224,27 @@ contains
  write(lun,'(x)', ADVANCE="yes")
 
  do ii=1, nbsub
-    write(lun,'(x,A20)' , ADVANCE="no" ) TRIM(subname(ii))
+    write(lun,'(x,A20)' , ADVANCE="no" ) TRIM(subname_sort(ii))
     write(lun,'(x,E9.3)', ADVANCE="no" ) sum(time_tictoc_sort(1:nblev,ii))
     write(lun,FMT=cmftf , ADVANCE="no" ) time_tictoc_sort(1:nblev,ii)
     write(lun,'(x)'     , ADVANCE="yes")
     write(lun,'(t22)'   , ADVANCE="no" )
-    write(lun,'(x,I9)'  , ADVANCE="no" ) sum(calls(1:nblev,ii))
-    write(lun,FMT=cmfti , ADVANCE="no" ) calls(1:nblev,ii)
+    write(lun,'(x,I9)'  , ADVANCE="no" ) sum(calls_sort(1:nblev,ii))
+    write(lun,FMT=cmfti , ADVANCE="no" ) calls_sort(1:nblev,ii)
     write(lun,'(x)'     , ADVANCE="yes")
  end do
+
+!!$write(lun,*)""
+!!$ do ii=1, nbsub
+!!$    write(lun,'(x,A20)' , ADVANCE="no" ) TRIM(subname(ii))
+!!$    write(lun,'(x,E9.3)', ADVANCE="no" ) sum(time_tictoc(1:nblev,ii))
+!!$    write(lun,FMT=cmftf , ADVANCE="no" ) time_tictoc(1:nblev,ii)
+!!$    write(lun,'(x)'     , ADVANCE="yes")
+!!$    write(lun,'(t22)'   , ADVANCE="no" )
+!!$    write(lun,'(x,I9)'  , ADVANCE="no" ) sum(calls(1:nblev,ii))
+!!$    write(lun,FMT=cmfti , ADVANCE="no" ) calls(1:nblev,ii)
+!!$    write(lun,'(x)'     , ADVANCE="yes")
+!!$ end do
 
  close(lun)
 
