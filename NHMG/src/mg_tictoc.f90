@@ -170,7 +170,7 @@ contains
        lun =  10
     endif
 
-# Sort results
+! Sort results
     time_tictoc_sort(:,:) = time_tictoc(:,:)
     subname_sort(:) = subname(:)
     calls_sort(:,:) = calls(:,:)
