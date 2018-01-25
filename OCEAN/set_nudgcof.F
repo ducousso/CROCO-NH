@@ -193,8 +193,11 @@
 !
       do j=JstrR,JendR
         do i=IstrR,IendR
-!          visc2_sponge_r(i,j)=(0.01/(pm(i,j)*pn(i,j)*dt))*wrk(i,j)
+#   ifdef SPONGE_GRID
+          visc2_sponge_r(i,j)=(0.01/(pm(i,j)*pn(i,j)*dt))*wrk(i,j)
+#   else
           visc2_sponge_r(i,j)=v_sponge*wrk(i,j)
+#   endif
 #   ifdef UV_VIS4
           visc4_sponge_r(i,j)=visc2_sponge_r(i,j)/(pm(i,j)*pn(i,j))
 #   endif
@@ -205,10 +208,15 @@
 !
       do j=Jstr,JendR
         do i=Istr,IendR
-!          visc2_sponge_p(i,j)=0.25*(0.01/(pm(i,j)*pn(i,j)*dt))*
-          visc2_sponge_p(i,j)=0.25*(v_sponge)*
+#   ifdef SPONGE_GRID
+          visc2_sponge_p(i,j)=0.25*(0.01/(pm(i,j)*pn(i,j)*dt))*
+     &                              ( wrk(i,j  )+wrk(i-1,j  )
+     &                               +wrk(i,j-1)+wrk(i-1,j-1) )
+#   else
+          visc2_sponge_p(i,j)=0.25*v_sponge*
      &                              ( wrk(i,j  )+wrk(i-1,j  )
      &                               +wrk(i,j-1)+wrk(i-1,j-1) ) 
+#   endif
 #   ifdef UV_VIS4
           visc4_sponge_p(i,j)=visc2_sponge_p(i,j)/(pm(i,j)*pn(i,j))
 #   endif
@@ -223,8 +231,11 @@
        do itrc=1,NT
         do j=JstrR,JendR
           do i=IstrR,IendR
-!            diff2_sponge(i,j)=(0.01/(pm(i,j)*pn(i,j)*dt))*wrk(i,j)
+#   ifdef SPONGE_GRID
+            diff2_sponge(i,j)=(0.01/(pm(i,j)*pn(i,j)*dt))*wrk(i,j)
+#   else
             diff2_sponge(i,j)=v_sponge*wrk(i,j)
+#   endif
 #   ifdef TS_DIF4
             diff4_sponge(i,j)=diff2_sponge(i,j)/(pm(i,j)*pn(i,j))
 #   endif
