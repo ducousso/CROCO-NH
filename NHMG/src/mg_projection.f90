@@ -189,7 +189,7 @@ contains
        call fill_halo(lev,cA)
 
        !! self-interaction coeff !!
-
+       if (trim(grid(lev)%relaxation_method).eq.'xyz') then
        do i = 1,nx
           do j = 1,ny
 
@@ -222,6 +222,33 @@ contains
 
           enddo
        enddo
+       elseif (trim(grid(lev)%relaxation_method).eq.'xz') then
+       do i = 1,nx
+          j = 1
+
+             k = 1 !lower level
+             cA(1,k,j,i) = &
+                  - Arz(j,i) / dzw(k+1,j,i) * hlf * (alpha(k+1,j,i) + alpha(k,j,i)) &
+                  - Arx(k,j,i  )/dxu(j,i  ) * hlf * (gamu(j,i) + gamu(j  ,i-1)) &
+                  - Arx(k,j,i+1)/dxu(j,i+1) * hlf * (gamu(j,i) + gamu(j  ,i+1)) 
+
+             do k = 2,nz-1 !interior levels
+                cA(1,k,j,i) = &
+                     - Arz(j,i) / dzw(k+1,j,i) * hlf * (alpha(k+1,j,i) + alpha(k,j,i)) &
+                     - Arz(j,i) / dzw(k  ,j,i) * hlf * (alpha(k-1,j,i) + alpha(k,j,i)) &
+                     - Arx(k,j,i  )/dxu(j,i  )  &
+                     - Arx(k,j,i+1)/dxu(j,i+1)  
+             enddo
+
+             k=nz ! upper level
+             cA(1,k,j,i) = &
+                  - Arz(j,i) / dzw(k+1,j,i) * alpha(k,j,i) * dirichlet_flag &
+                  - Arz(j,i) / dzw(k  ,j,i) * hlf * (alpha(k-1,j,i) + alpha(k,j,i)) &
+                  - Arx(k,j,i  )/dxu(j,i  )  &
+                  - Arx(k,j,i+1)/dxu(j,i+1)  
+
+       enddo
+       endif
 
        if (netcdf_output) then
           if (myrank==0) write(*,*)'       write cA in a netcdf file'
@@ -294,14 +321,23 @@ contains
           enddo
        enddo
     enddo
-
-    do i = 0,nx+1
-       do j = 1,ny+1 
-          do k = 1,nz
-             py(k,j,i) = -one / dyv(j,i) * (p(k,j,i)-p(k,j-1,i))
+    if (trim(grid(1)%relaxation_method).eq.'xz')then
+       do i = 0,nx+1
+          do j = 1,ny+1 
+             do k = 1,nz
+                py(k,j,i) = 0.
+             enddo
           enddo
        enddo
-    enddo
+    else
+       do i = 0,nx+1
+          do j = 1,ny+1 
+             do k = 1,nz
+                py(k,j,i) = -one / dyv(j,i) * (p(k,j,i)-p(k,j-1,i))
+             enddo
+          enddo
+       enddo
+    endif
 
     do i = 0,nx+1
        do j = 0,ny+1
@@ -361,41 +397,50 @@ contains
 
     dv => grid(1)%dv
 
-    do i = 1,nx
-       do j = 1,ny+1
-          k = 1
-          gamma = one - qrt * (  &
-               (zydx(k,j  ,i)/dx(j  ,i))**2/alpha(k,j  ,i  ) + &
-               (zydx(k,j-1,i)/dx(j-1,i))**2/alpha(k,j-1,i) )
-          dv(k,j,i) = gamma * Ary(k,j,i) * py(k,j,i) &
-               - qrt * ( &
-               + zydx(k,j  ,i) * dzw(k+1,j  ,i) * pz(k+1,j  ,i) &
-               + zydx(k,j-1,i) * dzw(k+1,j-1,i) * pz(k+1,j-1,i) ) &
-               - beta(j-1,i)   * dxu(j-1,i  )   * px(k,j-1,i  ) &
-               - beta(j-1,i)   * dxu(j-1,i+1)   * px(k,j-1,i+1) &
-               - beta(j  ,i)   * dxu(j  ,i  )   * px(k,j  ,i  ) &
-               - beta(j  ,i)   * dxu(j  ,i+1)   * px(k,j  ,i+1)
-
-          do k = 2,nz-1
-             dv(k,j,i) =  Ary(k,j,i) * py(k,j,i) &
-                  - qrt * ( &
-                  + zydx(k,j  ,i) * dzw(k  ,j  ,i) * pz(k  ,j  ,i) &
-                  + zydx(k,j  ,i) * dzw(k+1,j  ,i) * pz(k+1,j  ,i) &
-                  + zydx(k,j-1,i) * dzw(k  ,j-1,i) * pz(k  ,j-1,i) &
-                  + zydx(k,j-1,i) * dzw(k+1,j-1,i) * pz(k+1,j-1,i) )
+    if (trim(grid(1)%relaxation_method).eq.'xz')then
+       do i = 1,nx
+          do j = 1,ny+1 
+             do k = 1,nz
+                dv(k,j,i) = 0.
+             enddo
           enddo
-
-          k = nz
-          dv(k,j,i) = Ary(k,j,i) * py(k,j,i) &
-               - qrt * ( &
-               + zydx(k,j  ,i)       * dzw(k  ,j  ,i) * pz(k  ,j  ,i) &
-               + zydx(k,j  ,i) * two * dzw(k+1,j  ,i) * pz(k+1,j  ,i) * dirichlet_flag &
-               + zydx(k,j-1,i)       * dzw(k  ,j-1,i) * pz(k  ,j-1,i) &
-               + zydx(k,j-1,i) * two * dzw(k+1,j-1,i) * pz(k+1,j-1,i) * dirichlet_flag) 
-
        enddo
-    enddo
+    else
+       do i = 1,nx
+          do j = 1,ny+1
+             k = 1
+             gamma = one - qrt * (  &
+                  (zydx(k,j  ,i)/dx(j  ,i))**2/alpha(k,j  ,i  ) + &
+                  (zydx(k,j-1,i)/dx(j-1,i))**2/alpha(k,j-1,i) )
+             dv(k,j,i) = gamma * Ary(k,j,i) * py(k,j,i) &
+                  - qrt * ( &
+                  + zydx(k,j  ,i) * dzw(k+1,j  ,i) * pz(k+1,j  ,i) &
+                  + zydx(k,j-1,i) * dzw(k+1,j-1,i) * pz(k+1,j-1,i) ) &
+                  - beta(j-1,i)   * dxu(j-1,i  )   * px(k,j-1,i  ) &
+                  - beta(j-1,i)   * dxu(j-1,i+1)   * px(k,j-1,i+1) &
+                  - beta(j  ,i)   * dxu(j  ,i  )   * px(k,j  ,i  ) &
+                  - beta(j  ,i)   * dxu(j  ,i+1)   * px(k,j  ,i+1)
 
+             do k = 2,nz-1
+                dv(k,j,i) =  Ary(k,j,i) * py(k,j,i) &
+                     - qrt * ( &
+                     + zydx(k,j  ,i) * dzw(k  ,j  ,i) * pz(k  ,j  ,i) &
+                     + zydx(k,j  ,i) * dzw(k+1,j  ,i) * pz(k+1,j  ,i) &
+                     + zydx(k,j-1,i) * dzw(k  ,j-1,i) * pz(k  ,j-1,i) &
+                     + zydx(k,j-1,i) * dzw(k+1,j-1,i) * pz(k+1,j-1,i) )
+             enddo
+
+             k = nz
+             dv(k,j,i) = Ary(k,j,i) * py(k,j,i) &
+                  - qrt * ( &
+                  + zydx(k,j  ,i)       * dzw(k  ,j  ,i) * pz(k  ,j  ,i) &
+                  + zydx(k,j  ,i) * two * dzw(k+1,j  ,i) * pz(k+1,j  ,i) * dirichlet_flag &
+                  + zydx(k,j-1,i)       * dzw(k  ,j-1,i) * pz(k  ,j-1,i) &
+                  + zydx(k,j-1,i) * two * dzw(k+1,j-1,i) * pz(k+1,j-1,i) * dirichlet_flag) 
+
+          enddo
+       enddo
+    endif
     !! Correction for W -
 
     dw => grid(1)%dw

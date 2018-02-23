@@ -81,7 +81,7 @@ contains
              zxc => grid(lev)%zxdy
              zyc => grid(lev)%zydx
           endif
-
+          if (trim(grid(lev)%coarsening_method).eq.'xyz') then
           ! Call fine2coarse
           dzc(1:nzc,1:nyc,1:nxc) = 2._rp * eighth * ( &
                dzf(1:nzf  :2,1:nyf  :2,1:nxf  :2) +   &
@@ -114,7 +114,30 @@ contains
                zyf(2:nzf+1:2,2:nyf+1:2,1:nxf  :2) + &
                zyf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) + &
                zyf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
+          elseif  (trim(grid(lev)%coarsening_method).eq.'xz') then
+          ! Call fine2coarse
+          dzc(1:nzc,1:nyc,1:nxc) = 2._rp * qrt * ( &
+               dzf(1:nzf  :2,1:nyf  :2,1:nxf  :2) +   &
+               dzf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) +   &
+               dzf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) +   &
+               dzf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) )
 
+
+          ! Call fine2coarse
+          zxc(1:nzc,1:nyc,1:nxc) = qrt * (       &
+               zxf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
+               zxf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
+               zxf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) + &
+               zxf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) )
+
+
+          ! Call fine2coarse
+          zyc(1:nzc,1:nyc,1:nxc) = qrt * (       &
+               zyf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
+               zyf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
+               zyf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) + &
+               zyf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) )
+          endif
           if (grid(lev)%gather == 1) then
              call gather(lev,dzc,grid(lev)%dz)
              call gather(lev,zxc,grid(lev)%zxdy)

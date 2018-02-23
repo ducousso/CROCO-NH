@@ -42,15 +42,16 @@ contains
        b => grid(lev+1)%b
     endif
 
-    if (grid(lev)%nz == 1) then
+    if (trim(grid(lev+1)%coarsening_method).eq.'xy') then
        call fine2coarse_2D(r,b,nx,ny)
-
-    else
+     
+    elseif (trim(grid(lev+1)%coarsening_method).eq.'xyz') then
        call tic(lev,'fine2coarse_3D')
-
        call fine2coarse_3D(r,b,nx,ny,nz)
-
        call toc(lev,'fine2coarse_3D')
+
+    elseif (trim(grid(lev+1)%coarsening_method).eq.'xz') then
+       call fine2coarse_xz(r,b,nx,ny,nz)
 
     end if
 
@@ -131,6 +132,32 @@ contains
   end subroutine fine2coarse_3D
 
   !------------------------------------------------------------
+  subroutine fine2coarse_xz(x,y,nx,ny,nz)
+    !
+    ! Fine2coarse 'x' from fine level l1 to 'y' on coarse level l2=l1+1
+    real(kind=rp),dimension(:,:,:),pointer,intent(in) :: x
+    real(kind=rp),dimension(:,:,:),pointer,intent(out) :: y
+    integer(kind=ip), intent(in) :: nx, ny, nz
+    ! local
+    integer(kind=ip) :: i,j,k,i2,j2,k2
+    real(kind=rp):: z
+
+    !! No division by 8 because we work in volume integrated form
+    !! See Brink et al., 'Tutorial on Multi Grid'
+    j = 1
+    do i2=1,nx
+       i=2*i2-1
+       do k2=1,nz
+          k=2*k2-1
+          z = x(k  ,j,i)+x(k  ,j,i+1) &
+            + x(k+1,j,i)+x(k+1,j,i+1)
+          y(k2,j,i2) = z
+       enddo
+    enddo
+
+  end subroutine fine2coarse_xz
+
+  !------------------------------------------------------------
   subroutine coarse2fine(lev)
 
     ! interpolate grid(lev+1)%p to grid(lev)%r and add it to grid(lev)%p
@@ -159,13 +186,15 @@ contains
 
     rf => grid(lev)%r
 
-    if (grid(lev)%nz == 1) then
-
+!    if (grid(lev)%nz == 1) then
+    if (trim(grid(lev+1)%coarsening_method).eq.'xy') then
        call coarse2fine_2D_linear(rf,pc,nxc,nyc)
 
-    else
-
+    elseif (trim(grid(lev+1)%coarsening_method).eq.'xyz') then
        call coarse2fine_3D_linear(rf,pc,nxc,nyc,nzc)
+
+    elseif (trim(grid(lev+1)%coarsening_method).eq.'xz') then
+       call coarse2fine_xz_linear(rf,pc,nxc,nyc,nzc)
 
     endif
 
@@ -313,4 +342,66 @@ contains
 
   end subroutine coarse2fine_3D_linear
 
+  !------------------------------------------------------------
+  subroutine coarse2fine_xz_linear(xf,xc,nx,ny,nz)
+
+    real(kind=rp),dimension(:,:,:),pointer,intent(out) :: xf
+    real(kind=rp),dimension(:,:,:),pointer,intent(in)  :: xc
+    integer(kind=ip),intent(in) :: nx, ny, nz
+
+    ! local
+    integer(kind=ip) :: i,j,k,i2,j2,k2,kp
+    real(kind=rp) :: a,b,c,d,e,f,g
+
+    integer(kind=rp) :: dirichlet_flag
+
+    if (surface_neumann) then
+       dirichlet_flag = 0
+    else
+       dirichlet_flag = 1
+    endif
+
+    !
+    ! weights for bilinear in (i,k)
+    a = 9._8 / 16._8
+    b = 3._8 / 16._8
+    c = 1._8 / 16._8
+    !
+    ! weights for linear in (i)
+    d =  3._8 / 4._8
+    e =  1._8 / 4._8
+    ! 
+    j2 = 1
+    j  = 1
+    do i2=1,nx
+       i=2*i2-1
+          ! bottom level
+          k  = 1
+          k2 = 1
+          xf(k  ,j  ,i  ) =  &
+               + d * xc(k2,j2  ,i2) + e * xc(k2,j2  ,i2-1)
+          xf(k  ,j  ,i+1) =  &
+               + d * xc(k2,j2  ,i2) + e * xc(k2,j2  ,i2+1)
+
+          ! interior level
+          do k=2,nz*2-1
+             k2 = ((k+1)/2)
+             kp = k2-(mod(k,2)*2-1)
+             xf(k  ,j  ,i  ) =  &
+                  + a * xc(k2,j2  ,i2) + b * xc(k2,j2  ,i2-1) &
+                  + b * xc(kp,j2  ,i2) + c * xc(kp,j2  ,i2-1)
+             xf(k  ,j  ,i+1) = &
+                  + b * xc(k2,j2  ,i2) + a * xc(k2,j2  ,i2+1) &
+                  + c * xc(kp,j2  ,i2) + b * xc(kp,j2  ,i2+1)
+          enddo
+
+          ! top level
+          k = nz*2
+          xf(k  ,j  ,i  ) =  (1-hlf*dirichlet_flag)  * (     &
+               d * xc(k2,j2  ,i2) + e * xc(k2,j2  ,i2-1)   )
+          xf(k  ,j  ,i+1) =  (1-hlf*dirichlet_flag)  * (     &
+               d * xc(k2,j2  ,i2) + e * xc(k2,j2  ,i2+1)   ) 
+    enddo
+
+  end subroutine coarse2fine_xz_linear
 end module mg_intergrids

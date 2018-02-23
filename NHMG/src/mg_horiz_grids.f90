@@ -61,7 +61,7 @@ contains
              dxuc => grid(lev)%dxu
              dyvc => grid(lev)%dyv
           endif
-
+          if (trim(grid(lev)%coarsening_method).eq.'xyz') then
           dxc(1:nyc,1:nxc) = hlf      * ( & ! only interior points
                dxf(1:nyf  :2,1:nxf  :2) + &
                dxf(2:nyf+1:2,1:nxf  :2) + &
@@ -85,7 +85,23 @@ contains
                dyvf(2:nyf+1:2,1:nxf  :2) + &
                dyvf(1:nyf  :2,2:nxf+1:2) + &
                dyvf(2:nyf+1:2,2:nxf+1:2) )
+          elseif  (trim(grid(lev)%coarsening_method).eq.'xz') then
+          dxc(1:nyc,1:nxc) =  & ! only interior points
+               dxf(1:nyf  :2,1:nxf  :2) + &
+               dxf(1:nyf  :2,2:nxf+1:2)
 
+          dyc(1:nyc,1:nxc) =  &
+               dyf(1:nyf  :2,1:nxf  :2) + &
+               dyf(1:nyf  :2,2:nxf+1:2)
+
+          dxuc(1:nyc,1:nxc) = & ! only interior points
+               dxuf(1:nyf  :2,1:nxf  :2) + &
+               dxuf(1:nyf  :2,2:nxf+1:2) 
+
+          dyvc(1:nyc,1:nxc) = &
+               dyvf(1:nyf  :2,1:nxf  :2) + &
+               dyvf(1:nyf  :2,2:nxf+1:2) 
+          endif
           if (grid(lev)%gather == 1) then
              call gather(lev,dxc,grid(lev)%dx)
              call gather(lev,dyc,grid(lev)%dy)

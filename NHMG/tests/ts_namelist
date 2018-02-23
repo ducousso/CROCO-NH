@@ -1,7 +1,7 @@
 &tsparam
 	nit     =    1     , ! Number of iteration of the same test
-    nxg     =   64     , ! Total point number in x
-	nyg     =   64     , ! Total point number in y
+        nxg     =   64     , ! Total point number in x
+	nyg     =   32     , ! Total point number in y
 	nzg     =   64     , ! Total point number in z
 	npxg    =    1     , ! Number of precessus in x
 	npyg    =    1     , ! Number of precessus in y

@@ -77,6 +77,9 @@ module mg_grids
      real(kind=rp),dimension(:,:,:)  ,pointer :: dv => null()
      real(kind=rp),dimension(:,:,:)  ,pointer :: dw => null()
 
+     character*3 :: coarsening_method
+     character*3 :: relaxation_method
+     
   end type grid_type
 
   !-
@@ -503,11 +506,11 @@ contains
     nyg = npyg * ny ! Global domain dimension in y
     nzg = nz        ! Global domain dimension in z
 
-    nhmin = 6 ! Smallest horizontal dimension of the coarsest grid
+    nhmin = 3 ! Smallest horizontal dimension of the coarsest grid
 
     nzmin = 3 ! Smallest vertical dimension of the coarsest grid
 
-    nhg = min(nxg,nyg) ! smallest horizontal dimension of the finest grid
+    nhg = max(nxg,nyg) ! smallest horizontal dimension of the finest grid
 
     ! nhg = nhmin * 2^(nl1-1) and therefore:
 
@@ -525,6 +528,7 @@ contains
     integer(kind=ip) :: nx, ny, nz
     integer(kind=ip) :: npx, npy
     integer(kind=ip) :: lev, incx, incy
+    character*3      :: coars, relax
 
     nx = grid(1)%nx
     ny = grid(1)%ny
@@ -541,15 +545,29 @@ contains
     grid(lev)%ngy = 1
 
     do lev = 2, nlevs
-
-       if (nz.eq.1) then ! 2D coarsening
-          nx = nx/2
-          ny = ny/2
-       else              ! 3D coarsening
-          nx = nx/2
-          ny = ny/2
-          nz = nz/2
+       coars=''
+       if (mod(nx, 2).eq.0) then
+          nx = nx / 2
+          coars = trim(coars)//'x'
        endif
+       if (mod(ny, 2).eq.0) then
+          ny = ny / 2
+          coars = trim(coars)//'y'
+       endif
+       if (mod(nz, 2).eq.0) then
+          nz = nz / 2
+          coars = trim(coars)//'z'
+       endif
+       grid(lev)%coarsening_method = coars
+!       write(*,*)lev, grid(lev)%coarsening_method, grid(lev)%relaxation_method
+!       if (nz.eq.1) then ! 2D coarsening
+!          nx = nx/2
+!          ny = ny/2
+!       else              ! 3D coarsening
+!          nx = nx/2
+!          ny = ny/2
+!          nz = nz/2
+!       endif
 
        ! determine if gathering is needed
        !- assumes squarish nxg nyg dimensions !
@@ -582,6 +600,20 @@ contains
        grid(lev)%npy  = npy
        grid(lev)%incx = incx
        grid(lev)%incy = incy
+
+    enddo
+    do lev=1, nlevs
+       relax=''
+       if (grid(lev)%nx.gt.1) then
+          relax = trim(relax)//'x'
+       endif
+       if (grid(lev)%ny.gt.1) then
+          relax = trim(relax)//'y'
+       endif
+       if (grid(lev)%nz.gt.1) then
+          relax = trim(relax)//'z'
+       endif
+       grid(lev)%relaxation_method = relax
 
     enddo
 
@@ -779,15 +811,21 @@ contains
           if (grid(lev)%gather.eq.0)then
              write(*,100)"    lev=",lev,": ", &
                   grid(lev)%nx,' x',grid(lev)%ny,' x',grid(lev)%nz, &
-                  " on ",grid(lev)%npx,' x',grid(lev)%npy," procs"
+                  " on ",grid(lev)%npx,' x',grid(lev)%npy," procs", &
+                  " coars=", grid(lev)%coarsening_method, &
+                  " relax=", grid(lev)%relaxation_method
           else
-             write(*,100)"    lev=",lev,": ", &
+             write(*,110)"    lev=",lev,": ", &
                   grid(lev)%nx,' x',grid(lev)%ny,' x',grid(lev)%nz, &
-                  " on ",grid(lev)%npx,' x',grid(lev)%npy," procs / gather"
+                  " on ",grid(lev)%npx,' x',grid(lev)%npy," procs", &
+                  " coars=", grid(lev)%coarsening_method, &
+                  " relax=", grid(lev)%relaxation_method, &
+                  "/ gather"
           endif
        enddo
     endif
-100 format (A,I2,A,I3,A,I3,A,I3,A,I3,A,I3,A)
+100 format (A,I2,A,I3,A,I3,A,I3,A,I3,A,I3,A,A,A3,A,A3)
+110 format (A,I2,A,I3,A,I3,A,I3,A,I3,A,I3,A,A,A3,A,A3,A)
 
   end subroutine print_grids
 
