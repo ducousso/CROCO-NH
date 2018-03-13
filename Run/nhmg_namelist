@@ -2,6 +2,7 @@
 &nhparam
        solver_prec    = 1.d-8,         !- Solver precision
        solver_maxiter = 10,            !- maximum of solver iterations
+       solver_cycle   = 'F',           !- cycle multi grid type 'F' or 'V'
        nsmall         = 8,             !- Smallest size for a local domain; triggers a gather
        ns_coarsest    = 40,            !-
        ns_pre         = 3,             !-

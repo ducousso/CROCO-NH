@@ -62,7 +62,11 @@ contains
 
     do while ((nite < solver_maxiter).and.(res0 > solver_prec))
 
-       call Fcycle()
+       if (trim(solver_cycle) == 'V') then
+          call Vcycle(1)
+       else
+          call Fcycle()
+       endif
 
        call compute_residual(1,rnorm)
        rnorm = rnorm/bnorm

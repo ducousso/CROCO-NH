@@ -21,6 +21,9 @@ module mg_namelist
   !                                            !- 'Red-Black'   , 'RB',
   !                                            !- 'Four-Color'  , 'FC'
 
+  character(len=1) :: solver_cycle = 'F'       !- 'F' or 'f' or a letter not referenced -> Fcycle Multi-Grid
+  !                                            !- 'V' or 'v'-> Vcycle Multi-Grid
+
   logical           :: netcdf_output = .false. !- .false. or .true.
 
   integer(kind=ip)  :: output_freq = 100000000 ! Number of iterations between output of statistics
@@ -33,6 +36,7 @@ module mg_namelist
   namelist/nhparam/    &
        solver_prec   , &
        solver_maxiter, &
+       solver_cycle  , &
        nsmall        , &
        ns_coarsest   , &
        ns_pre        , &
@@ -84,6 +88,9 @@ contains
        rewind(unit=lun_nml)
        read(unit=lun_nml, nml=nhparam)
 
+       if (trim(solver_cycle) == 'f') solver_cycle='F'
+       if (trim(solver_cycle) == 'v') solver_cycle='V'
+
     endif
 
     !- Print parameters or not !
@@ -105,6 +112,7 @@ contains
           write(*,*)'  Non hydrostatic parameters:'
           write(*,*)'  - solver_prec   : ', solver_prec
           write(*,*)'  - solver_maxiter: ', solver_maxiter
+          write(*,*)'  - solver_cycle  : ', trim(solver_cycle)
           write(*,*)'  - nsmall        : ', nsmall 
           write(*,*)'  - ns_coarsest   : ', ns_coarsest
           write(*,*)'  - ns_pre        : ', ns_pre
