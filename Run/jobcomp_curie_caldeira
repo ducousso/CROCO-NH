@@ -282,7 +282,7 @@ if $($CPP1 testkeys.F | grep -i -q nhmgisdefined) ; then
     if [[ -f ${NHMG_SRCDIR}/config.log ]] ; then
 
         # Check if exit = 0 in the CROCO's NHMG config.log file ?
-        oexit=`grep -e 'exit' ${NHMG_SRCDIR}/config.log | grep -Po 'exit \K[^ ]+'`
+        oexit=`grep -e 'configure: exit' ${NHMG_SRCDIR}/config.log | grep -Po 'exit \K[^ ]+'`
         # if oexit='0' no configuration is needed except if options are different
         if [[ ${oexit} == '0' ]] ; then   
            CONFIGNHMG=FALSE
