@@ -18,6 +18,7 @@ program mg_testcuc
   real(kind=rp), dimension(:,:), pointer :: zeta, h
   real(kind=rp), dimension(:,:), pointer :: dxu, dyv
   real(kind=rp), dimension(:,:,:), pointer :: z_r,z_w
+  real(kind=rp), dimension(:,:,:), pointer :: dzdxi,dzdeta
   real(kind=rp), dimension(:,:,:), pointer :: Hz
   real(kind=rp), dimension(:,:,:), pointer :: u,v,w
 
@@ -38,6 +39,8 @@ program mg_testcuc
   integer(kind=ip)  :: lun_nml = 4 ! Logical Unit Number
   logical :: nml_exist=.false.
 
+  integer(kind=ip)  :: is, padd_X, padd_E
+  integer(kind=ip)  :: i, j, k
   namelist/cucparam/ &
        nit        , &
        nxg        , &
@@ -134,6 +137,8 @@ program mg_testcuc
   allocate(   z_r(0:nx+1,0:ny+1,1:nz))
   allocate(   z_w(0:nx+1,0:ny+1,1:nz+1))
   allocate(    Hz(0:nx+1,0:ny+1,1:nz))
+  allocate( dzdxi(1-is:nx+is,1-is:ny+is,1:nz))
+  allocate(dzdeta(1-is:nx+is,1-is:ny+is,1:nz))
 
   call setup_cuc(       &
        nx,ny,npxg,npyg, &
@@ -144,8 +149,10 @@ program mg_testcuc
   call setup_zr_zw_hz(hc,theta_b,theta_s,zeta,h,z_r,z_w,Hz,'new_s_coord')
   !- linear vertical grid -!
   !  call setup_zr_zw_hz(h,z_r,z_w,Hz)
-
-  call nhmg_matrices(nx,ny,nz,z_r,Hz,dx,dy)
+  padd_X = 0
+  padd_E = 0
+  call nhmg_matrices(nx,ny,nz,is,padd_X,padd_E, &
+       dzdxi, dzdeta, Hz, dx, dy)
 
   !-------------------------------------!
   !- U,V,W initialisation (model vars) -!
@@ -171,9 +178,10 @@ program mg_testcuc
 
      !----------------------!
      !- Call nhmg solver -!
-     !----------------------!
-     if (rank == 0) write(*,*)'Call nhmg solver'
-     call nhmg_solve(u,v,w,z_w,Hz,.true.)
+     !--------------------!
+     if (rank == 0) write(*,*)'Call nhmg solver',it
+
+     call nhmg_solve(nx, ny, nz, is, padd_X, padd_E, u, v, w)
 
      if (netcdf_output) then
         call write_netcdf(u,vname='uc',netcdf_file_name='uc.nc',rank=rank,iter=it)

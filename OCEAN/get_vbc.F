@@ -452,12 +452,17 @@
       else
         do j=Jstr,Jend
           do i=Istr,Iend
-            bustr(i,j)=rdrg*u(i,j,1,nrhs)
+            ! for areas shallower than 15m
+            ! the linear drag is multiplied
+            ! by a factor (15/h)
+            cff  = max(1., 30./(h(i,j)+h(i-1,j)))
+            bustr(i,j)=cff*rdrg*u(i,j,1,nrhs)
           enddo
         enddo
         do j=Jstr,Jend
           do i=Istr,Iend
-            bvstr(i,j)=rdrg*v(i,j,1,nrhs)
+            cff  = max(1., 30./(h(i,j)+h(i,j-1)))
+            bvstr(i,j)=cff*rdrg*v(i,j,1,nrhs)
           enddo
         enddo
       endif

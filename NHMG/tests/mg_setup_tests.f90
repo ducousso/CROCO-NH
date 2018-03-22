@@ -147,7 +147,10 @@ contains
           x = (real(i+(pi*nx),kind=rp)-0.5_rp) * dx(i,j)
           y = (real(j+(pj*ny),kind=rp)-0.5_rp) * dy(i,j)
           zeta(i,j) = 0._rp
-          h(i,j) = Htot * (1._rp - 0.5_rp * exp(-(x-x0)**2._rp/(Lx/5._rp)**2._rp -(y-y0)**2._rp/(Ly/5._rp)**2._rp))
+!          h(i,j) = Htot * (1._rp - 0._rp * exp(-(x-x0)**2._rp/(Lx/5._rp)**2._rp -(y-y0)**2._rp/(Ly/5._rp)**2._rp))
+
+          ! ridge along-y invariant
+          h(i,j) = Htot * (1._rp - 0.3_rp * exp(-(x-x0)**2._rp/(Lx/5._rp)**2._rp ))
           ! h(i,j) = Htot
        enddo
     enddo

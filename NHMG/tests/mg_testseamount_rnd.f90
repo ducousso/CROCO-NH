@@ -18,6 +18,7 @@ program mg_testseamount
   real(kind=rp), dimension(:,:), pointer :: dxu, dyv
   real(kind=rp), dimension(:,:), pointer :: zeta, h
   real(kind=rp), dimension(:,:,:), pointer :: z_r,z_w
+  real(kind=rp), dimension(:,:,:), pointer :: dzdxi,dzdeta
   real(kind=rp), dimension(:,:,:), pointer :: Hz
 
   real(kind=rp), dimension(:,:,:), allocatable, target :: u,v,w
@@ -43,7 +44,8 @@ program mg_testseamount
   integer(kind=ip)  :: lun_nml = 4
   logical :: nml_exist=.false.
 
-  integer(kind=ip)  :: is
+  integer(kind=ip)  :: is, padd_X, padd_E
+  integer(kind=ip)  :: i, j, k
 
   namelist/tsparam/ &
        nit        , &
@@ -138,6 +140,8 @@ program mg_testseamount
   allocate(   z_r(1-is:nx+is,1-is:ny+is,1:nz))
   allocate(   z_w(1-is:nx+is,1-is:ny+is,1:nz+1))
   allocate(   Hz (1-is:nx+is,1-is:ny+is,1:nz))
+  allocate( dzdxi(1-is:nx+is,1-is:ny+is,1:nz))
+  allocate(dzdeta(1-is:nx+is,1-is:ny+is,1:nz))
 
   call setup_seamount(  &
        nx,ny,npxg,npyg, &
@@ -147,10 +151,23 @@ program mg_testseamount
 
   !- stretching vertical grid -!   
   call setup_zr_zw_hz(hc,theta_b,theta_s,zeta,h,z_r,z_w,Hz,'new_s_coord')
+
+  do k = 1, nz
+     do j = 0, ny+1
+        do i = 0, nx+1
+           dzdxi (i,j,k)=0.5*(z_r(i+1,j,k)-z_r(i-1,j,k))/dx(i,j)  
+           dzdeta(i,j,k)=0.5*(z_r(i,j+1,k)-z_r(i,j-1,k))/dy(i,j) 
+        enddo
+     enddo
+  enddo
+
+
   !- linear vertical grid -!
   !  call setup_zr_zw_hz(h,z_r,z_w,Hz)
-
-  call nhmg_matrices(nx,ny,nz,z_r(0:nx+1,0:ny+1,1:nz),Hz(0:nx+1,0:ny+1,1:nz),dx,dy)
+  padd_X = 0
+  padd_E = 0
+  call nhmg_matrices(nx,ny,nz,is,padd_X,padd_E, &
+       dzdxi, dzdeta, Hz, dx, dy)
 
   !-------------------------------------!
   !- U,V,W initialisation (model vars) -!
@@ -221,7 +238,7 @@ program mg_testseamount
      !- Call nhmg solver -!
      !--------------------!
      grid(1)%p = zero ! NG because it is commented in nhmg_solve
-     call nhmg_solve(u,v,w,z_w,Hz,.true.)
+     call nhmg_solve(nx, ny, nz, is, padd_X, padd_E, u, v, w)
 
      if (netcdf_output) then
         call write_netcdf(u,vname='uc',netcdf_file_name='uc.nc',rank=rank,iter=it)
