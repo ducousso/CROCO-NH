@@ -1,16 +1,16 @@
 &tsparam
 	nit     =    1     , ! Number of iteration of the same test
         nxg     =   64     , ! Total point number in x
-	nyg     =   32     , ! Total point number in y
+	nyg     =   64    , ! Total point number in y
 	nzg     =   64     , ! Total point number in z
-	npxg    =    1     , ! Number of precessus in x
-	npyg    =    1     , ! Number of precessus in y
-	Lx      =   1.d4   , ! Domain length in x [meter]
-	Ly      =   1.d4   , ! Domain length in y [meter]
-	Htot    =   4.d3   , ! Depth [meter]
-	hc      =   4.d3   , ! 
-	theta_b =   0.     , !
-	theta_s =   0.     , !
+	npxg    =    1     , ! Number of processus in x
+	npyg    =    1     , ! Number of processus in y
+	Lx      =   6.4d3   , ! Domain length in x [meter]
+	Ly      =   6.4d3   , ! Domain length in y [meter]
+	Htot    =   6.4d3   , ! Depth [meter]
+	hc      =   6.4d3   , ! 
+	theta_b =   6.     , !
+	theta_s =   6.     , !
 /
 
 ! Another example runing at www.idris.fr

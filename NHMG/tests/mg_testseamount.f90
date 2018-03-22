@@ -41,7 +41,7 @@ program mg_testseamount
   logical :: nml_exist=.false.
 
   integer(kind=ip)  :: is, padd_X, padd_E
-  integer(kind=ip)  :: i, j, k
+  integer(kind=ip)  :: i, j, k, kt
   integer(kind=ip)  :: iproc, jproc ! subdomain coordinates (rank=0 is i0,j0=0,0)
 
   namelist/tsparam/ &
@@ -111,8 +111,9 @@ program mg_testseamount
 
   iproc = mod(myrank, npxg)
   jproc = myrank/ npxg
+  call MPI_Barrier( MPI_COMM_WORLD ,ierr)
   write(*,*) "I am rank ",myrank," my location is ",iproc,jproc
-
+  call MPI_Barrier( MPI_COMM_WORLD ,ierr)
   !-------------------!
   !- Initialise nhmg -!
   !-------------------!
@@ -141,6 +142,7 @@ program mg_testseamount
   allocate(   z_r(1-is:nx+is,1-is:ny+is,1:nz))
   allocate(   z_w(1-is:nx+is,1-is:ny+is,1:nz+1))
   allocate(   Hz (1-is:nx+is,1-is:ny+is,1:nz))
+  allocate(   z_r(1-is:nx+is,1-is:ny+is,1:nz))
   allocate( dzdxi(1-is:nx+is,1-is:ny+is,1:nz))
   allocate(dzdeta(1-is:nx+is,1-is:ny+is,1:nz))
 
@@ -152,6 +154,7 @@ program mg_testseamount
 
   !- stretching vertical grid -!   
   call setup_zr_zw_hz(hc,theta_b,theta_s,zeta,h,z_r,z_w,Hz,'new_s_coord')
+!  call setup_zr_zw_hz(h,z_r,z_w,Hz)
 
   do k = 1, nz
      do j = 0, ny+1
@@ -182,7 +185,8 @@ program mg_testseamount
                dzdeta(nx+1,j,k) = 0.
             enddo
          enddo
-       endif
+      endif
+      if (trim(grid(2)%coarsening_method).eq.'xyz') then
       if (jproc.eq.0) then
          do k = 1, nz
             do i = 0,nx+1
@@ -203,7 +207,7 @@ program mg_testseamount
             enddo
          enddo
        endif
-
+    endif
 
 
   !- linear vertical grid -!
@@ -211,7 +215,7 @@ program mg_testseamount
   padd_X = 0
   padd_E = 0
   call nhmg_matrices(nx,ny,nz,is,padd_X,padd_E, &
-       dzdxi, dzdeta, Hz, dx, dy)
+       dzdxi, dzdeta, Hz, z_r, dx, dy)
 
   !-------------------------------------!
   !- U,V,W initialisation (model vars) -!
@@ -231,21 +235,32 @@ program mg_testseamount
      v(:,:,:)    =  0._8
      w(:,:,0)    =  0._8
      w(:,:,1:nz) = -1._8
-
+     
+     
      if (netcdf_output) then
         call write_netcdf(u,vname='u',netcdf_file_name='u.nc',rank=rank,iter=it)
         call write_netcdf(v,vname='v',netcdf_file_name='v.nc',rank=rank,iter=it)
         call write_netcdf(w,vname='w',netcdf_file_name='w.nc',rank=rank,iter=it)
      endif
 
+!!$     do k=1:nz/2
+!!$        grid(2)%p(k,:,:) = k
+!!$     enddo
+!!$     call coarse2fine(1)
+     
+     
      grid(1)%p=0._rp
+!     call random_number(grid(1)%p)
+!     grid(1)%p(nz/2,1,nx/2) = 1.
 
      !--------------------!
      !- Call nhmg solver -!
      !--------------------!
-     if (rank == 0) write(*,*)'Call nhmg solver',it
+     if (rank == 0) write(*,*)'Call nhmg solver',it, nlevs
 
-     call nhmg_solve(nx, ny, nz, is, padd_X, padd_E, u, v, w)
+     do kt = 1, 1
+        call nhmg_solve(nx, ny, nz, is, padd_X, padd_E, u, v, w)
+     enddo
 
      if (netcdf_output) then
         call write_netcdf(u,vname='uc',netcdf_file_name='uc.nc',rank=rank,iter=it)
@@ -258,7 +273,7 @@ program mg_testseamount
   !---------------------!
   !- Deallocate memory -!
   !---------------------!
-  if (rank == 0) write(*,*)' Clean memory before to finish the program.'
+
   call nhmg_clean()
 
   !----------------------!
