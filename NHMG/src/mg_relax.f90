@@ -37,7 +37,7 @@ contains
     integer(kind=ip), intent(in):: lev
     integer(kind=ip), intent(in):: nsweeps
 
-    real(kind=rp),dimension(:,:,:), pointer:: p,q
+    real(kind=rp),dimension(:,:,:), pointer:: p
     real(kind=rp),dimension(:,:,:), pointer:: b
     real(kind=rp),dimension(:,:,:,:), pointer:: cA
 
@@ -46,7 +46,6 @@ contains
     call tic(lev,'relax')
 
     p  => grid(lev)%p
-    q  => grid(lev)%q
     b  => grid(lev)%b
     cA => grid(lev)%cA
 
