@@ -9,6 +9,27 @@ module mg_relax
 
   implicit none
 
+  ! this module provides
+  !
+  ! - relax(lev, nsweeps)
+  ! - compute_residual(lev,res)  => mg(lev)%r + computes the its L2-norm
+  !
+  ! which are wrappers for
+  !
+  ! - relax_xyz_GS 
+  ! - relax_xyz_RB <= recommended in 3D
+  ! - relax_xyz_FC
+  ! - relax_xyz_IRB
+  !
+  ! - relax_xz_GS <= recommended in 2D xz
+  ! - relax_xz_RB
+  !
+  ! - compute_residual_xyz
+  ! - compute_residual_xz
+  !
+  ! 
+  
+  
 contains
 
   !----------------------------------------
@@ -16,125 +37,102 @@ contains
     integer(kind=ip), intent(in):: lev
     integer(kind=ip), intent(in):: nsweeps
 
-    real(kind=rp),dimension(:,:,:), pointer:: p
+    real(kind=rp),dimension(:,:,:), pointer:: p,q
     real(kind=rp),dimension(:,:,:), pointer:: b
     real(kind=rp),dimension(:,:,:,:), pointer:: cA
 
-    integer(kind=ip) :: nx, ny, nz, nd
+    integer(kind=ip) :: nx, ny, nz
+
+    call tic(lev,'relax')
 
     p  => grid(lev)%p
+    q  => grid(lev)%q
     b  => grid(lev)%b
     cA => grid(lev)%cA
 
     nx = grid(lev)%nx
     ny = grid(lev)%ny
     nz = grid(lev)%nz
-    nd = size(cA(:,:,:,:),dim=1)
 
-!    if (grid(lev)%nz == 1) then
-    if (trim(grid(lev)%relaxation_method).eq.'xy') then
-!      Be aware that the 2D mg is not tested yet
-!      The definition of the matrix in 2D has not been implemented yet
-       call relax_2D_5(lev,p,b,cA,nsweeps,nx,ny)
-
-    elseif (trim(grid(lev)%relaxation_method).eq.'xyz') then
+    if (trim(grid(lev)%relaxation_method).eq.'xyz') then
        select case(trim(relax_method))
        case('Gauss-Seidel','GS')
-          call relax_3D_8_GS(lev,p,b,cA,nsweeps,nx,ny,nz)
+          call relax_xyz_GS(lev,p,b,cA,nsweeps,nx,ny,nz)
 
        case('Red-Black','RB')
-          call relax_3D_8_RB(lev,p,b,cA,nsweeps,nx,ny,nz)
+          call relax_xyz_RB(lev,p,b,cA,nsweeps,nx,ny,nz)
 
        case('Four-Color','FC')
-          call relax_3D_8_FC(lev,p,b,cA,nsweeps,nx,ny,nz)
+          call relax_xyz_FC(lev,p,b,cA,nsweeps,nx,ny,nz)
 
+       case('isoRB','IRB')
+          call relax_xyz_IRB(lev,p,b,cA,nsweeps,nx,ny,nz)
        end select
 
+       
     elseif (trim(grid(lev)%relaxation_method).eq.'xz') then
-!       select case(trim(relax_method))
-!       case('Gauss-Seidel','GS')
-          call relax_xz_8_GS(lev,p,b,cA,nsweeps,nx,ny,nz)
+       select case(trim(relax_method))
+       case('Gauss-Seidel','GS')
+          call relax_xz_GS(lev,p,b,cA,nsweeps,nx,ny,nz)
 
-!       case('Red-Black','RB')
-!pointless          call relax_xz_8_RB(lev,p,b,cA,nsweeps,nx,ny,nz)
-
-!       case('Four-Color','FC')
-!todo          call relax_xz_8_FC(lev,p,b,cA,nsweeps,nx,ny,nz)
-
-!       end select
+       case('Red-Black','RB')
+          call relax_xz_RB(lev,p,b,cA,nsweeps,nx,ny,nz)
+       end select
 
     end if
 
+    call toc(lev,'relax')
+    
   end subroutine relax
 
   !----------------------------------------
-  subroutine relax_2D_5(lev,p,b,cA,nsweeps,nx,ny)
+  subroutine compute_residual(lev,res)
+    integer(kind=ip), intent(in) :: lev
+    real(kind=rp)   , intent(out):: res
 
-    integer(kind=ip)                         , intent(in)   :: lev
-    real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
-    real(kind=rp),dimension(:,:,:)  , pointer, intent(in)   :: b
-    real(kind=rp),dimension(:,:,:,:), pointer, intent(in)   :: cA
-    integer(kind=ip)                        , intent(in)   :: nsweeps
-    integer(kind=ip)                        , intent(in)   :: nx, ny
+    real(kind=rp),dimension(:,:,:)  , pointer:: p
+    real(kind=rp),dimension(:,:,:)  , pointer:: b
+    real(kind=rp),dimension(:,:,:)  , pointer:: r
+    real(kind=rp),dimension(:,:,:,:), pointer:: cA
 
-    integer(kind=ip)           :: i,j,k, it,rb
-    integer(kind=ip)            :: ib,ie,jb,je,rbb,rbe,rbi
-    real(kind=rp) :: z,gamma,g1,g2
-    logical :: red_black=.true.
+    integer(kind=ip) :: nx, ny, nz
+    real(kind=rp) ::resloc
 
-    gamma = one
-    g1 = gamma
-    g2 = one - gamma
+    call tic(lev,'residual')
+    
+    p  => grid(lev)%p
+    b  => grid(lev)%b
+    r  => grid(lev)%r
+    cA => grid(lev)%cA
 
-    k=1
+    nx = grid(lev)%nx
+    ny = grid(lev)%ny
+    nz = grid(lev)%nz
 
-    do it = 1,nsweeps
-       if (mod(it,1) == 0) then
-          ib = 1 
-          ie = nx
-          jb = 1
-          je = ny
-       else
-          ib = 0
-          ie = nx+1
-          jb = 0
-          je = ny+1
-       endif
+    if (trim(grid(lev)%relaxation_method).eq.'xyz') then
+       call compute_residual_xyz(res,p,b,r,cA,nx,ny,nz)
 
-       if (red_black) then
-          rbb = 1
-          rbe = 2
-          rbi = 2
-       else
-          rbb = 0
-          rbe = 0
-          rbi = 1
-       endif
+    elseif (trim(grid(lev)%relaxation_method).eq.'xz') then
+       call compute_residual_xz(res,p,b,r,cA,nx,ny,nz)
+      
+    end if
 
-       do rb = rbb,rbe
-          do i = ib,ie
-             do j = jb+mod(i+rb,rbi),je,rbi
+    call fill_halo(lev,r)
 
-                z =    b(k,j,i)                                           &
-                     - cA(2,k,j,i)*p(k,j-1,i  ) - cA(2,k,j+1,i  )*p(k,j+1,  i)&
-                     - cA(3,k,j,i)*p(k,j  ,i-1) - cA(3,k,j  ,i+1)*p(k,j  ,i+1)&
-                     - cA(4,k,j,i)*p(k,j-1,i-1) - cA(4,k,j+1,i+1)*p(k,j+1,i+1)&
-                     - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1)
+    if (lev >-1) then
+       resloc=res
+       call global_sum(lev,resloc,res)
+       res = sqrt(res)
+    else
+       res = -999._rp
+    endif
 
-                p(k,j,i) = z / cA(1,k,j,i)
+    call toc(lev,'residual')
 
-             enddo
-          enddo
-       enddo
-
-       call fill_halo(lev,p)
-
-    enddo
-
-  end subroutine relax_2D_5
+  end subroutine compute_residual
 
  !----------------------------------------
-  subroutine relax_3D_8_GS(lev,p,b,cA,nsweeps,nx,ny,nz)
+  subroutine relax_xyz_GS(lev,p,b,cA,nsweeps,nx,ny,nz)
 
     integer(kind=ip)                        , intent(in)   :: lev
     integer(kind=ip)                        , intent(in)   :: nsweeps
@@ -146,58 +144,20 @@ contains
 
     integer(kind=ip)            :: i,j,it
 
-    call tic(lev,'relax_3D_8_GS')
-
     ! add a loop on smoothing
     do it = 1,nsweeps
-
        do i = 1, nx
           do j = 1, ny
-
-             call relax_3D_8_heart(p,b,cA,i,j,nz)
-
-          enddo ! j
-       enddo    ! i
-
-       call fill_halo(lev,p)
-
-    enddo  !it
-
-    call toc(lev,'relax_3D_8_GS')
-
-  end subroutine relax_3D_8_GS
-
- !----------------------------------------
-  subroutine relax_xz_8_GS(lev,p,b,cA,nsweeps,nx,ny,nz)
-
-    integer(kind=ip)                        , intent(in)   :: lev
-    integer(kind=ip)                        , intent(in)   :: nsweeps
-    integer(kind=ip)                        , intent(in)   :: nx, ny, nz
-
-    real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
-    real(kind=rp),dimension(:,:,:)  , pointer, intent(in)   :: b
-    real(kind=rp),dimension(:,:,:,:), pointer, intent(in)   :: cA
-
-    integer(kind=ip)            :: i,j,it
-
-    call tic(lev,'relax_xz_8_GS')
-
-    ! add a loop on smoothing
-    j = 1
-    do it = 1,nsweeps
-       do i = 1, nx
-          call relax_xz_8_heart(p,b,cA,i,j,nz)
-!          call relax_xz_basic(p,b,cA,i,j,nz)
+             call linerelax_xyz(p,b,cA,i,j,nz)
+          enddo
        enddo
        call fill_halo(lev,p)
     enddo
 
-    call toc(lev,'relax_xz_8_GS')
-
-  end subroutine relax_xz_8_GS
+  end subroutine relax_xyz_GS
 
  !----------------------------------------
-  subroutine relax_3D_8_RB(lev,p,b,cA,nsweeps,nx,ny,nz)
+  subroutine relax_xyz_RB(lev,p,b,cA,nsweeps,nx,ny,nz)
 ! This is the recommended relaxation method for production
 
     integer(kind=ip)                        , intent(in)   :: lev
@@ -211,27 +171,21 @@ contains
     integer(kind=ip) :: i,j,it
     integer(kind=ip) :: rb
 
-    call tic(lev,'relax_3D_8_RB')
-
     do it = 1,nsweeps
        do rb = 1, 2 ! Red black loop
           do i = 1, nx
              do j = 1+mod(i+rb,2),ny,2
-
-                call relax_3D_8_heart(p,b,cA,i,j,nz)
-
+                call linerelax_xyz(p,b,cA,i,j,nz)
              enddo
           enddo
           call fill_halo(lev,p)
        enddo
     enddo
 
-    call toc(lev,'relax_3D_8_RB')
-
-  end subroutine relax_3D_8_RB
+  end subroutine relax_xyz_RB
 
  !----------------------------------------
-  subroutine relax_3D_8_FC(lev,p,b,cA,nsweeps,nx,ny,nz)
+  subroutine relax_xyz_FC(lev,p,b,cA,nsweeps,nx,ny,nz)
 ! This is the recommended relaxation method for MPI debugging with topography
 
     integer(kind=ip)                        , intent(in)   :: lev
@@ -245,16 +199,12 @@ contains
     integer(kind=ip)            :: i,j,it
     integer(kind=ip)            :: fc1,fc2
 
-    call tic(lev,'relax_3D_8_FC')
-
     do it = 1,nsweeps
        do fc1 = 1, 2
           do fc2 = 1, 2
              do i = 1 + mod(fc1-1,2), nx, 2
                 do j = 1 + mod(fc2-1,2), ny, 2
-
-                   call relax_3D_8_heart(p,b,cA,i,j,nz)
-
+                   call linerelax_xyz(p,b,cA,i,j,nz)
                 enddo
              enddo
              call fill_halo(lev,p)
@@ -262,12 +212,174 @@ contains
        enddo
     enddo
 
-    call toc(lev,'relax_3D_8_FC')
+  end subroutine relax_xyz_FC
 
-  end subroutine relax_3D_8_FC
+ !----------------------------------------
+  subroutine relax_xyz_IRB(lev,p,b,cA,nsweeps,nx,ny,nz)
+
+    integer(kind=ip)                        , intent(in)   :: lev
+    integer(kind=ip)                        , intent(in)   :: nsweeps
+    integer(kind=ip)                        , intent(in)   :: nx, ny, nz
+
+    real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
+    real(kind=rp),dimension(:,:,:)  , pointer, intent(in)   :: b
+    real(kind=rp),dimension(:,:,:,:), pointer, intent(in)   :: cA
+
+    integer(kind=ip) :: i,j,k,it
+    integer(kind=ip) :: rb
+
+    real(kind=rp) :: rhs, omega
+
+    omega = 1.1
+    
+    do it = 1,nsweeps
+!       do rb = 1, 2 ! Red black loop
+          do i = 1, nx
+             do j =  1,ny!+mod(i+rb,2),ny,2
+                do k = 1, nz
+                   call comp_rhs_xyz(rhs,b,p,cA,nz,k,j,i)
+                   p(k,j,i) = p(k,j,i)*(1.-omega) + omega*rhs/ca(1,k,j,i)                   
+                enddo
+             enddo
+          enddo
+          call fill_halo(lev,p)
+!       enddo
+    enddo
+
+  end subroutine relax_xyz_IRB
+  
+ !----------------------------------------
+  subroutine comp_rhs_xyz(rhs,b,p,cA,nz,k,j,i)
+    real(kind=rp),                             intent(out):: rhs
+    real(kind=rp),dimension(:,:,:)  , pointer, intent(in) :: b,p
+    real(kind=rp),dimension(:,:,:,:), pointer, intent(in) :: cA
+    integer(kind=ip),                          intent(in) :: nz,k,j,i
+
+    if(k.eq.1)then !lower level
+       rhs  = b(k,j,i)                                             &
+         - cA(2,k+1,j,i)*p(k+1,j,i)                                &
+         - cA(3,k,j,i)*p(k+1,j-1,i)                                &
+         - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
+         - cA(5,k+1,j+1,i)*p(k+1,j+1,i)                            &
+         - cA(6,k,j,i)*p(k+1,j,i-1)                                &
+         - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
+         - cA(8,k+1,j,i+1)*p(k+1,j,i+1)                            &
+!!  Special cross terms 
+         - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1) &
+         - cA(8,k,j,i)*p(k,j-1,i-1) - cA(8,k,j+1,i+1)*p(k,j+1,i+1)
+
+    elseif(k.eq.nz)then !upper level
+       rhs = b(k,j,i)                                                 &
+            - cA(2,k,j,i)*p(k-1,j,i)                                  &
+            - cA(3,k-1,j+1,i)*p(k-1,j+1,i)                            &
+            - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
+            - cA(5,k,j,i)*p(k-1,j-1,i)                                &
+            - cA(6,k-1,j,i+1)*p(k-1,j,i+1)                            &
+            - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
+            - cA(8,k,j,i)*p(k-1,j,i-1) 
+
+    else !interior levels
+       rhs = b(k,j,i) &
+            - cA(2,k,j,i)*p(k-1,j,i)   - cA(2,k+1,j,i)*p(k+1,j,i)     &
+            - cA(3,k,j,i)*p(k+1,j-1,i) - cA(3,k-1,j+1,i)*p(k-1,j+1,i) &
+            - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
+            - cA(5,k,j,i)*p(k-1,j-1,i) - cA(5,k+1,j+1,i)*p(k+1,j+1,i) &
+            - cA(6,k,j,i)*p(k+1,j,i-1) - cA(6,k-1,j,i+1)*p(k-1,j,i+1) &
+            - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
+            - cA(8,k,j,i)*p(k-1,j,i-1) - cA(8,k+1,j,i+1)*p(k+1,j,i+1) 
+    endif
+
+  end subroutine comp_rhs_xyz
+
+ !----------------------------------------
+  subroutine relax_xz_GS(lev,p,b,cA,nsweeps,nx,ny,nz)
+! In 2D this is the recommended relaxation method for production
+
+    integer(kind=ip)                        , intent(in)   :: lev
+    integer(kind=ip)                        , intent(in)   :: nsweeps
+    integer(kind=ip)                        , intent(in)   :: nx, ny, nz
+
+    real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
+    real(kind=rp),dimension(:,:,:)  , pointer, intent(in)   :: b
+    real(kind=rp),dimension(:,:,:,:), pointer, intent(in)   :: cA
+
+    integer(kind=ip)            :: i,j,it
+
+    j = 1
+    do it = 1,nsweeps
+       do i = 1,nx
+          call linerelax_xz(p,b,cA,i,j,nz)
+       enddo
+       call fill_halo(lev,p)          
+    enddo
+
+  end subroutine relax_xz_GS
+
+ !----------------------------------------
+  subroutine relax_xz_RB(lev,p,b,cA,nsweeps,nx,ny,nz)
+
+    integer(kind=ip)                        , intent(in)   :: lev
+    integer(kind=ip)                        , intent(in)   :: nsweeps
+    integer(kind=ip)                        , intent(in)   :: nx, ny, nz
+
+    real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
+    real(kind=rp),dimension(:,:,:)  , pointer, intent(in)   :: b
+    real(kind=rp),dimension(:,:,:,:), pointer, intent(in)   :: cA
+
+    integer(kind=ip) :: i,j,k,it
+    integer(kind=ip) :: rb
+    real(kind=rp) :: rhs, omega
+
+    omega = 0.9
+    
+    j = 1
+    do it = 1,nsweeps
+       do rb = 1, 2 ! Red black loop
+          do i = 1, nx
+             do k = mod(i+rb,2),nz,2
+                call comp_rhs_xz(rhs,b,p,cA,nz,k,j,i)
+                p(k,j,i) = p(k,j,i)*(1.-omega) + omega*rhs/ca(1,k,j,i)                   
+             enddo
+          enddo
+       call fill_halo(lev,p)
+       enddo
+    enddo
+
+  end subroutine relax_xz_RB
 
   !----------------------------------------
-  subroutine relax_3D_8_heart(p,b,cA,i,j,nz)
+  subroutine comp_rhs_xz(rhs,b,p,cA,nz,k,j,i)
+    real(kind=rp),                             intent(out):: rhs
+    real(kind=rp),dimension(:,:,:)  , pointer, intent(in) :: b,p
+    real(kind=rp),dimension(:,:,:,:), pointer, intent(in) :: cA
+    integer(kind=ip),                          intent(in) :: nz,k,j,i
+
+    if(k.eq.1)then !lower level
+       rhs  = b(k,j,i)                                             &
+         - cA(2,k+1,j,i)*p(k+1,j,i)                                &
+         - cA(6,k,j,i)*p(k+1,j,i-1)                                &
+         - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
+         - cA(8,k+1,j,i+1)*p(k+1,j,i+1)                           ! &
+
+    elseif(k.eq.nz)then !upper level
+       rhs = b(k,j,i)                                                 &
+            - cA(2,k,j,i)*p(k-1,j,i)                                  &
+            - cA(6,k-1,j,i+1)*p(k-1,j,i+1)                            &
+            - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
+            - cA(8,k,j,i)*p(k-1,j,i-1) 
+
+    else !interior levels
+       rhs = b(k,j,i) &
+            - cA(2,k,j,i)*p(k-1,j,i)   - cA(2,k+1,j,i)*p(k+1,j,i)     &
+            - cA(6,k,j,i)*p(k+1,j,i-1) - cA(6,k-1,j,i+1)*p(k-1,j,i+1) &
+            - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
+            - cA(8,k,j,i)*p(k-1,j,i-1) - cA(8,k+1,j,i+1)*p(k+1,j,i+1) 
+    endif
+
+  end subroutine comp_rhs_xz
+ 
+  !----------------------------------------
+  subroutine linerelax_xyz(p,b,cA,i,j,nz)
 
     real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
     real(kind=rp),dimension(:,:,:)  , pointer, intent(in)   :: b
@@ -330,10 +442,10 @@ contains
 
     call tridiag(nz,d,ud,rhs,p(:,j,i)) ! solve 1D tridiagonal system
 
-  end subroutine relax_3D_8_heart
+  end subroutine linerelax_xyz
 
   !----------------------------------------
-  subroutine relax_xz_8_heart(p,b,cA,i,j,nz)
+  subroutine linerelax_xz(p,b,cA,i,j,nz)
 
     real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
     real(kind=rp),dimension(:,:,:)  , pointer, intent(in)   :: b
@@ -347,36 +459,17 @@ contains
     integer(kind=ip) :: k
     real(kind=rp), dimension(nz) :: rhs, d, ud
 
-    ! Coefficients are stored in order of diagonals
-    ! cA(1,:,:,:)      -> p(k,j,i)
-    ! cA(2,:,:,:)      -> p(k-1,j,i)
-    ! cA(3,:,:,:)      -> p(k+1,j-1,i)
-    ! cA(4,:,:,:)      -> p(k,j-1,i)
-    ! cA(5,:,:,:)      -> p(k-1,j-1,i)
-    ! cA(6,:,:,:)      -> p(k+1,j,i-1)
-    ! cA(7,:,:,:)      -> p(k,j,i-1)
-    ! cA(8,:,:,:)      -> p(k-1,j,i-1)
-
     k=1 !lower level
     rhs(k) = b(k,j,i)                                              &
-!         - cA(3,k,j,i)*p(k+1,j-1,i)                                &
-!         - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
-!         - cA(5,k+1,j+1,i)*p(k+1,j+1,i)                            &
          - cA(6,k,j,i)*p(k+1,j,i-1)                                &
          - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
          - cA(8,k+1,j,i+1)*p(k+1,j,i+1)                            
-!!  Special cross terms 
-!         - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1) &
-!         - cA(8,k,j,i)*p(k,j-1,i-1) - cA(8,k,j+1,i+1)*p(k,j+1,i+1)
 
     d(k)   = cA(1,k,j,i)
     ud(k)  = cA(2,k+1,j,i)
 
     do k = 2,nz-1 !interior levels
        rhs(k) = b(k,j,i) &
-!            - cA(3,k,j,i)*p(k+1,j-1,i) - cA(3,k-1,j+1,i)*p(k-1,j+1,i) &
-!            - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
-!            - cA(5,k,j,i)*p(k-1,j-1,i) - cA(5,k+1,j+1,i)*p(k+1,j+1,i) &
             - cA(6,k,j,i)*p(k+1,j,i-1) - cA(6,k-1,j,i+1)*p(k-1,j,i+1) &
             - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
             - cA(8,k,j,i)*p(k-1,j,i-1) - cA(8,k+1,j,i+1)*p(k+1,j,i+1) 
@@ -386,89 +479,14 @@ contains
 
     k=nz !upper level
     rhs(k) = b(k,j,i)                                              &
-!         - cA(3,k-1,j+1,i)*p(k-1,j+1,i) &
-!         - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
-!         - cA(5,k,j,i)*p(k-1,j-1,i)                                &
          - cA(6,k-1,j,i+1)*p(k-1,j,i+1) &
          - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
          - cA(8,k,j,i)*p(k-1,j,i-1) 
     d(k)   = cA(1,k,j,i)
 
     call tridiag(nz,d,ud,rhs,p(:,j,i)) ! solve 1D tridiagonal system
-
-  end subroutine relax_xz_8_heart
-
-  !----------------------------------------
-  subroutine relax_xz_basic(p,b,cA,i,j,nz)
-
-    real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
-    real(kind=rp),dimension(:,:,:)  , pointer, intent(in)   :: b
-    real(kind=rp),dimension(:,:,:,:), pointer, intent(in)   :: cA
-
-    integer(kind=ip)                          , intent(in)  :: i
-    integer(kind=ip)                          , intent(in)  :: j
-    integer(kind=ip)                          , intent(in)  :: nz
-
-    !- Local -!
-    integer(kind=ip) :: k
-    real(kind=rp), dimension(nz) :: rhs, d, ud
-
-    ! Coefficients are stored in order of diagonals
-    ! cA(1,:,:,:)      -> p(k,j,i)
-    ! cA(2,:,:,:)      -> p(k-1,j,i)
-    ! cA(3,:,:,:)      -> p(k+1,j-1,i)
-    ! cA(4,:,:,:)      -> p(k,j-1,i)
-    ! cA(5,:,:,:)      -> p(k-1,j-1,i)
-    ! cA(6,:,:,:)      -> p(k+1,j,i-1)
-    ! cA(7,:,:,:)      -> p(k,j,i-1)
-    ! cA(8,:,:,:)      -> p(k-1,j,i-1)
-
-    k=1 !lower level
-    rhs(k) = b(k,j,i)                                              &
-         - cA(2,k+1,j,i)*p(k+1,j,i)                                &
-!         - cA(3,k,j,i)*p(k+1,j-1,i)                                &
-!         - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
-!         - cA(5,k+1,j+1,i)*p(k+1,j+1,i)                            &
-         - cA(6,k,j,i)*p(k+1,j,i-1)                                &
-         - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
-         - cA(8,k+1,j,i+1)*p(k+1,j,i+1)                            
-!!  Special cross terms 
-!         - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1) &
-!         - cA(8,k,j,i)*p(k,j-1,i-1) - cA(8,k,j+1,i+1)*p(k,j+1,i+1)
-
-    d(k)   = cA(1,k,j,i)
-    ud(k)  = cA(2,k+1,j,i)
-
-    do k = 2,nz-1 !interior levels
-       rhs(k) = b(k,j,i) &
-            - cA(2,k,j,i)*p(k-1,j,i)- cA(2,k+1,j,i)*p(k+1,j,i)      &
-!            - cA(3,k,j,i)*p(k+1,j-1,i) - cA(3,k-1,j+1,i)*p(k-1,j+1,i) &
-!            - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
-!            - cA(5,k,j,i)*p(k-1,j-1,i) - cA(5,k+1,j+1,i)*p(k+1,j+1,i) &
-            - cA(6,k,j,i)*p(k+1,j,i-1) - cA(6,k-1,j,i+1)*p(k-1,j,i+1) &
-            - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
-            - cA(8,k,j,i)*p(k-1,j,i-1) - cA(8,k+1,j,i+1)*p(k+1,j,i+1) 
-       d(k)   = cA(1,k,j,i)
-       ud(k)  = cA(2,k+1,j,i)
-    enddo
-
-    k=nz !upper level
-    rhs(k) = b(k,j,i)                                              &
-            - cA(2,k,j,i)*p(k-1,j,i)      &
-!         - cA(3,k-1,j+1,i)*p(k-1,j+1,i) &
-!         - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i) &
-!         - cA(5,k,j,i)*p(k-1,j-1,i)                                &
-         - cA(6,k-1,j,i+1)*p(k-1,j,i+1) &
-         - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1) &
-         - cA(8,k,j,i)*p(k-1,j,i-1) 
-    d(k)   = cA(1,k,j,i)
-
-!    call tridiag(nz,d,ud,rhs,p(:,j,i)) ! solve 1D tridiagonal system
-    do k=1,nz
-       p(k,j,i) = rhs(k) / d(k)
-    enddo
-
-  end subroutine relax_xz_basic
+    
+  end subroutine linerelax_xz
 
   !----------------------------------------
   subroutine tridiag(l,d,dd,b,xc)
@@ -498,91 +516,7 @@ contains
   end subroutine tridiag
 
   !----------------------------------------
-  subroutine compute_residual(lev,res)
-    integer(kind=ip), intent(in) :: lev
-    real(kind=rp)   , intent(out):: res
-
-    real(kind=rp),dimension(:,:,:)  , pointer:: p
-    real(kind=rp),dimension(:,:,:)  , pointer:: b
-    real(kind=rp),dimension(:,:,:)  , pointer:: r
-    real(kind=rp),dimension(:,:,:,:), pointer:: cA
-
-    integer(kind=ip) :: nx, ny, nz, nd
-    real(kind=rp) ::resloc
-
-    p  => grid(lev)%p
-    b  => grid(lev)%b
-    r  => grid(lev)%r
-    cA => grid(lev)%cA
-
-    nx = grid(lev)%nx
-    ny = grid(lev)%ny
-    nz = grid(lev)%nz
-    nd = size(cA(:,:,:,:),dim=1)
-
-!    if (grid(lev)%nz == 1) then
-    if (trim(grid(lev)%relaxation_method).eq.'xy') then
-
-       call compute_residual_2D_5(res,p,b,r,cA,nx,ny)
-
-!    else
-    elseif (trim(grid(lev)%relaxation_method).eq.'xyz') then
-       call compute_residual_3D_8(res,p,b,r,cA,nx,ny,nz)
-
-    elseif (trim(grid(lev)%relaxation_method).eq.'xz') then
-       call compute_residual_xz_8(res,p,b,r,cA,nx,ny,nz)
-
-    end if
-
-    call fill_halo(lev,r)
-
-    if (lev >-1) then
-       resloc=res
-       call global_sum(lev,resloc,res)
-       res = sqrt(res)
-    else
-       res = -999._rp
-    endif
-
-  end subroutine compute_residual
-
-  !----------------------------------------
-  subroutine compute_residual_2D_5(res,p,b,r,cA,nx,ny)
-
-    real(kind=rp)                            , intent(out)  :: res
-    real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
-    real(kind=rp),dimension(:,:,:)  , pointer, intent(in)   :: b
-    real(kind=rp),dimension(:,:,:)  , pointer, intent(inout)   :: r
-    real(kind=rp),dimension(:,:,:,:), pointer, intent(in)   :: cA
-    integer(kind=ip)                        , intent(in)   :: nx, ny
-
-    integer(kind=ip) :: i,j,k
-    real(kind=rp)  :: z
-
-    res = zero
-
-    k=1
-
-    do i = 1,nx
-       do j = 1,ny
-
-          z = b(k,j,i) - cA(1,k,j,i)*p(k,j,i)                           &
-               - cA(2,k,j,i)*p(k,j-1,i  ) - cA(2,k,j+1,i  )*p(k,j+1,  i)&
-               - cA(3,k,j,i)*p(k,j  ,i-1) - cA(3,k,j  ,i+1)*p(k,j  ,i+1)&
-               - cA(4,k,j,i)*p(k,j-1,i-1) - cA(4,k,j+1,i+1)*p(k,j+1,i+1)&
-               - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1)
-
-          r(k,j,i) = z
-          !          res = max(res,abs(r(k,j,i)))
-          res = res+z*z
-
-       enddo
-    enddo
-
-  end subroutine compute_residual_2D_5
-
-  !----------------------------------------
-  subroutine compute_residual_3D_8(res,p,b,r,cA,nx,ny,nz)
+  subroutine compute_residual_xyz(res,p,b,r,cA,nx,ny,nz)
 
     real(kind=rp)                            , intent(out)  :: res
     real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
@@ -654,10 +588,10 @@ contains
        enddo
     enddo
 
-  end subroutine compute_residual_3D_8
+  end subroutine compute_residual_xyz
 
   !----------------------------------------
-  subroutine compute_residual_xz_8(res,p,b,r,cA,nx,ny,nz)
+  subroutine compute_residual_xz(res,p,b,r,cA,nx,ny,nz)
 
     real(kind=rp)                            , intent(out)  :: res
     real(kind=rp),dimension(:,:,:)  , pointer, intent(inout):: p
@@ -665,16 +599,6 @@ contains
     real(kind=rp),dimension(:,:,:)  , pointer, intent(inout)   :: r
     real(kind=rp),dimension(:,:,:,:), pointer, intent(in)   :: cA
     integer(kind=ip)                        , intent(in)   :: nx, ny, nz
-
-    ! Coefficients are stored in order of diagonals
-    ! cA(1,:,:,:)      -> p(k,j,i)
-    ! cA(2,:,:,:)      -> p(k-1,j,i)
-    ! cA(3,:,:,:)      -> p(k+1,j-1,i)
-    ! cA(4,:,:,:)      -> p(k,j-1,i)
-    ! cA(5,:,:,:)      -> p(k-1,j-1,i)
-    ! cA(6,:,:,:)      -> p(k+1,j,i-1)
-    ! cA(7,:,:,:)      -> p(k,j,i-1)
-    ! cA(8,:,:,:)      -> p(k-1,j,i-1)
 
     integer(kind=ip)           :: i,j,k
 
@@ -687,15 +611,9 @@ contains
           r(k,j,i) = b(k,j,i)                                           &
                - cA(1,k,j,i)*p(k,j,i)                                   &
                - cA(2,k+1,j,i)*p(k+1,j,i)                               &
-!               - cA(3,k,j,i)*p(k+1,j-1,i)                               &
-!               - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i)&
-!               - cA(5,k+1,j+1,i)*p(k+1,j+1,i)                           &
                - cA(6,k,j,i)*p(k+1,j,i-1)                               &
                - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1)&
                - cA(8,k+1,j,i+1)*p(k+1,j,i+1)                           
-!!  Special cross terms 
-!               - cA(5,k,j,i)*p(k,j+1,i-1) - cA(5,k,j-1,i+1)*p(k,j-1,i+1)&
-!               - cA(8,k,j,i)*p(k,j-1,i-1) - cA(8,k,j+1,i+1)*p(k,j+1,i+1)
 
           res = res+r(k,j,i)*r(k,j,i)
 
@@ -703,9 +621,6 @@ contains
              r(k,j,i) = b(k,j,i)                                           &
                   - cA(1,k,j,i)*p(k,j,i)                                   &
                   - cA(2,k,j,i)*p(k-1,j,i)   - cA(2,k+1,j,i)*p(k+1,j,i)    &
-!                  - cA(3,k,j,i)*p(k+1,j-1,i) - cA(3,k-1,j+1,i)*p(k-1,j+1,i)&
-!                  - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i)&
-!                  - cA(5,k,j,i)*p(k-1,j-1,i) - cA(5,k+1,j+1,i)*p(k+1,j+1,i)&
                   - cA(6,k,j,i)*p(k+1,j,i-1) - cA(6,k-1,j,i+1)*p(k-1,j,i+1)&
                   - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1)&
                   - cA(8,k,j,i)*p(k-1,j,i-1) - cA(8,k+1,j,i+1)*p(k+1,j,i+1)
@@ -717,9 +632,6 @@ contains
           r(k,j,i) = b(k,j,i)                                           &
                - cA(1,k,j,i)*p(k,j,i)                                   &
                - cA(2,k,j,i)*p(k-1,j,i)                                 &
-!               - cA(3,k-1,j+1,i)*p(k-1,j+1,i)                           &
-!               - cA(4,k,j,i)*p(k  ,j-1,i) - cA(4,k  ,j+1,i)*p(k  ,j+1,i)&
-!               - cA(5,k,j,i)*p(k-1,j-1,i)                               &
                - cA(6,k-1,j,i+1)*p(k-1,j,i+1)                           &
                - cA(7,k,j,i)*p(k  ,j,i-1) - cA(7,k  ,j,i+1)*p(k  ,j,i+1)&
                - cA(8,k,j,i)*p(k-1,j,i-1)
@@ -728,6 +640,6 @@ contains
 
     enddo
 
-  end subroutine compute_residual_xz_8
+  end subroutine compute_residual_xz
 
 end module mg_relax

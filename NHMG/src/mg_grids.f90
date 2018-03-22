@@ -58,6 +58,9 @@ module mg_grids
      real(kind=rp),dimension(:,:)  ,pointer :: beta  => null() !
      real(kind=rp),dimension(:,:)  ,pointer :: gamu  => null() !
      real(kind=rp),dimension(:,:)  ,pointer :: gamv  => null() !
+     real(kind=rp),dimension(:,:,:),pointer :: zr    => null() ! depth at rho points
+     real(kind=rp),dimension(:,:,:),pointer :: w0    => null() ! weight for interpolation coarse=>fine
+     real(kind=rp),dimension(:,:,:),pointer :: wp    => null() ! weight for interpolation
      real(kind=rp),dimension(:,:,:),pointer :: zxdy  => null() ! Slopes in x-direction defined at rho-points * dy
      real(kind=rp),dimension(:,:,:),pointer :: zydx  => null() ! Slopes in y-direction defined at rho-points * dx
      real(kind=rp),dimension(:,:,:),pointer :: alpha => null() ! All levels
@@ -221,6 +224,9 @@ contains
        allocate(grid(lev)%beta(     0:ny+1,0:nx+1)) !
        allocate(grid(lev)%gamu(     0:ny+1,0:nx+1)) !
        allocate(grid(lev)%gamv(     0:ny+1,0:nx+1)) !
+       allocate(grid(lev)%zr(  nz  ,0:ny+1,0:nx+1)) ! at rho point
+       allocate(grid(lev)%w0(  nz  ,0:ny+1,0:nx+1)) ! at rho point
+       allocate(grid(lev)%wp(  nz  ,0:ny+1,0:nx+1)) ! at rho point
        allocate(grid(lev)%zxdy(nz  ,0:ny+1,0:nx+1)) ! at rho point
        allocate(grid(lev)%zydx(nz  ,0:ny+1,0:nx+1)) ! at rho point
        allocate(grid(lev)%alpha(nz ,0:ny+1,0:nx+1)) ! at rho point
@@ -506,9 +512,15 @@ contains
     nyg = npyg * ny ! Global domain dimension in y
     nzg = nz        ! Global domain dimension in z
 
-    nhmin = 3 ! Smallest horizontal dimension of the coarsest grid
+    nhmin = nsmall ! Smallest horizontal dimension of the coarsest grid
 
-    nzmin = 3 ! Smallest vertical dimension of the coarsest grid
+    ! Smallest vertical dimension of the coarsest grid
+    if (mod(nz,2).eq.0)then
+       nzmin = 2
+    else
+       nzmin = 3
+    endif
+       
 
     nhg = max(nxg,nyg) ! smallest horizontal dimension of the finest grid
 
@@ -558,7 +570,7 @@ contains
           nz = nz / 2
           coars = trim(coars)//'z'
        endif
-       grid(lev)%coarsening_method = coars
+       grid(lev)%coarsening_method = coars//'   '
 !       write(*,*)lev, grid(lev)%coarsening_method, grid(lev)%relaxation_method
 !       if (nz.eq.1) then ! 2D coarsening
 !          nx = nx/2

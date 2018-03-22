@@ -44,13 +44,13 @@ contains
   end subroutine nhmg_init
 
   !--------------------------------------------------------------
-  subroutine nhmg_matrices(nx,ny,nz,hl,pdx,pdy,zxa,zya,Hza,dxa,dya)
+  subroutine nhmg_matrices(nx,ny,nz,hl,pdx,pdy,zxa,zya,Hza,z_r,dxa,dya)
 
     integer(kind=ip), intent(in) :: nx,ny,nz
     integer(kind=ip), intent(in) :: hl,pdx,pdy
 
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in) :: zxa,zya
-    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in) :: Hza
+    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in) :: Hza,z_r
     real(kind=rp), dimension(0:nx+1,0:ny+1)     , optional, intent(in) :: dxa
     real(kind=rp), dimension(0:nx+1,0:ny+1)     , optional, intent(in) :: dya
 
@@ -75,6 +75,7 @@ contains
        do j = -1,ny+2
           do k = 1,nz
              grid(1)%dz(k,j,i) = Hza(i,j,k)
+             grid(1)%zr(k,j,i)   = z_r(i,j,k)
           enddo
        enddo
     enddo

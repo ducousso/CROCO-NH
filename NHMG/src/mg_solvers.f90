@@ -53,17 +53,20 @@ contains
 
     res0 = sum(grid(1)%b(1:nz,1:ny,1:nx)**2)
     call global_sum(1,res0,bnorm)
-    bnorm = sqrt(bnorm)
+    bnorm = 1.!sqrt(bnorm)
 
     ! residual returns both 'r' and its norm
     call compute_residual(1,rnorm) 
     res0   = rnorm/bnorm
     rnorm0 = res0
 
+    !call write_netcdf(grid(1)%r,vname='res',netcdf_file_name='res.nc',rank=myrank,iter=nite)
     do while ((nite < solver_maxiter).and.(res0 > solver_prec))
 
-       call Fcycle()
-
+       call Vcycle(1)
+       !call Fcycle()
+       
+       !call write_netcdf(grid(1)%r,vname='res',netcdf_file_name='res.nc',rank=myrank,iter=nite)
        call compute_residual(1,rnorm)
        rnorm = rnorm/bnorm
        conv = res0/rnorm ! error reduction after this iteration
@@ -88,6 +91,7 @@ contains
        perf = (tend-tstart)*(rnpxg*rnpyg)/(-log(rnorm/rnorm0)/log(10._rp))/(rnxg*rnyg*rnzg)
        write(*,*)'     --- summary ---'
        write(*,'(A,F8.3,A)')"     time spent to solve :",tend-tstart," s"
+       write(*,'(A,E10.3)') "          error reduction:",-log(rnorm/rnorm0)/log(10._rp)
        write(*,'(A,E10.3)') "     rescaled performance:",perf
        write(*,*)'     ---------------'
     end if
@@ -126,19 +130,33 @@ contains
 
     integer(kind=ip), intent(in) :: lev1
     integer(kind=ip)             :: lev
-    real(kind=rp)                :: rnorm
-
+    real(kind=rp)                :: rnorm,r1,r2
+    real(kind=rp),dimension(nlevs) :: normres1, normres2
+    
     do lev=lev1,nlevs-1
        call relax(lev,ns_pre)
        call compute_residual(lev,rnorm)
+       normres1(lev)=rnorm
        call fine2coarse(lev)
     enddo
 
+    lev = nlevs
+    call compute_residual(lev,rnorm)
+    normres1(lev)=rnorm
     call relax(nlevs,ns_coarsest)
-
+    call compute_residual(lev,rnorm)
+    normres2(lev)=rnorm
+    
     do lev=nlevs-1,lev1,-1
        call coarse2fine(lev)
        call relax(lev,ns_post)
+       call compute_residual(lev,rnorm)
+       normres2(lev)=rnorm
+    enddo
+
+    write(*,*)
+    do lev=lev1,nlevs
+       write(*,'(A,I,A,E10.3,E10.3,A,F10.3)') " lev ",lev,":",normres1(lev),normres2(lev), " / conv=",normres1(lev)/normres2(lev)
     enddo
 
   end subroutine Vcycle

@@ -22,6 +22,8 @@ contains
     integer(kind=ip) :: nyf,nyc
     integer(kind=ip) :: nzf,nzc
 
+    real(kind=rp), dimension(:,:,:), pointer :: zf,zc 
+    real(kind=rp), dimension(:,:,:), pointer :: w0, wp
     real(kind=rp), dimension(:,:,:), pointer :: zxf,zxc 
     real(kind=rp), dimension(:,:,:), pointer :: zyf,zyc 
     real(kind=rp), dimension(:,:,:), pointer :: dzf,dzc
@@ -37,6 +39,7 @@ contains
     real(kind=rp), dimension(:,:)  , pointer :: Arz
 
     integer(kind=ip) :: i,j,k
+    integer(kind=ip) :: i2,j2,k2,kp,ip
 
 !    if (myrank==0) write(*,*)'   - set vertical grids:'
 
@@ -63,6 +66,8 @@ contains
 
           dzf => grid(lev-1)%dz
 
+          zf => grid(lev-1)%zr
+          
           zxf => grid(lev-1)%zxdy
           zyf => grid(lev-1)%zydx
 
@@ -78,6 +83,7 @@ contains
              nyc = ny
              nzc = nz
              dzc => grid(lev)%dz
+             zc => grid(lev)%zr
              zxc => grid(lev)%zxdy
              zyc => grid(lev)%zydx
           endif
@@ -92,9 +98,9 @@ contains
                dzf(2:nzf+1:2,2:nyf+1:2,1:nxf  :2) +   &
                dzf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) +   &
                dzf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
-
+          
           ! Call fine2coarse
-          zxc(1:nzc,1:nyc,1:nxc) = eighth * (       &
+          zxc(1:nzc,1:nyc,1:nxc) = 2.*eighth * (       &
                zxf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
                zxf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) + &
                zxf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
@@ -105,7 +111,7 @@ contains
                zxf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
 
           ! Call fine2coarse
-          zyc(1:nzc,1:nyc,1:nxc) = eighth * (       &
+          zyc(1:nzc,1:nyc,1:nxc) = 2.*eighth * (       &
                zyf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
                zyf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) + &
                zyf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
@@ -116,27 +122,32 @@ contains
                zyf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
           elseif  (trim(grid(lev)%coarsening_method).eq.'xz') then
           ! Call fine2coarse
-          dzc(1:nzc,1:nyc,1:nxc) = 2._rp * qrt * ( &
-               dzf(1:nzf  :2,1:nyf  :2,1:nxf  :2) +   &
-               dzf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) +   &
-               dzf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) +   &
-               dzf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) )
+          dzc(1:nzc,1,1:nxc) = 2._rp * qrt * ( &
+               dzf(1:nzf  :2,1,1:nxf  :2) +   &
+               dzf(1:nzf  :2,1,2:nxf+1:2) +   &
+               dzf(2:nzf+1:2,1,1:nxf  :2) +   &
+               dzf(2:nzf+1:2,1,2:nxf+1:2) )
 
-
-          ! Call fine2coarse
-          zxc(1:nzc,1:nyc,1:nxc) = qrt * (       &
-               zxf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
-               zxf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
-               zxf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) + &
-               zxf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) )
-
+          zc(1:nzc,1,1:nxc) =         qrt * ( &
+               zf(1:nzf  :2,1,1:nxf  :2) +   &
+               zf(1:nzf  :2,1,2:nxf+1:2) +   &
+               zf(2:nzf+1:2,1,1:nxf  :2) +   &
+               zf(2:nzf+1:2,1,2:nxf+1:2) )
 
           ! Call fine2coarse
-          zyc(1:nzc,1:nyc,1:nxc) = qrt * (       &
-               zyf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
-               zyf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
-               zyf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) + &
-               zyf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) )
+          zxc(1:nzc,1,1:nxc) =   qrt * (       &
+               zxf(1:nzf  :2,1,1:nxf  :2) + &
+               zxf(1:nzf  :2,1,2:nxf+1:2) + &
+               zxf(2:nzf+1:2,1,1:nxf  :2) + &
+               zxf(2:nzf+1:2,1,2:nxf+1:2) )
+
+
+!!$          ! Call fine2coarse
+!!$          zyc(1:nzc,1,1:nxc) = qrt * (       &
+!!$               zyf(1:nzf  :2,1,1:nxf  :2) + &
+!!$               zyf(1:nzf  :2,1,2:nxf+1:2) + &
+!!$               zyf(2:nzf+1:2,1,1:nxf  :2) + &
+!!$               zyf(2:nzf+1:2,1,2:nxf+1:2) )
           endif
           if (grid(lev)%gather == 1) then
              call gather(lev,dzc,grid(lev)%dz)
@@ -150,6 +161,7 @@ contains
        call fill_halo(lev,grid(lev)%dz)   ! special fill_halo of dz (nh=2)
        call fill_halo(lev,grid(lev)%zxdy) ! special fill_halo of zx (nh=2)
        call fill_halo(lev,grid(lev)%zydx) ! special fill_halo of zy (nh=2)
+       call fill_halo(lev,grid(lev)%zr) ! special fill_halo of zy (nh=2)
        end if
 
        !! compute derived qties
@@ -199,16 +211,26 @@ contains
              Arz(j,i) = dx(j,i) * dy(j,i)
           enddo
        enddo
-
-       !!- Used in set_matrices and fluxes
-       do i = 0,nx+1
-          do j = 0,ny+1
-             do k = 1, nz
-                alpha(k,j,i) = one + (zxdy(k,j,i)/dy(j,i))**2 + (zydx(k,j,i)/dx(j,i))**2
+       if (trim(grid(lev)%relaxation_method).eq.'xyz') then
+          !!- Used in set_matrices and fluxes
+          do i = 0,nx+1
+             do j = 0,ny+1
+                do k = 1, nz
+                   alpha(k,j,i) = one + (zxdy(k,j,i)/dy(j,i))**2 + (zydx(k,j,i)/dx(j,i))**2
+                enddo
              enddo
           enddo
-       enddo
-
+       
+       elseif (trim(grid(lev)%relaxation_method).eq.'xz') then
+          do i = 0,nx+1
+             do j = 0,ny+1
+                do k = 1, nz
+                   alpha(k,j,i) = one + (zxdy(k,j,i)/dy(j,i))**2
+                enddo
+             enddo
+          enddo
+       endif
+       
        do i = 0,nx+1
           do j = 0,ny+1
              gamu(j,i) = one - hlf * ( zxdy(1,j,i) / dy(j,i) )**2 / alpha(1,j,i) 
@@ -232,8 +254,30 @@ contains
           call write_netcdf(grid(lev)%zxdy,vname='zxdy',netcdf_file_name='zxdy.nc',rank=myrank,iter=lev)
           call write_netcdf(grid(lev)%zydx,vname='zydx',netcdf_file_name='zydx.nc',rank=myrank,iter=lev)
           call write_netcdf(grid(lev)%alpha,vname='alpha',netcdf_file_name='alpha.nc',rank=myrank,iter=lev)
+          call write_netcdf(grid(lev)%zr,vname='zr',netcdf_file_name='zr.nc',rank=myrank,iter=lev)
        endif
 
+       if((lev.ge.1).and.(trim(grid(lev)%coarsening_method).eq.'xz'))then
+          zc => grid(lev)%zr
+          zf => grid(lev-1)%zr
+          w0 => grid(lev-1)%w0
+          wp => grid(lev-1)%wp
+          nx = grid(lev-1)%nx
+          nz = grid(lev-1)%nz
+          j = 1
+          j2 = 1
+          do i=1,nx
+             i2 = (i+1)/2
+             ip = i2-(mod(i,2)*2-1)
+             do k=1,nz-1
+                k2 = (k+1)/2
+                kp = k2-(mod(k,2)*2-1)
+                if(k.eq.1)kp=2
+                w0(k,j,i) = (zf(k,j,i)-zc(kp,j2,i2)) / (zc(k2,j2,i2)-zc(kp,j2,i2))
+                wp(k,j,i) = (zf(k,j,i)-zc(kp,j2,ip)) / (zc(k2,j2,ip)-zc(kp,j2,ip))
+             enddo
+          enddo          
+       endif
     enddo
 
   end subroutine set_vert_grids

@@ -90,17 +90,17 @@ contains
                dxf(1:nyf  :2,1:nxf  :2) + &
                dxf(1:nyf  :2,2:nxf+1:2)
 
-          dyc(1:nyc,1:nxc) =  &
+          dyc(1:nyc,1:nxc) =  0.5*(&
                dyf(1:nyf  :2,1:nxf  :2) + &
-               dyf(1:nyf  :2,2:nxf+1:2)
+               dyf(1:nyf  :2,2:nxf+1:2))
 
           dxuc(1:nyc,1:nxc) = & ! only interior points
                dxuf(1:nyf  :2,1:nxf  :2) + &
                dxuf(1:nyf  :2,2:nxf+1:2) 
 
-          dyvc(1:nyc,1:nxc) = &
+          dyvc(1:nyc,1:nxc) = 0.5*(&
                dyvf(1:nyf  :2,1:nxf  :2) + &
-               dyvf(1:nyf  :2,2:nxf+1:2) 
+               dyvf(1:nyf  :2,2:nxf+1:2) )
           endif
           if (grid(lev)%gather == 1) then
              call gather(lev,dxc,grid(lev)%dx)
