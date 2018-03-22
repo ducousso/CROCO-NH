@@ -132,32 +132,18 @@ contains
     integer(kind=ip), intent(in) :: lev1
     integer(kind=ip)             :: lev
     real(kind=rp)                :: rnorm,r1,r2
-    real(kind=rp),dimension(nlevs) :: normres1, normres2
     
     do lev=lev1,nlevs-1
        call relax(lev,ns_pre)
        call compute_residual(lev,rnorm)
-       normres1(lev)=rnorm
        call fine2coarse(lev)
     enddo
 
-    lev = nlevs
-    call compute_residual(lev,rnorm)
-    normres1(lev)=rnorm
     call relax(nlevs,ns_coarsest)
-    call compute_residual(lev,rnorm)
-    normres2(lev)=rnorm
     
     do lev=nlevs-1,lev1,-1
        call coarse2fine(lev)
        call relax(lev,ns_post)
-       call compute_residual(lev,rnorm)
-       normres2(lev)=rnorm
-    enddo
-
-    write(*,*)
-    do lev=lev1,nlevs
-       write(*,'(A,I,A,E10.3,E10.3,A,F10.3)') " lev ",lev,":",normres1(lev),normres2(lev), " / conv=",normres1(lev)/normres2(lev)
     enddo
 
   end subroutine Vcycle
