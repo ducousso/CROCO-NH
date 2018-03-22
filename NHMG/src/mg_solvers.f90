@@ -60,13 +60,14 @@ contains
     res0   = rnorm/bnorm
     rnorm0 = res0
 
-    !call write_netcdf(grid(1)%r,vname='res',netcdf_file_name='res.nc',rank=myrank,iter=nite)
     do while ((nite < solver_maxiter).and.(res0 > solver_prec))
 
-       call Vcycle(1)
-       !call Fcycle()
-       
-       !call write_netcdf(grid(1)%r,vname='res',netcdf_file_name='res.nc',rank=myrank,iter=nite)
+       if (trim(solver_cycle) == 'V') then
+          call Vcycle(1)
+       else
+          call Fcycle()
+       endif
+
        call compute_residual(1,rnorm)
        rnorm = rnorm/bnorm
        conv = res0/rnorm ! error reduction after this iteration

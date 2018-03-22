@@ -100,7 +100,7 @@ contains
                dzf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
           
           ! Call fine2coarse
-          zxc(1:nzc,1:nyc,1:nxc) = 2.*eighth * (       &
+          zxc(1:nzc,1:nyc,1:nxc) = 2._rp * eighth * ( &
                zxf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
                zxf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) + &
                zxf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
@@ -111,7 +111,7 @@ contains
                zxf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
 
           ! Call fine2coarse
-          zyc(1:nzc,1:nyc,1:nxc) = 2.*eighth * (       &
+          zyc(1:nzc,1:nyc,1:nxc) = 2._rp * eighth * ( &
                zyf(1:nzf  :2,1:nyf  :2,1:nxf  :2) + &
                zyf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) + &
                zyf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) + &
