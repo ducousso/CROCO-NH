@@ -1,11 +1,13 @@
 CROCO-NH: a non-hydrostatic version of CROCO
 ============================================
 
-**CROCO-NH** relaxes the hydrostatic assumption in CROCO (ex
- ROMS-AGRIF), the regional circulation model. It does so by
- integrating in time the vertical component of the velocity. The
- pressure is computed at each time step with a projection method. The
- resulting Poisson equation is solved with a multigrid solver.
+**CROCO-NH** relaxes the hydrostatic assumption in CROCO the regional
+ circulation model.
+
+ It does so by integrating in time the vertical component of the
+ velocity. The pressure is computed at each time step with a
+ projection method. The resulting Poisson equation is solved with a
+ multigrid solver.
 
 Changes relative to CROCO
 -------------------------
