@@ -65,9 +65,7 @@ contains
           nzf = grid(lev-1)%nz
 
           dzf => grid(lev-1)%dz
-
-          zf => grid(lev-1)%zr
-          
+          zf  => grid(lev-1)%zr          
           zxf => grid(lev-1)%zxdy
           zyf => grid(lev-1)%zydx
 
@@ -76,6 +74,7 @@ contains
              nyc = ny/grid(lev)%ngy
              nzc = nz
              allocate(dzc(1:nzc,0:nyc+1,0:nxc+1))
+             allocate(zc(1:nzc,0:nyc+1,0:nxc+1))
              allocate(zxc(1:nzc,0:nyc+1,0:nxc+1))
              allocate(zyc(1:nzc,0:nyc+1,0:nxc+1))
           else
@@ -98,6 +97,16 @@ contains
                dzf(2:nzf+1:2,2:nyf+1:2,1:nxf  :2) +   &
                dzf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) +   &
                dzf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
+          
+!!$          zc(1:nzc,1:nyc,1:nxc) =          eighth * ( &
+!!$               dzf(1:nzf  :2,1:nyf  :2,1:nxf  :2) +   &
+!!$               dzf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) +   &
+!!$               dzf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) +   &
+!!$               dzf(1:nzf  :2,2:nyf+1:2,2:nxf+1:2) +   &
+!!$               dzf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) +   &
+!!$               dzf(2:nzf+1:2,2:nyf+1:2,1:nxf  :2) +   &
+!!$               dzf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) +   &
+!!$               dzf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
           
           ! Call fine2coarse
           zxc(1:nzc,1:nyc,1:nxc) = 2._rp * eighth * ( &
@@ -151,17 +160,19 @@ contains
           endif
           if (grid(lev)%gather == 1) then
              call gather(lev,dzc,grid(lev)%dz)
+             call gather(lev,zc, grid(lev)%zr)
              call gather(lev,zxc,grid(lev)%zxdy)
              call gather(lev,zyc,grid(lev)%zydx)
              deallocate(dzc)
+             deallocate(zc)
              deallocate(zxc)
              deallocate(zyc)
           endif
 
-       call fill_halo(lev,grid(lev)%dz)   ! special fill_halo of dz (nh=2)
-       call fill_halo(lev,grid(lev)%zxdy) ! special fill_halo of zx (nh=2)
-       call fill_halo(lev,grid(lev)%zydx) ! special fill_halo of zy (nh=2)
-       call fill_halo(lev,grid(lev)%zr) ! special fill_halo of zy (nh=2)
+       call fill_halo(lev,grid(lev)%dz)
+       call fill_halo(lev,grid(lev)%zxdy)
+       call fill_halo(lev,grid(lev)%zydx)
+       call fill_halo(lev,grid(lev)%zr)
        end if
 
        !! compute derived qties

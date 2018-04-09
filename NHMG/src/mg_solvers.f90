@@ -53,7 +53,7 @@ contains
 
     res0 = sum(grid(1)%b(1:nz,1:ny,1:nx)**2)
     call global_sum(1,res0,bnorm)
-    bnorm = sqrt(bnorm)
+    bnorm = 1.!sqrt(bnorm)
 
     ! residual returns both 'r' and its norm
     call compute_residual(1,rnorm) 

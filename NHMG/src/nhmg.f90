@@ -71,8 +71,8 @@ contains
 
     end if
 
-    do i = -1,nx+2
-       do j = -1,ny+2
+    do i = 0,nx+1
+       do j = 0,ny+1
           do k = 1,nz
              grid(1)%dz(k,j,i) = Hza(i,j,k)
              grid(1)%zr(k,j,i)   = z_r(i,j,k)

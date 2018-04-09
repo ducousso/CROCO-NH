@@ -22,7 +22,6 @@ program mg_testseamount
   real(kind=rp), dimension(:,:,:), pointer :: Hz
 
   real(kind=rp), dimension(:,:,:), allocatable, target :: u,v,w
-  real(kind=rp), dimension(:,:,:), pointer :: up,vp,wp
 
   integer(kind=ip) :: nit=1
   integer(kind=ip):: nxg  = 64       ! global x dimension
@@ -109,11 +108,11 @@ program mg_testseamount
   ny = nyg / npyg
   nz = nzg
 
-  iproc = mod(myrank, npxg)
-  jproc = myrank/ npxg
+  iproc = mod(rank, npxg)
+  jproc = rank/ npxg
   call MPI_Barrier( MPI_COMM_WORLD ,ierr)
-  write(*,*) "I am rank ",myrank," my location is ",iproc,jproc
-  call MPI_Barrier( MPI_COMM_WORLD ,ierr)
+!  write(*,*) "I am rank ",rank," my location is ",iproc,jproc
+!  call MPI_Barrier( MPI_COMM_WORLD ,ierr)
   !-------------------!
   !- Initialise nhmg -!
   !-------------------!
@@ -190,8 +189,8 @@ program mg_testseamount
       if (jproc.eq.0) then
          do k = 1, nz
             do i = 0,nx+1
-               dzdxi (i,0,k) = 0.
-               dzdxi (i,1,k) = 0.
+!               dzdxi (i,0,k) = 0.
+!               dzdxi (i,1,k) = 0.
                dzdeta(i,0,k) = 0.
                dzdeta(i,1,k) = 0.
             enddo
@@ -200,8 +199,8 @@ program mg_testseamount
       if (jproc.eq.npyg-1) then
          do k = 1, nz
             do i = 0,nx+1
-               dzdxi (i,ny  ,k) = 0.
-               dzdxi (i,ny+1,k) = 0.
+!               dzdxi (i,ny  ,k) = 0.
+!               dzdxi (i,ny+1,k) = 0.
                dzdeta(i,ny  ,k) = 0.
                dzdeta(i,ny+1,k) = 0.
             enddo
@@ -234,7 +233,8 @@ program mg_testseamount
      u(:,:,:)    =  0._8
      v(:,:,:)    =  0._8
      w(:,:,0)    =  0._8
-     w(:,:,1:nz) = -1._8
+     !     w(:,:,1:nz) = -1._8
+     !w(1,1,1)=1.
      
      
      if (netcdf_output) then
@@ -249,8 +249,8 @@ program mg_testseamount
 !!$     call coarse2fine(1)
      
      
-     grid(1)%p=0._rp
-!     call random_number(grid(1)%p)
+!     grid(1)%p=0._rp
+     call random_number(grid(1)%p)
 !     grid(1)%p(nz/2,1,nx/2) = 1.
 
      !--------------------!

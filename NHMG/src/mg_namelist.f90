@@ -5,7 +5,8 @@ module mg_namelist
 
   implicit none
 
-  integer(kind=ip) :: nsmall      =   8        ! smallest dimension ever for a subdomain; triggers a gather
+  integer(kind=ip) :: nsmall      =   2        ! smallest dimension for the global domain
+  integer(kind=ip) :: ngather     =   16        ! smallest dimension ever for a subdomain; triggers a gather
 
   integer(kind=ip) :: ns_coarsest =  40        ! Number of relax sweeps for the coarsest grid level
   integer(kind=ip) :: ns_pre      =   3        ! Number of relax sweeps before coarsening  (going down)
@@ -38,6 +39,7 @@ module mg_namelist
        solver_maxiter, &
        solver_cycle  , &
        nsmall        , &
+       ngather       , &
        ns_coarsest   , &
        ns_pre        , &
        ns_post       , &
@@ -113,7 +115,8 @@ contains
           write(*,*)'  - solver_prec   : ', solver_prec
           write(*,*)'  - solver_maxiter: ', solver_maxiter
           write(*,*)'  - solver_cycle  : ', trim(solver_cycle)
-          write(*,*)'  - nsmall        : ', nsmall 
+          write(*,*)'  - nsmall        : ', nsmall
+          write(*,*)'  - ngather       : ', ngather
           write(*,*)'  - ns_coarsest   : ', ns_coarsest
           write(*,*)'  - ns_pre        : ', ns_pre
           write(*,*)'  - ns_post       : ', ns_post

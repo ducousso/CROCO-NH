@@ -104,8 +104,8 @@ contains
        call coarse2fine_xyz(rf,pc,nxc,nyc,nzc)
        
     elseif (trim(grid(lev+1)%coarsening_method).eq.'xz') then
-       call coarse2fine_xz(rf,grid(lev)%w0,grid(lev)%wp, &
-            pc,zf,zc,nxc,nyc,nzc,lev)
+       call coarse2fine_xz(rf,grid(lev)%w0,grid(lev)%wp,pc,zf,zc,nxc,nyc,nzc,lev)
+       !call coarse2fine_xz(rf,pc,nxc,nyc,nzc)
        
     else
        write(*,*)"found no coarsening => STOP"
@@ -274,6 +274,7 @@ contains
   end subroutine coarse2fine_xyz
 
   !------------------------------------------------------------
+  !subroutine coarse2fine_xz(xf,xc,nx,ny,nz)
   subroutine coarse2fine_xz(xf,w0,wp,xc,zf,zc,nx,ny,nz,lev)
 
     real(kind=rp),dimension(:,:,:),pointer,intent(out) :: xf
@@ -296,7 +297,14 @@ contains
     j2 = 1
     j  = 1
 
-    if(lev.ge.1)then
+    a = 9./16.
+    b = 3./16.
+    c = 1./16.
+    d = 3./4.
+    e = 1./4.
+
+!    if (1<0) then
+    if(lev.lt.1)then
        do i=1,nx*2
           i2 = (i+1)/2
           ip = i2-(mod(i,2)*2-1)
@@ -322,9 +330,6 @@ contains
     else
        ! this piece of code is never used (see condition above)
        ! it is kept in case someone wants to use it
-       a = 9./16.
-       b = 3./16.
-       c = 1./16.
        do i=1,nx*2
           i2 = (i+1)/2
           ip = i2-(mod(i,2)*2-1)

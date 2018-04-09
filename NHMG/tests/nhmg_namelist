@@ -3,12 +3,13 @@
        solver_prec    = 1.d-15,         !- Solver precision 
        solver_maxiter = 10,            !- maximum of solver iterations
        nsmall         = 2,             !- smallest dimension ever for the global domain
+       ngather        = 8,             !
        ns_coarsest    = 40,            !- 
        ns_pre         = 3,             !-
        ns_post        = 3,             !-
        autotune       =.false.,        !- autotuning tests
        autotune_ts    = 100,           !- number of solver calls before to activate autotuning test if autotune=.true. 
-       relax_method   = 'GS',          !- 'Gauss-Seidel','GS','Red-Black','RB','Four-Color','FC'
+       relax_method   = 'RB',          !- 'Gauss-Seidel','GS','Red-Black','RB','Four-Color','FC'
        netcdf_output  = .true.,        !- .false. or .true.
        output_freq    = 1,             !- frequency of solver statistics
        surface_neumann = .false.,

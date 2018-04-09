@@ -99,7 +99,7 @@ program nhmg_ncjoin
         elseif (ii == 2) then !- Arg2 = npy
 
            call str2int(a_single_argument,npy,ierr)
-           print "('Nb proc in y:',I2)",npx
+           print "('Nb proc in y:',I2)",npy
            npxy = npx * npy
 
         elseif (ii == 3) then !- Arg3 = dimension order

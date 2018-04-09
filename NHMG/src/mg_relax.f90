@@ -176,8 +176,8 @@ contains
              do j = 1+mod(i+rb,2),ny,2
                 call linerelax_xyz(p,b,cA,i,j,nz)
              enddo
+             call fill_halo(lev,p)
           enddo
-          call fill_halo(lev,p)
        enddo
     enddo
 

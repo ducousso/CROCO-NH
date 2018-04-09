@@ -256,12 +256,7 @@ contains
        nx = grid(lev)%nx
        ny = grid(lev)%ny
        nz = grid(lev)%nz
-       if (nz == 1) then
-          nd = 5
-       else
-          nd = 8
-       endif
-       allocate(grid(lev)%cA(nd,nz,0:ny+1,0:nx+1))
+       allocate(grid(lev)%cA(8,nz,0:ny+1,0:nx+1))
     enddo
 
     ! MPI exhanges for 2D arrays
@@ -555,7 +550,24 @@ contains
     grid(lev)%gather=0
     grid(lev)%ngx = 1
     grid(lev)%ngy = 1
+    grid(lev)%coarsening_method = '---'
 
+    if(( (min(nx,ny)<ngather).and.(ny>1)) .and.(npx*npy>1)) then
+       if (myrank.eq.0)then
+          write(*,*)"------------------------------------------------------------"
+          write(*,200)ngather
+          write(*,201)min(nx,ny)
+          write(*,*)"FIX:"
+          write(*,203)min(nx,ny)
+          write(*,*)"or - decrease number of cores"
+          write(*,*)"------------------------------------------------------------"
+       endif
+       stop
+200    format("WATCH OUT: the gather threshold ",I3," is too large")
+201    format("compared to the subdomain size", I3)
+203    format("   - decrease ngather to ", I3)
+    endif
+    
     do lev = 2, nlevs
        coars=''
        if (mod(nx, 2).eq.0) then
@@ -570,7 +582,7 @@ contains
           nz = nz / 2
           coars = trim(coars)//'z'
        endif
-       grid(lev)%coarsening_method = coars//'   '
+       grid(lev)%coarsening_method = trim(coars)//'   '
 !       write(*,*)lev, grid(lev)%coarsening_method, grid(lev)%relaxation_method
 !       if (nz.eq.1) then ! 2D coarsening
 !          nx = nx/2
@@ -587,21 +599,29 @@ contains
        grid(lev)%gather=0
        grid(lev)%ngx = 1
        grid(lev)%ngy = 1
-
-       if((min(nx,ny)<nsmall).and.(npx*npy>1))then
+       
+       if (ny.eq.1) then
+          if((nx<ngather).and.(npx*npy>1)) grid(lev)%gather=1
+       else
+          if((min(nx,ny)<ngather).and.(npx*npy>1)) grid(lev)%gather=1
+       endif
+       
+       !if((min(nx,ny)<nsmall).and.(npx*npy>1))then
+       if (grid(lev)%gather.eq.1)then
           grid(lev)%gather = 1
           if (npx > 1)then
              npx  = npx/2
              nx   = nx*2             
              grid(lev)%ngx = 2
+             incx=incx*2
           endif
           if (npy > 1)then
              npy  = npy/2
              ny   = ny*2             
              grid(lev)%ngy = 2
+             incy=incy*2
           endif
-          incx=incx*2
-          incy=incy*2
+
 
        endif
 
@@ -612,7 +632,6 @@ contains
        grid(lev)%npy  = npy
        grid(lev)%incx = incx
        grid(lev)%incy = incy
-
     enddo
     do lev=1, nlevs
        relax=''
@@ -761,10 +780,10 @@ contains
           ny = grid(lev)%ny
           nz = grid(lev)%nz
           nd = size(grid(lev)%cA,1)
-          incx=grid(lev)%incx / 2
-          incy=grid(lev)%incy / 2          
           ngx=grid(lev)%ngx
           ngy=grid(lev)%ngy
+          incx=grid(lev)%incx / ngx
+          incy=grid(lev)%incy / ngy          
 
           ! Gather cores by quadruplets (and marginally by pair, for the coarsest grid)
 
@@ -832,7 +851,7 @@ contains
                   " on ",grid(lev)%npx,' x',grid(lev)%npy," procs", &
                   " coars=", grid(lev)%coarsening_method, &
                   " relax=", grid(lev)%relaxation_method, &
-                  "/ gather"
+                  "/gather"
           endif
        enddo
     endif
