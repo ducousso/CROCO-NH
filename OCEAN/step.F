@@ -732,7 +732,7 @@ C$OMP BARRIER
 # else
       halo = 2
 # endif
-      call nhmg_matrices(Lm,Mm,N,halo,padd_X,padd_E,dzdxi,dzdeta,Hz)
+      call nhmg_matrices(Lm,Mm,N,halo,padd_X,padd_E,dzdxi,dzdeta,Hz,z_r)
 # endif
 
 C$OMP BARRIER

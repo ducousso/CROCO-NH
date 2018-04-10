@@ -361,6 +361,7 @@ CR      write(*,*)  ' -5' MYID
       halo = 2
 # endif
       call nhmg_matrices(Lm,Mm,N,halo,padd_X,padd_E,dzdxi,dzdeta,Hz,
+     &                   z_r,
      &                   om_r(0:Lm+1,0:Mm+1),
      &                   on_r(0:Lm+1,0:Mm+1)    )
 #endif

@@ -75,7 +75,7 @@ contains
        do j = 0,ny+1
           do k = 1,nz
              grid(1)%dz(k,j,i) = Hza(i,j,k)
-             grid(1)%zr(k,j,i)   = z_r(i,j,k)
+             grid(1)%zr(k,j,i) = z_r(i,j,k)
           enddo
        enddo
     enddo
