@@ -4,9 +4,14 @@
 ####################################################
 
 . /opt/linux/modules/tcl/init/bash.in
-module unload intel mpich2 netcdf
-module load intel/12.1 mpich2/1.5-intel12 netcdf/4.1.3-intel12
+module purge
 module list
+
+# !! WARNING !!
+# to submit mpich job on IUEM LOPS computers:
+# /usr/bin/mpirun.mpich -np 8 ./croco croco.in.Caldeira
+# mpiru n-np 8 ./croco croco.in.Caldeira -> doesn't work ?
+# !! WARNING !!
 
 #
 # set source, compilation and run directories
@@ -28,7 +33,7 @@ ROOT_DIR=$SOURCE/..
 #
 # compiler options
 #
-LINUX_FC=ifort
+LINUX_FC=gfortran
 
 #
 # If needed set your own NETCDF directories
@@ -40,8 +45,8 @@ NETCDFINC=`nc-config --fflags`
 # set MPI directories if needed
 #
 MPIF90="mpif90"
-MPILIB="-L/opt/linux/mpich2/1.5-intel12.1/lib -lmpich"
-MPIINC="-I/opt/linux/mpich2/1.5-intel12.1/include"
+MPILIB="-L/usr/lib -lmpich"
+MPIINC="-I/usr/lib/mpich/include"
 
 #
 # set OASIS-MCT (or OASIS3) directories if needed
@@ -554,7 +559,7 @@ echo "***********************"
 $MAKE 
 cp -vfu croco $RUNDIR
 #
-if [[ $CONFIGNHMG == 'TRUE' ]] ; then
+if $($CPP1 testkeys.F | grep -i -q nhmgisdefined) ; then
     echo ""
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     echo "** Please verify your LD_LIBRARY_PATH for NHMG library. "
