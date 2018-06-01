@@ -85,7 +85,7 @@ contains
        write(*,*)'NetCDF file name has to finish with .nc'
        write(*,*)'final_netcdf_file_name(size_string-2:size_string) =', &
             final_netcdf_file_name(size_string-2:size_string)
-       stop -1
+       stop
     end if
 
     if (present(vname)) then
@@ -287,7 +287,7 @@ contains
        write(*,*)'NetCDF file name has to finish with .nc'
        write(*,*)'final_netcdf_file_name(size_string-2:size_string) =', &
             final_netcdf_file_name(size_string-2:size_string)
-       stop -1
+       stop
     end if
 
     if (present(vname)) then
@@ -500,7 +500,7 @@ contains
 !!$       write(*,*)'NetCDF file name has to finish with .nc'
 !!$       write(*,*)'final_netcdf_file_name(size_string-2:size_string) =', &
 !!$            final_netcdf_file_name(size_string-2:size_string)
-!!$       stop -1
+!!$       stop
 !!$    end if
 !!$
 !!$    if (present(vname)) then
@@ -714,7 +714,7 @@ contains
        write(*,*)'NetCDF file name has to finish with .nc'
        write(*,*)'final_netcdf_file_name(size_string-2:size_string) =', &
             final_netcdf_file_name(size_string-2:size_string)
-       stop -1
+       stop
     end if
 
     if (present(vname)) then

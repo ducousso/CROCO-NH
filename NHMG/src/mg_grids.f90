@@ -744,7 +744,7 @@ contains
             (grid(1)%neighb(3) /= neighb(3)).or. &
             (grid(1)%neighb(4) /= neighb(4))) then
           write(*,*)'Error: neighbour definition problem !'
-          stop -1
+          stop
        endif
     endif
 

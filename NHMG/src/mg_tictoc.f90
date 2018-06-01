@@ -80,7 +80,7 @@ contains
     integer(kind=st) :: ns
     logical :: flag 
 
-    real(kind=lg)   :: rate
+    integer(kind=lg)   :: rate
 
     call system_clock(count_rate=rate)
 !    call system_clock(count_max=cm)
