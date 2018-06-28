@@ -123,6 +123,8 @@ ${COPY} *.F     $SCRDIR
 ${COPY} *.h     $SCRDIR
 ${COPY} Make*   $SCRDIR
 ${COPY} jobcomp $SCRDIR
+
+${COPY} cppdefs_Caldeira.h     $SCRDIR/cppdefs.h
 #
 # Change directory
 #
