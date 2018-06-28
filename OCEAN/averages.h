@@ -36,6 +36,12 @@
       real rho_avg(GLOBAL_2D_ARRAY,N)
       real omega_avg(GLOBAL_2D_ARRAY,0:N)
       real w_avg(GLOBAL_2D_ARRAY,N)
+!NG june 2018: begin
+#  ifdef NHMG
+      real pnh_avg(GLOBAL_2D_ARRAY,N)
+      common  /avg_pnh/pnh_avg 
+#  endif
+!NG june 2018: end
       common /avg_u/u_avg /avg_v/v_avg /avg_t/t_avg
      &       /avg_rho/rho_avg /avg_omega/omega_avg
      &       /avg_w/w_avg

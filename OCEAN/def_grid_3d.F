@@ -25,9 +25,9 @@
 !                        IDs for dimensions 'eta_v' and 'eta_rho'.
 !            u2dgrd  integer array of size 2, which contains NetCDF
 !                        IDs for dimensions 'xi_rho' and 'eta_u'.
-!            r3dgrd  integer array of size 2, which contains NetCDF
+!            r3dgrd  integer array of size 3, which contains NetCDF
 !                        IDs for dimensions 'N' .
-!            w3dgrd  integer array of size 2, which contains NetCDF
+!            w3dgrd  integer array of size 3, which contains NetCDF
 !                        IDs for dimensions 'N+1'.
       implicit none
       integer ncid, r2dgrd(2), u2dgrd(2), v2dgrd(2), r3dgrd(3), 

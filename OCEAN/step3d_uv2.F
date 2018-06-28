@@ -681,6 +681,11 @@
      &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew) )
 !    &                              z_w(:,:,:)  )
 
+!NG june 2018: get non-hydrostatic pressure (Pnh)
+         call get_Pnh(Lm,Mm,N,halo,padd_X,padd_E,
+     &                Pnh,dt,rho0)    
+!NG june 2018: get non-hydrostatic pressure (Pnh)
+
 !     At this point u,v,w are fluxes with the dimension of m^3/s
       do k=1,N
          do j=Jstr,Jend

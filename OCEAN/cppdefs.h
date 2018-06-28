@@ -816,6 +816,9 @@
 #  undef  ZOS_HSIG
 # endif
 
+                      /* Input/Output & Diagnostics */
+# define AVERAGES
+
 # elif defined SHELFRONT
 /*
 !                       Shelf Front Example

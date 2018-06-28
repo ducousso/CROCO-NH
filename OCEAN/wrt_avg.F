@@ -223,7 +223,7 @@ CR      write(*,*) 'wrt_avg:  wrtT  ' MYID
       if (wrtavg(indxR)) then
          workr=rho_avg+rho0-1000.
          call fillvalue3d(workr,ncidavg,avgR,indxR,record,r3dvar,type) 
-CR      write(*,*) 'wrt_avg:  wrtRHO' MYID
+CR      write(*,*) 'wrt_avg:  wrtRHO' MYID, ncidavg,avgR,indxR  !NG june 2018
       endif
 !     
 !     Write out S-coordinate omega vertical velocity (m/s).
@@ -240,7 +240,20 @@ CR      write(*,*) 'wrt_avg:  wrtO  ' MYID
          workr=w_avg
          call fillvalue3d(workr,ncidavg,avgW,indxW,record,r3dvar,type)
 CR      write(*,*) 'wrt_avg:  wrtW' MYID
-      endif   
+      endif 
+!NG june 2018: begin
+#  ifdef NHMG
+!     
+!     Write out Non-Hydrostatic pressure (pascal).
+!     
+      if (wrtavg(indxPnh)) then
+         workr=pnh_avg
+         call fillvalue3d(workr,ncidavg,avgPnh,indxPnh,
+     &                    record,r3dvar,type)
+!      write(*,*) 'wrt_avg:  wrtPnh' MYID, ncidavg,avgPnh,indxPnh
+      endif
+#  endif
+!NG june 2018: end
 !     
 #  ifdef SST_SKIN
 !     

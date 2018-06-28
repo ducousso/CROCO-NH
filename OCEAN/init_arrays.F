@@ -144,6 +144,11 @@ C$    integer omp_get_thread_num
             u_avg(i,j,k)=init
             v_avg(i,j,k)=init
             w_avg(i,j,k)=init
+!NH june 2018: begin
+#  ifdef NHMG
+            pnh_avg(i,j,k)=init
+#  endif
+!NH june 2018: end
 # endif
 # ifdef MRL_WCI
             ust(i,j,k)=init

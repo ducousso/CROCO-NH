@@ -759,6 +759,7 @@ c        close(testunit)
      &                                             wrthis(indxR)
      &                                          ,  wrthis(indxO)
      &                                          ,  wrthis(indxW)
+     &                                          ,  wrthis(indxPnh) !NG june 2018
      &                                          ,  wrthis(indxAkv)
      &                                          ,  wrthis(indxAkt)
 # ifdef SALINITY
@@ -829,6 +830,7 @@ c        close(testunit)
         if ( wrthis(indxR) 
      &                                        .or. wrthis(indxO) 
      &                                        .or. wrthis(indxW)
+     &                                        .or. wrthis(indxPnh) !NG june 2018
      &                                        .or. wrthis(indxAkv)
      &                                        .or. wrthis(indxAkt)
 # ifdef SALINITY
@@ -881,6 +883,7 @@ c        close(testunit)
      &    wrthis(indxR),    'write RHO  ', 'Density anomaly.'
      &  , wrthis(indxO),    'write Omega', 'Omega vertical velocity.'
      &  , wrthis(indxW),    'write W    ', 'True vertical velocity.'
+     &  , wrthis(indxPnh),  'write Pnh  ', 'Non-hydrostatic pressure.' !NG june 2018
      &  , wrthis(indxAkv),  'write Akv  ', 'Vertical viscosity.'
      &  , wrthis(indxAkt),  'write Akt  ',
      &                      'Vertical diffusivity for temperature.'
@@ -1008,7 +1011,8 @@ c        close(testunit)
       elseif (keyword(1:kwlen).eq.'auxiliary_averages') then
         call cancel_kwd (keyword(1:kwlen), ierr)
         read(input,*,err=95) wrtavg(indxR), wrtavg(indxO)
-     &        ,  wrtavg(indxW),  wrtavg(indxAkv),  wrtavg(indxAkt)
+     &        ,  wrtavg(indxW),  wrtavg(indxPnh), wrtavg(indxAkv)    !NG june 2018
+     &        ,  wrtavg(indxAkt)                                     !NG june 2018
 # ifdef SALINITY
      &                                          ,  wrtavg(indxAks)
 # else 
@@ -1075,6 +1079,7 @@ c        close(testunit)
 # endif
 
         if ( wrtavg(indxR) .or. wrtavg(indxO) .or. wrtavg(indxW)
+     &                   .or. wrtavg(indxPnh)                      !NG june 2018
      &                   .or. wrtavg(indxAkv) .or. wrtavg(indxAkt)
 #  ifdef SALINITY
      &                                        .or. wrtavg(indxAks)
@@ -1128,6 +1133,7 @@ c        close(testunit)
      &    wrtavg(indxR),    'write RHO  ', 'Density anomaly'
      &  , wrtavg(indxO),    'write Omega', 'Omega vertical velocity.'
      &  , wrtavg(indxW),    'write W    ', 'True vertical velocity.'
+     &  , wrtavg(indxPnh),  'write Pnh  ', 'Non-hydrostatic pressure.'  !NG june 2018
      &  , wrtavg(indxAkv),  'write Akv  ', 'Vertical viscosity'
      &  , wrtavg(indxAkt),  'write Akt  ',
      &                      'Vertical diffusivity for temperature.'

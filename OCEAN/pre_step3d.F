@@ -1151,6 +1151,11 @@
          call nhmg_solve(Lm,Mm,N,halo,padd_X,padd_E,
      &          u(:,:,:,nnew),v(:,:,:,nnew),wz(:,:,:,nnew) )
 !    &                              z_w(:,:,:)  )
+
+!NG june 2018: get non-hydrostatic pressure (Pnh)
+         call get_Pnh(Lm,Mm,N,halo,padd_X,padd_E,
+     &                Pnh,dt,rho0)    
+!NG june 2018: get non-hydrostatic pressure (Pnh)
          
          ! add the non-hydro correction (du, dv, dw are in flux form)
          ! add the non-hydrostatic pressure gradient to rufrc, rvfrc

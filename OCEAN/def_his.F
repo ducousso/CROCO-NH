@@ -71,6 +71,9 @@
 # define vidR hisR
 # define vidO hisO
 # define vidW hisW
+!NG june 2018: begin
+# define vidPnh hisPnh
+!NG june 2018: end
 # define vidVisc hisVisc
 # define vidDiff hisDiff
 # define vidAkv hisAkv
@@ -153,6 +156,9 @@
 # define vidR avgR
 # define vidO avgO
 # define vidW avgW
+!NG june 2018: begin
+# define vidPnh avgPnh
+!NG june 2018: end
 # define vidVisc avgVisc
 # define vidDiff avgDiff
 # define vidAkv avgAkv
@@ -751,6 +757,36 @@
           call nf_add_attribute(ncid, vidW, indxW, 5, NF_FOUT, ierr)
 
         endif
+
+!NG june 2018: begin
+# ifdef NHMG
+        if (wrt(indxPnh)) then
+          lvar=lenstr(vname(1,indxPnh))
+          ierr=nf_def_var (ncid, vname(1,indxPnh)(1:lvar),
+     &                          NF_FOUT, 4, r3dgrd, vidPnh)
+!
+#  ifndef AVRH
+          lvar=lenstr(vname(2,indxPnh))
+          ierr=nf_put_att_text (ncid, vidPnh, 'long_name', lvar,
+     &                                  vname(2,indxPnh)(1:lvar))
+#  else
+          text='averaged '/ /vname(2,indxPnh)
+          lvar=lenstr(text)
+          ierr=nf_put_att_text (ncid, vidPnh, 'long_name', lvar,
+     &                                            text(1:lvar))
+#  endif
+          lvar=lenstr(vname(3,indxPnh))
+          ierr=nf_put_att_text (ncid, vidPnh, 'units',     lvar,
+     &                                  vname(3,indxPnh)(1:lvar))
+          lvar=lenstr(vname(4,indxPnh))
+          ierr=nf_put_att_text (ncid, vidPnh, 'field',     lvar,
+     &                                  vname(4,indxPnh)(1:lvar))
+
+          call nf_add_attribute(ncid, vidPnh, indxPnh, 5, NF_FOUT, ierr)
+        endif
+# endif
+!NH june 2018: end
+
 #endif /* SOLVE3D */
 
 !================================================================
@@ -2183,6 +2219,21 @@
             goto 99                                       !--> ERROR
           endif
         endif
+!NG june 2018: begin
+# ifdef NHMG
+!
+! Non-hydrostatic pressure.
+!
+        if (wrt(indxPnh)) then
+          lvar=lenstr(vname(1,indxPnh))
+          ierr=nf_inq_varid (ncid, vname(1,indxPnh)(1:lvar), vidPnh)
+          if (ierr .ne. nf_noerr) then
+            write(stdout,1) vname(1,indxPnh)(1:lvar), ncname(1:lstr)
+            goto 99                                       !--> ERROR
+          endif
+        endif
+# endif
+!NG june 2018: end
 # ifdef VIS_COEF_3D
 !
 ! Horizontal viscosity coefficient.

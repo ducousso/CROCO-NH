@@ -264,6 +264,20 @@ C$    integer omp_get_thread_num
             enddo
           enddo
         endif
+!NG june 2018: begin
+#  ifdef NHMG
+        if (wrtavg(indxPnh)) then
+          do k=1,N
+            do j=JstrR,JendR
+              do i=IstrR,IendR
+                pnh_avg(i,j,k)=cff*(cff1*pnh_avg(i,j,k)
+     &                                     + pnh(i,j,k))
+              enddo
+            enddo
+          enddo
+        endif
+#  endif
+!NG june 2018: end
 #  ifdef LMD_SKPP
         if (wrtavg(indxHbl)) then
           do j=JstrR,JendR

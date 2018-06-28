@@ -269,11 +269,18 @@
 #  endif
 # endif /* BIOLOGY && DIAGNOSTICS_BIO */
 
-      integer indxO, indxW, indxR, indxVisc, indxDiff, indxAkv, indxAkt
+!NG june 2018      integer indxO, indxW, indxR, indxVisc, indxDiff, indxAkv, indxAkt
+      integer indxO, indxW, indxPnh, indxR, indxVisc, indxDiff, 
+     &        indxAkv, indxAkt
+
       parameter (indxO=indxT+ntrc_salt+ntrc_pas+ntrc_bio+ntrc_sed
      &                      +ntrc_diats+ntrc_diauv+ntrc_diabio+1,
-     &           indxW=indxO+1, indxR=indxO+2, indxVisc=indxO+3,
-     &           indxDiff=indxO+4,indxAkv=indxO+5, indxAkt=indxO+6)
+     &           indxW=indxO+1, 
+     &           indxPnh=indxO+2, indxR=indxO+3, indxVisc=indxO+4,
+     &           indxDiff=indxO+5,indxAkv=indxO+6, indxAkt=indxO+7)
+!NG june 2018     &           indxW=indxO+1, indxR=indxO+2, indxVisc=indxO+3,
+!NG june 2018     &           indxDiff=indxO+4,indxAkv=indxO+5, indxAkt=indxO+6)
+
 # ifdef BIOLOGY
 #  ifdef BIO_BioEBUS
       integer indxAOU, indxWIND10
@@ -667,6 +674,7 @@
 #ifdef SOLVE3D
      &      , hisU,   hisV,   hisR,    hisHbl, hisHbbl
      &      , hisO,   hisW,   hisVisc, hisDiff
+     &      , hisPnh                                    !NG june 2018
      &      , hisAkv, hisAkt, hisAks
 # ifdef GLS_MIXING
      &      , hisAkk, hisAkp, hisTke, hisGls, hisLsc
@@ -743,7 +751,7 @@
      &      , avgShflx, avgSwflx, avgShflx_rsw
 # ifdef SOLVE3D
      &      , avgU,   avgV,   avgR,    avgHbl, avgHbbl
-     &      , avgO,   avgW,   avgVisc, avgDiff
+     &      , avgO,   avgW,   avgPnh, avgVisc, avgDiff  !NG june 2018
      &      , avgAkv, avgAkt, avgAks
 # ifdef GLS_MIXING
      &      , avgAkk, avgAkp, avgTke, avgGls, avgLsc
@@ -890,6 +898,7 @@
 #ifdef SOLVE3D
      &      , hisU,    hisV,     hisT,    hisR
      &      , hisO,    hisW,     hisVisc, hisDiff
+     &      , hisPnh                                   !NG june 2018
      &      , hisAkv,  hisAkt,   hisAks
      &      , hisHbl,  hisHbbl
 # ifdef GLS_MIXING
@@ -985,7 +994,7 @@
      &      , avgShflx, avgSwflx, avgShflx_rsw
 # ifdef SOLVE3D
      &      , avgU,    avgV,     avgT,     avgR
-     &      , avgO,    avgW,     avgVisc,  avgDiff
+     &      , avgO,    avgW,     avgPnh, avgVisc,  avgDiff !NG june 2018
      &      , avgAkv,  avgAkt,   avgAks
      &      , avgHbl,  avgHbbl
 #  ifdef GLS_MIXING

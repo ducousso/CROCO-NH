@@ -658,8 +658,19 @@ CR      write(*,*) 'wrt_his:  wrtO  ' MYID
          call fillvalue3d(workr,ncidhis,hisW,indxW,
      &        record,r3dvar,type)
 #endif      
-CR      write(*,*) 'wrt_his:  wrtW  ' MYID
+!      write(*,*) 'wrt_his:  wrtW  ' MYID  ! NG june 2018: uncomment
       endif
+!
+!NG june 2018: begin Pnh
+#if defined NHMG
+      if (wrthis(indxPnh)) then
+         workr=pnh
+         call fillvalue3d(workr,ncidhis,hisPnh,indxPnh,
+     &        record,r3dvar,type)        
+!         write(*,*) 'wrt_his:  wrtPnh  '  
+      endif
+#endif
+!NG june 2018: end Pnh
 !     
 #  ifdef VIS_COEF_3D
 !     
@@ -710,7 +721,7 @@ CR      write(*,*) 'wrt_his:  wrtDiff' MYID
          work=Akv
          call fillvalue3d_w(work,ncidhis,hisAkv,indxAkv,
      &        record,w3dvar,type)
-CR      write(*,*) 'wrt_his:  wrtAkv' MYID
+!      write(*,*) 'wrt_his:  wrtAkv' MYID  !NG june 2018 uncomment
       endif
 !     
 !     Write out vertical diffusion coefficient for potential temperature.

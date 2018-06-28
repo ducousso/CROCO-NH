@@ -1308,6 +1308,15 @@ CR      write(stdout,'(1x,A,I3)') 'indxW =',indxW
       vname(4,indxW)='w-velocity, scalar, series                  '
       vname(5,indxW)='upward_sea_water_velocity                   '
       vname(6,indxW)='lat_rho lon_rho                             '
+
+!NG june 2018: begin
+      vname(1,indxPnh)='Pnh                                         ' 
+      vname(2,indxPnh)='Non-hydrostatic pressure                    '
+      vname(3,indxPnh)='Pascal                                      '
+      vname(4,indxPnh)='Non-hydrostatic pressure, scalar, series    '
+      vname(5,indxPnh)='Non_hydrostatic_pressure                    '
+      vname(6,indxPnh)='lat_rho lon_rho                             '
+!NG june 2018: end
             
 CR      write(stdout,'(1x,A,I3)') 'indxR =',indxR
       vname(1,indxR)='rho                                         '
