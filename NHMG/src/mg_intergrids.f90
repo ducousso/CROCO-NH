@@ -50,6 +50,9 @@ contains
     elseif (trim(grid(lev+1)%coarsening_method).eq.'xz') then
        call fine2coarse_xz(r,b,nx,ny,nz)
 
+    elseif (trim(grid(lev+1)%coarsening_method).eq.'yz') then
+       call fine2coarse_yz(r,b,nx,ny,nz)
+
     end if
 
     if (grid(lev+1)%gather == 1) then
@@ -105,7 +108,10 @@ contains
        
     elseif (trim(grid(lev+1)%coarsening_method).eq.'xz') then
        call coarse2fine_xz(rf,grid(lev)%w0,grid(lev)%wp,pc,zf,zc,nxc,nyc,nzc,lev)
-       !call coarse2fine_xz(rf,pc,nxc,nyc,nzc)
+       
+    elseif (trim(grid(lev+1)%coarsening_method).eq.'yz') then
+       call coarse2fine_yz(rf,grid(lev)%w0,grid(lev)%wp,pc,zf,zc,nxc,nyc,nzc,lev)
+       
        
     else
        write(*,*)"found no coarsening => STOP"
@@ -166,6 +172,27 @@ contains
     enddo
 
   end subroutine fine2coarse_xz
+
+  !------------------------------------------------------------
+  subroutine fine2coarse_yz(x,y,nx,ny,nz)
+    !
+    ! Fine2coarse 'x' from fine level l1 to 'y' on coarse level l2=l1+1
+    real(kind=rp),dimension(:,:,:),pointer,intent(in) :: x
+    real(kind=rp),dimension(:,:,:),pointer,intent(out) :: y
+    integer(kind=ip), intent(in) :: nx, ny, nz
+    ! local
+    integer(kind=ip) :: i,j,k,i2,j2,k2
+
+    i = 1
+    do j2=1,ny
+       j=2*j2-1
+       do k2=1,nz
+          k=2*k2-1
+          y(k2,j,i2) = x(k  ,j,i)+x(k  ,j+1,i)+x(k+1,j,i)+x(k+1,j+1,i)
+       enddo
+    enddo
+
+  end subroutine fine2coarse_yz
 
   !------------------------------------------------------------
   subroutine coarse2fine_xyz(xf,xc,nx,ny,nz)
@@ -274,7 +301,6 @@ contains
   end subroutine coarse2fine_xyz
 
   !------------------------------------------------------------
-  !subroutine coarse2fine_xz(xf,xc,nx,ny,nz)
   subroutine coarse2fine_xz(xf,w0,wp,xc,zf,zc,nx,ny,nz,lev)
 
     real(kind=rp),dimension(:,:,:),pointer,intent(out) :: xf
@@ -350,5 +376,82 @@ contains
     endif
     
   end subroutine coarse2fine_xz
+
+  !------------------------------------------------------------
+  subroutine coarse2fine_yz(xf,w0,wp,xc,zf,zc,nx,ny,nz,lev)
+
+    real(kind=rp),dimension(:,:,:),pointer,intent(out) :: xf
+    real(kind=rp),dimension(:,:,:),pointer,intent(in)  :: xc,zf,zc,w0,wp
+    integer(kind=ip),intent(in) :: nx, ny, nz,lev
+
+    ! local
+    integer(kind=ip) :: i,j,k,i2,j2,k2,kp,jp
+    real(kind=rp) :: a,b,c,d,e,f,g,ww0,wwp
+
+    integer(kind=rp) :: dirichlet_flag
+
+    if (surface_neumann) then
+       dirichlet_flag = 0
+    else
+       dirichlet_flag = 1
+    endif
+
+    ! 
+    i2 = 1
+    i  = 1
+
+    a = 9./16.
+    b = 3./16.
+    c = 1./16.
+    d = 3./4.
+    e = 1./4.
+
+!    if (1<0) then
+    if(lev.lt.1)then
+       do j=1,ny*2
+          j2 = (j+1)/2
+          jp = j2-(mod(j,2)*2-1)
+          do k=1,nz*2-1
+             k2 = (k+1)/2
+             kp = k2-(mod(k,2)*2-1)
+             if(k.eq.1)kp=2
+
+             ! bilinear interpolation using depths of rho points
+             ! as opposed to indices (which yields 0.25 - 0.75 coeff)
+             ! weights are precomputed in mg_vert_grids.f90
+             !
+             xf(k  ,j  ,i  ) =  0.0625*( &
+                  + (    w0(k,j,i)*9+    wp(k,j,i)*3)*xc(k2,j2,i2) &
+                  + (    w0(k,j,i)  +    wp(k,j,i)*3)*xc(k2,jp,i2) &
+                  + ((1-w0(k,j,i))*9+(1-wp(k,j,i))*3)*xc(kp,j2,i2) &
+                  + ((1-w0(k,j,i))  +(1-wp(k,j,i))*3)*xc(kp,jp,i2) )
+          enddo
+          xf(k  ,j  ,i  ) =  (1-hlf*dirichlet_flag)    &
+               * ( d*xc(k2,j2,i2) + e*xc(k2,jp,i2) )
+       enddo
+
+    else
+       ! this piece of code is never used (see condition above)
+       ! it is kept in case someone wants to use it
+       do j=1,ny*2
+          j2 = (j+1)/2
+          jp = j2-(mod(j,2)*2-1)
+          do k=1,nz*2-1
+             k2 = (k+1)/2
+             kp = k2-(mod(k,2)*2-1)
+             if(k.eq.1)kp=2
+             ! bilinear interpolation based on indices location
+             xf(k  ,j  ,i  ) =  &
+                  +     a*xc(k2,j2  ,i2) + b*xc(k2,jp  ,i2) &
+                  +     b*xc(kp,j2  ,i2) + c*xc(kp,jp  ,i2)
+
+          enddo
+          xf(k  ,j  ,i  ) =  (1-hlf*dirichlet_flag)    &
+               * ( d*xc(k2,j2,i2) + e*xc(k2,jp,i2) )
+       enddo
+
+    endif
+    
+  end subroutine coarse2fine_yz
 
 end module mg_intergrids
