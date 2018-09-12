@@ -552,13 +552,14 @@ contains
     grid(lev)%ngy = 1
     grid(lev)%coarsening_method = '---'
 
-    if(( (min(nx,ny)<ngather).and.(ny>1)) .and.(npx*npy>1)) then
+!    if(( (min(nx,ny)<ngather).and.(ny>1)) .and.(npx*npy>1)) then
+    if ((max(nx,ny)<ngather).and.(npx*npy>1)) then
        if (myrank.eq.0)then
           write(*,*)"------------------------------------------------------------"
           write(*,200)ngather
-          write(*,201)min(nx,ny)
+          write(*,201)max(nx,ny)
           write(*,*)"FIX:"
-          write(*,203)min(nx,ny)
+          write(*,203)max(nx,ny)
           write(*,*)"or - decrease number of cores"
           write(*,*)"------------------------------------------------------------"
        endif
