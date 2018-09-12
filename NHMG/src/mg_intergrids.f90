@@ -188,7 +188,7 @@ contains
        j=2*j2-1
        do k2=1,nz
           k=2*k2-1
-          y(k2,j,i2) = x(k  ,j,i)+x(k  ,j+1,i)+x(k+1,j,i)+x(k+1,j+1,i)
+          y(k2,j2,i) = x(k  ,j,i)+x(k  ,j+1,i)+x(k+1,j,i)+x(k+1,j+1,i)
        enddo
     enddo
 
