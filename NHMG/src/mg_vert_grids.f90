@@ -39,7 +39,7 @@ contains
     real(kind=rp), dimension(:,:)  , pointer :: Arz
 
     integer(kind=ip) :: i,j,k
-    integer(kind=ip) :: i2,j2,k2,kp,ip
+    integer(kind=ip) :: i2,j2,k2,kp,ip,jp
 
 !    if (myrank==0) write(*,*)'   - set vertical grids:'
 
@@ -98,15 +98,15 @@ contains
                dzf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) +   &
                dzf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
           
-!!$          zc(1:nzc,1:nyc,1:nxc) =          eighth * ( &
-!!$               dzf(1:nzf  :2,1:nyf  :2,1:nxf  :2) +   &
-!!$               dzf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) +   &
-!!$               dzf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) +   &
-!!$               dzf(1:nzf  :2,2:nyf+1:2,2:nxf+1:2) +   &
-!!$               dzf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) +   &
-!!$               dzf(2:nzf+1:2,2:nyf+1:2,1:nxf  :2) +   &
-!!$               dzf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) +   &
-!!$               dzf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
+          zc(1:nzc,1:nyc,1:nxc) =          eighth * ( &
+               zf(1:nzf  :2,1:nyf  :2,1:nxf  :2) +   &
+               zf(1:nzf  :2,2:nyf+1:2,1:nxf  :2) +   &
+               zf(1:nzf  :2,1:nyf  :2,2:nxf+1:2) +   &
+               zf(1:nzf  :2,2:nyf+1:2,2:nxf+1:2) +   &
+               zf(2:nzf+1:2,1:nyf  :2,1:nxf  :2) +   &
+               zf(2:nzf+1:2,2:nyf+1:2,1:nxf  :2) +   &
+               zf(2:nzf+1:2,1:nyf  :2,2:nxf+1:2) +   &
+               zf(2:nzf+1:2,2:nyf+1:2,2:nxf+1:2) )
           
           ! Call fine2coarse
           zxc(1:nzc,1:nyc,1:nxc) = 2._rp * eighth * ( &
@@ -157,6 +157,34 @@ contains
 !!$               zyf(1:nzf  :2,1,2:nxf+1:2) + &
 !!$               zyf(2:nzf+1:2,1,1:nxf  :2) + &
 !!$               zyf(2:nzf+1:2,1,2:nxf+1:2) )
+          elseif  (trim(grid(lev)%coarsening_method).eq.'yz') then
+          ! Call fine2coarse
+          dzc(1:nzc,1:nyc,1) = 2._rp * qrt * ( &
+               dzf(1:nzf  :2,1:nyf  :2,1) +   &
+               dzf(1:nzf  :2,2:nyf+1:2,1) +   &
+               dzf(2:nzf+1:2,1:nyf  :2,1) +   &
+               dzf(2:nzf+1:2,2:nyf+1:2,1) )
+          
+          zc(1:nzc,1:nyc,1) =         qrt * ( &
+               zf(1:nzf  :2,1:nyf  :2,1) +   &
+               zf(1:nzf  :2,2:nyf+1:2,1) +   &
+               zf(2:nzf+1:2,1:nyf  :2,1) +   &
+               zf(2:nzf+1:2,2:nyf+1:2,1) )
+
+          
+          ! Call fine2coarse
+          zxc(1:nzc,1:nyc,1) = qrt * ( &
+               zxf(1:nzf  :2,1:nyf  :2,1) + &
+               zxf(1:nzf  :2,2:nyf+1:2,1) + &
+               zxf(2:nzf+1:2,1:nyf  :2,1) + &
+               zxf(2:nzf+1:2,2:nyf+1:2,1) )
+
+          ! Call fine2coarse
+          zyc(1:nzc,1:nyc,1) = qrt * ( &
+               zyf(1:nzf  :2,1:nyf  :2,1) + &
+               zyf(1:nzf  :2,2:nyf+1:2,1) + &
+               zyf(2:nzf+1:2,1:nyf  :2,1) + &
+               zyf(2:nzf+1:2,2:nyf+1:2,1) )
           endif
           if (grid(lev)%gather == 1) then
              call gather(lev,dzc,grid(lev)%dz)
@@ -240,6 +268,14 @@ contains
                 enddo
              enddo
           enddo
+       elseif (trim(grid(lev)%relaxation_method).eq.'yz') then
+          do i = 0,nx+1
+             do j = 0,ny+1
+                do k = 1, nz
+                   alpha(k,j,i) = one + (zydx(k,j,i)/dx(j,i))**2
+                enddo
+             enddo
+          enddo
        endif
        
        do i = 0,nx+1
@@ -286,6 +322,27 @@ contains
                 if(k.eq.1)kp=2
                 w0(k,j,i) = (zf(k,j,i)-zc(kp,j2,i2)) / (zc(k2,j2,i2)-zc(kp,j2,i2))
                 wp(k,j,i) = (zf(k,j,i)-zc(kp,j2,ip)) / (zc(k2,j2,ip)-zc(kp,j2,ip))
+             enddo
+          enddo          
+       endif
+       if((lev.ge.1).and.(trim(grid(lev)%coarsening_method).eq.'yz'))then
+          zc => grid(lev)%zr
+          zf => grid(lev-1)%zr
+          w0 => grid(lev-1)%w0
+          wp => grid(lev-1)%wp
+          nx = grid(lev-1)%nx
+          nz = grid(lev-1)%nz
+          i = 1
+          i2 = 1
+          do j=1,nx
+             j2 = (j+1)/2
+             jp = j2-(mod(j,2)*2-1)
+             do k=1,nz-1
+                k2 = (k+1)/2
+                kp = k2-(mod(k,2)*2-1)
+                if(k.eq.1)kp=2
+                w0(k,j,i) = (zf(k,j,i)-zc(kp,j2,i2)) / (zc(k2,j2,i2)-zc(kp,j2,i2))
+                wp(k,j,i) = (zf(k,j,i)-zc(kp,jp,i2)) / (zc(k2,jp,i2)-zc(kp,jp,i2))
              enddo
           enddo          
        endif

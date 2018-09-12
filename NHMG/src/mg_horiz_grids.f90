@@ -101,6 +101,23 @@ contains
           dyvc(1:nyc,1:nxc) = 0.5*(&
                dyvf(1:nyf  :2,1:nxf  :2) + &
                dyvf(1:nyf  :2,2:nxf+1:2) )
+
+          elseif  (trim(grid(lev)%coarsening_method).eq.'yz') then
+          dxc(1:nyc,1:nxc) = hlf      * ( & ! only interior points
+               dxf(1:nyf  :2,1:nxf  :2) + &
+               dxf(2:nyf+1:2,1:nxf  :2) )
+
+          dyc(1:nyc,1:nxc) = hlf      * ( &
+               dyf(1:nyf  :2,1:nxf  :2) + &
+               dyf(2:nyf+1:2,1:nxf  :2) )
+
+          dxuc(1:nyc,1:nxc) = hlf      * ( & ! only interior points
+               dxuf(1:nyf  :2,1:nxf  :2) + &
+               dxuf(2:nyf+1:2,1:nxf  :2) )
+
+          dyvc(1:nyc,1:nxc) = hlf      * ( &
+               dyvf(1:nyf  :2,1:nxf  :2) + &
+               dyvf(2:nyf+1:2,1:nxf  :2) )
           endif
           if (grid(lev)%gather == 1) then
              call gather(lev,dxc,grid(lev)%dx)

@@ -602,8 +602,13 @@ contains
        
        if (ny.eq.1) then
           if((nx<ngather).and.(npx*npy>1)) grid(lev)%gather=1
+
+       elseif (nx.eq.1) then
+          if((ny<ngather).and.(npx*npy>1)) grid(lev)%gather=1
+
        else
           if((min(nx,ny)<ngather).and.(npx*npy>1)) grid(lev)%gather=1
+
        endif
        
        !if((min(nx,ny)<nsmall).and.(npx*npy>1))then

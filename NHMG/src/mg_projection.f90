@@ -252,6 +252,33 @@ contains
                   - Arx(k,j,i+1)/dxu(j,i+1)  
 
        enddo
+       elseif (trim(grid(lev)%relaxation_method).eq.'yz') then
+       i = 1
+          do j = 1,ny
+
+             k = 1 !lower level
+             cA(1,k,j,i) = &
+                  - Arz(j,i) / dzw(k+1,j,i) * hlf * (alpha(k+1,j,i) + alpha(k,j,i)) &
+                  - Ary(k,j  ,i)/dyv(j  ,i) * hlf * (gamv(j,i) + gamv(j-1,i  )) &
+                  - Ary(k,j+1,i)/dyv(j+1,i) * hlf * (gamv(j,i) + gamv(j+1,i  ))
+
+             do k = 2,nz-1 !interior levels
+                cA(1,k,j,i) = &
+                     - Arz(j,i) / dzw(k+1,j,i) * hlf * (alpha(k+1,j,i) + alpha(k,j,i)) &
+                     - Arz(j,i) / dzw(k  ,j,i) * hlf * (alpha(k-1,j,i) + alpha(k,j,i)) &
+                     - Ary(k,j  ,i)/dyv(j  ,i)  &
+                     - Ary(k,j+1,i)/dyv(j+1,i)
+             enddo
+
+             k=nz ! upper level
+             cA(1,k,j,i) = &
+                  - Arz(j,i) / dzw(k+1,j,i) * alpha(k,j,i) * dirichlet_flag &
+                  - Arz(j,i) / dzw(k  ,j,i) * hlf * (alpha(k-1,j,i) + alpha(k,j,i)) &
+                  - Ary(k,j  ,i)/dyv(j  ,i)  &
+                  - Ary(k,j+1,i)/dyv(j+1,i)
+
+          enddo
+
        endif
 
     else ! if lev.eq.1
@@ -445,13 +472,23 @@ contains
     py => grid(1)%py
     pz => grid(1)%pz
 
-    do i = 1,nx+1
-        do j = 0,ny+1
-          do k = 1,nz
-             px(k,j,i) = -one / dxu(j,i) * (p(k,j,i)-p(k,j,i-1))
+    if (trim(grid(1)%relaxation_method).eq.'yz')then
+       do i = 1,nx+1
+          do j = 0,ny+1
+             do k = 1,nz
+                px(k,j,i) = 0.
+             enddo
           enddo
        enddo
-    enddo
+    else
+       do i = 1,nx+1
+          do j = 0,ny+1
+             do k = 1,nz
+                px(k,j,i) = -one / dxu(j,i) * (p(k,j,i)-p(k,j,i-1))
+             enddo
+          enddo
+       enddo
+    endif
     if (trim(grid(1)%relaxation_method).eq.'xz')then
        do i = 0,nx+1
           do j = 0,ny+1 
@@ -490,40 +527,49 @@ contains
 
     du => grid(1)%du
 
-    do i = 1,nx+1  
-       do j = 1,ny 
-          k = 1
-          gamma = one - qrt * ( &
-               (zxdy(k,j,i  )/dy(j,i  ))**2/alpha(k,j,i  ) + &
-               (zxdy(k,j,i-1)/dy(j,i-1))**2/alpha(k,j,i-1) )
-          du(k,j,i) = gamma * Arx(k,j,i) * px(k,j,i) &
-               - qrt * ( &
-               + zxdy(k,j,i  ) * dzw(k+1,j,i  ) * pz(k+1,j,i  ) &
-               + zxdy(k,j,i-1) * dzw(k+1,j,i-1) * pz(k+1,j,i-1) )  &
-               - beta(j,i-1)   * dyv(j  ,i-1)   * py(k,j  ,i-1) &
-               - beta(j,i-1)   * dyv(j+1,i-1)   * py(k,j+1,i-1) &
-               - beta(j,i  )   * dyv(j  ,i  )   * py(k,j  ,i  ) &
-               - beta(j,i  )   * dyv(j+1,i  )   * py(k,j+1,i  )
+    if (trim(grid(1)%relaxation_method).eq.'yz')then
+       do i = 1,nx+1  
+          do j = 1,ny
+             do k = 1,nz
+                du(k,j,i) = 0.
+             enddo
+          enddo
+       enddo
+    else
+       do i = 1,nx+1  
+          do j = 1,ny 
+             k = 1
+             gamma = one - qrt * ( &
+                  (zxdy(k,j,i  )/dy(j,i  ))**2/alpha(k,j,i  ) + &
+                  (zxdy(k,j,i-1)/dy(j,i-1))**2/alpha(k,j,i-1) )
+             du(k,j,i) = gamma * Arx(k,j,i) * px(k,j,i) &
+                  - qrt * ( &
+                  + zxdy(k,j,i  ) * dzw(k+1,j,i  ) * pz(k+1,j,i  ) &
+                  + zxdy(k,j,i-1) * dzw(k+1,j,i-1) * pz(k+1,j,i-1) )  &
+                  - beta(j,i-1)   * dyv(j  ,i-1)   * py(k,j  ,i-1) &
+                  - beta(j,i-1)   * dyv(j+1,i-1)   * py(k,j+1,i-1) &
+                  - beta(j,i  )   * dyv(j  ,i  )   * py(k,j  ,i  ) &
+                  - beta(j,i  )   * dyv(j+1,i  )   * py(k,j+1,i  )
 
-          do k = 2,nz-1 
+             do k = 2,nz-1 
+                du(k,j,i) = Arx(k,j,i) * px(k,j,i) &
+                     - qrt * ( &
+                     + zxdy(k,j,i  ) * dzw(k  ,j,i  ) * pz(k  ,j,i  ) &
+                     + zxdy(k,j,i  ) * dzw(k+1,j,i  ) * pz(k+1,j,i  ) &
+                     + zxdy(k,j,i-1) * dzw(k  ,j,i-1) * pz(k  ,j,i-1) &
+                     + zxdy(k,j,i-1) * dzw(k+1,j,i-1) * pz(k+1,j,i-1) )
+             enddo
+
+             k = nz
              du(k,j,i) = Arx(k,j,i) * px(k,j,i) &
                   - qrt * ( &
-                  + zxdy(k,j,i  ) * dzw(k  ,j,i  ) * pz(k  ,j,i  ) &
-                  + zxdy(k,j,i  ) * dzw(k+1,j,i  ) * pz(k+1,j,i  ) &
-                  + zxdy(k,j,i-1) * dzw(k  ,j,i-1) * pz(k  ,j,i-1) &
-                  + zxdy(k,j,i-1) * dzw(k+1,j,i-1) * pz(k+1,j,i-1) )
+                  + zxdy(k,j,i  ) *       dzw(k  ,j,i  ) * pz(k  ,j,i  ) &
+                  + zxdy(k,j,i  ) * two * dzw(k+1,j,i  ) * pz(k+1,j,i  ) * dirichlet_flag &
+                  + zxdy(k,j,i-1) *       dzw(k  ,j,i-1) * pz(k  ,j,i-1) &
+                  + zxdy(k,j,i-1) * two * dzw(k+1,j,i-1) * pz(k+1,j,i-1) * dirichlet_flag )
           enddo
-
-          k = nz
-          du(k,j,i) = Arx(k,j,i) * px(k,j,i) &
-               - qrt * ( &
-               + zxdy(k,j,i  ) *       dzw(k  ,j,i  ) * pz(k  ,j,i  ) &
-               + zxdy(k,j,i  ) * two * dzw(k+1,j,i  ) * pz(k+1,j,i  ) * dirichlet_flag &
-               + zxdy(k,j,i-1) *       dzw(k  ,j,i-1) * pz(k  ,j,i-1) &
-               + zxdy(k,j,i-1) * two * dzw(k+1,j,i-1) * pz(k+1,j,i-1) * dirichlet_flag )
        enddo
-    enddo
-
+    endif
     !! Correction for V - 
 
     dv => grid(1)%dv
