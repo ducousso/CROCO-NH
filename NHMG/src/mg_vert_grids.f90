@@ -151,12 +151,13 @@ contains
                zxf(2:nzf+1:2,1,2:nxf+1:2) )
 
 
-!!$          ! Call fine2coarse
-!!$          zyc(1:nzc,1,1:nxc) = qrt * (       &
-!!$               zyf(1:nzf  :2,1,1:nxf  :2) + &
-!!$               zyf(1:nzf  :2,1,2:nxf+1:2) + &
-!!$               zyf(2:nzf+1:2,1,1:nxf  :2) + &
-!!$               zyf(2:nzf+1:2,1,2:nxf+1:2) )
+          ! Call fine2coarse
+          zyc(1:nzc,1,1:nxc) = qrt * (       &
+               zyf(1:nzf  :2,1,1:nxf  :2) + &
+               zyf(1:nzf  :2,1,2:nxf+1:2) + &
+               zyf(2:nzf+1:2,1,1:nxf  :2) + &
+               zyf(2:nzf+1:2,1,2:nxf+1:2) )
+          
           elseif  (trim(grid(lev)%coarsening_method).eq.'yz') then
           ! Call fine2coarse
           dzc(1:nzc,1:nyc,1) = 2._rp * qrt * ( &

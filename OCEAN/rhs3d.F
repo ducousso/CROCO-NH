@@ -270,7 +270,7 @@
          ! wrk1 is the vertical momentum at RHO-points
         do j=JstrV-1,Jend
           do i=IstrU-1,Iend
-             wrk1(i,j) = 0.5*(
+             wrk1(i,j) = 0.5*Hz(i,j,k)*(
      &            wz(i,j,k,nrhs)+wz(i,j,k-1,nrhs)
      &           + dzdxi(i,j,k)*(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
      &           +dzdeta(i,j,k)*(v(i,j,k,nrhs)+v(i,j+1,k,nrhs)) )
@@ -279,13 +279,13 @@
         do j=Jstr,Jend
           do i=IstrU,Iend
             ru(i,j,k)=ru(i,j,k)
-     &          + 0.5*( wrk1(i,j)*feta(i,j) + wrk1(i-1,j)*feta(i-1,j) )
+     &          + 0.5*( wrk1(i,j)*fetaomn(i,j) + wrk1(i-1,j)*fetaomn(i-1,j) )
           enddo
         enddo        
         do j=JstrV,Jend
           do i=Istr,Iend
             rv(i,j,k)=rv(i,j,k)
-     &          - 0.5*( wrk1(i,j)*fxi(i,j) + wrk1(i,j-1)*fxi(i,j-1) )
+     &          - 0.5*( wrk1(i,j)*fxiomn(i,j) + wrk1(i,j-1)*fxiomn(i,j-1) )
           enddo
         enddo        
 #endif
