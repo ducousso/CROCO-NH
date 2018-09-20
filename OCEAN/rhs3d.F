@@ -279,13 +279,13 @@
         do j=Jstr,Jend
           do i=IstrU,Iend
             ru(i,j,k)=ru(i,j,k)
-     &          + 0.5*( wrk1(i,j)*fetaomn(i,j) + wrk1(i-1,j)*fetaomn(i-1,j) )
+     &          - 0.5*( wrk1(i,j)*fetaomn(i,j) + wrk1(i-1,j)*fetaomn(i-1,j) )
           enddo
         enddo        
         do j=JstrV,Jend
           do i=Istr,Iend
             rv(i,j,k)=rv(i,j,k)
-     &          - 0.5*( wrk1(i,j)*fxiomn(i,j) + wrk1(i,j-1)*fxiomn(i,j-1) )
+     &          + 0.5*( wrk1(i,j)*fxiomn(i,j) + wrk1(i,j-1)*fxiomn(i,j-1) )
           enddo
         enddo        
 #endif
@@ -780,28 +780,28 @@
          ! FC is the vertical momentum at W-points
          do k = 1,N
             do i=Istr,Iend
-               FC(i,k) = 0.5*(
-     &  -(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
-     &    * ( feta(i,j) * (1+dzdxi(i,j,k)**2)
-     &      -  fxi(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) )
-     &  +(v(i,j,k,nrhs)+v(i,j+1,k,nrhs))
-     &    * ( fxi(i,j) * (1+dzdeta(i,j,k)**2)
-     &      -feta(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) ) )
+               FC(i,k) = 0.5*Hz(i,j,k)*(
+     &  +(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
+     &    * ( fetaomn(i,j) * (1+dzdxi(i,j,k)**2)
+     &      -  fxiomn(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) )
+     &  -(v(i,j,k,nrhs)+v(i,j+1,k,nrhs))
+     &    * ( fxiomn(i,j) * (1+dzdeta(i,j,k)**2)
+     &      -fetaomn(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) ) )
             enddo
          enddo
          do k = 1,N-1
             do i=Istr,Iend
                rw(i,j,k) = rw(i,j,k) + 0.5*(FC(i,k)+FC(i,k+1))
-     & +wz(i,j,k,nrhs)*0.5*(
-     &   fxi(i,j)*(dzdeta(i,j,k)+dzdeta(i,j,k+1))
-     & +feta(i,j)*( dzdxi(i,j,k)+ dzdxi(i,j,k+1)) )
+     & +wz(i,j,k,nrhs)*0.5*Hz(i,j,k)*(
+     &   fxiomn(i,j)*(dzdeta(i,j,k)+dzdeta(i,j,k+1))
+     & -fetaomn(i,j)*( dzdxi(i,j,k)+ dzdxi(i,j,k+1)) )
             enddo
          enddo
          do i=Istr,Iend
             rw(i,j,N) = rw(i,j,N) + FC(i,N)
-     & +wz(i,j,N,nrhs)*(
-     &   fxi(i,j)*dzdeta(i,j,N)
-     & +feta(i,j)* dzdxi(i,j,N) )
+     & +wz(i,j,N,nrhs)*Hz(i,j,N)*(
+     &   fxiomn(i,j)*dzdeta(i,j,N)
+     & -fetaomn(i,j)* dzdxi(i,j,N) )
          enddo
 
 #  endif
