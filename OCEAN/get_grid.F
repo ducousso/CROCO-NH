@@ -130,6 +130,33 @@
         write(stdout,1) 'f', grdname(1:lstr)
         goto 99                                           !--> ERROR
       endif
+#if defined NONTRAD_COR
+!
+! Horizontal components of the Coriolis parameter
+! FXI and FETA
+      ierr=nf_inq_varid (ncid, 'fxi', varid)
+      if (ierr .eq. nf_noerr) then
+        ierr=nf_fread (fxi(START_2D_ARRAY), ncid, varid, 0, r2dvar)
+        if (ierr .ne. nf_noerr) then
+          write(stdout,2) 'fxi', grdname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+      else
+        write(stdout,1) 'fxi', grdname(1:lstr)
+        goto 99                                           !--> ERROR
+      endif
+      ierr=nf_inq_varid (ncid, 'feta', varid)
+      if (ierr .eq. nf_noerr) then
+        ierr=nf_fread (feta(START_2D_ARRAY), ncid, varid, 0, r2dvar)
+        if (ierr .ne. nf_noerr) then
+          write(stdout,2) 'feta', grdname(1:lstr)
+          goto 99                                         !--> ERROR
+        endif
+      else
+        write(stdout,1) 'feta', grdname(1:lstr)
+        goto 99                                           !--> ERROR
+      endif
+#endif
 #if defined NBQ && defined UV_COR_HORIZ
 !
 ! Horizontal Coriolis parameter.
