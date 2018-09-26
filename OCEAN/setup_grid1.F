@@ -47,9 +47,9 @@ C$    integer omp_get_thread_num
       cff = 4*pi/day2sec
       do j=JstrR,JendR
          do i=IstrR,IendR
-               f(i,j) =                  sin(lat_rho(i,j)*deg2rad)*cff
-             fxi(i,j) = sin(angler(i,j))*cos(lat_rho(i,j)*deg2rad)*cff
-            feta(i,j) = cos(angler(i,j))*cos(lat_rho(i,j)*deg2rad)*cff
+               f(i,j) =                  sin(latr(i,j)*deg2rad)*cff
+             fxi(i,j) = sin(angler(i,j))*cos(latr(i,j)*deg2rad)*cff
+            feta(i,j) = cos(angler(i,j))*cos(latr(i,j)*deg2rad)*cff
          enddo
       enddo
 #endif
