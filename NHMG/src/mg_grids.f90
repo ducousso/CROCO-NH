@@ -849,10 +849,12 @@ contains
     real(kind=rp)                                               , intent(in)  :: rho0
 
     integer(kind=ip) :: i, j, k
+    real(kind=rp):: cff
+    cff = 1./(dt*rho0)
     do i = 1,nx
        do j = 1,ny 
           do k = 1,nz
-             pnh(i,j,k) = grid(1)%p(k,j,i) / (dt*rho0)
+             pnh(i,j,k) = grid(1)%p(k,j,i)*cff
           enddo
        enddo
     enddo
