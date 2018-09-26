@@ -192,6 +192,35 @@ contains
 
   end subroutine nhmg_solve
 
+  !---------------------------------------------------------------------
+  ! Pnh = Non-Hydrostatic Pressure (in Pascal)
+  !
+  subroutine get_pnh(nx,ny,nz,hl,pdx,pdy,pnh,dt,rho0)
+
+    integer(kind=ip), intent(in) :: nx,ny,nz
+    integer(kind=ip), intent(in) :: hl,pdx,pdy
+
+    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz), intent(out) :: pnh
+    real(kind=rp)                                               , intent(in)  :: dt
+    real(kind=rp)                                               , intent(in)  :: rho0
+
+    integer(kind=ip) :: i, j, k
+    real(kind=rp):: cff
+
+    ! p, the solution of the Poisson equation, is the NH-pressure-time-increment
+    ! p/dt is the NH pressure (up to rho0 factor)
+    ! rho0*p/dt is the real NH pressure (in Pascal)
+    cff = rho0/dt
+    do i = 1,nx
+       do j = 1,ny 
+          do k = 1,nz
+             pnh(i,j,k) = grid(1)%p(k,j,i)*cff
+          enddo
+       enddo
+    enddo
+
+  end subroutine get_pnh
+
 !!$  !--------------------------------------------------------------
 !!$  subroutine nhmg_checkdivergence(ua,va,wa,Hza)
 !!$!! Move this to the Croco side

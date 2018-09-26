@@ -439,7 +439,8 @@ contains
     real(kind=rp), dimension(:,:,:), pointer :: du,dv,dw
 
     integer(kind=ip) :: dirichlet_flag
- 
+    real(kind=rp) :: cff
+    
 !    if (myrank==0) write(*,*)'   - compute pressure gradient and translate to fluxes'
 
     if (surface_neumann) then
@@ -483,8 +484,9 @@ contains
     else
        do i = 1,nx+1
           do j = 0,ny+1
+             cff = 1./dxu(j,i)
              do k = 1,nz
-                px(k,j,i) = -one / dxu(j,i) * (p(k,j,i)-p(k,j,i-1))
+                px(k,j,i) = - (p(k,j,i)-p(k,j,i-1))*cff
              enddo
           enddo
        enddo
@@ -499,9 +501,10 @@ contains
        enddo
     else
        do i = 0,nx+1
-          do j = 1,ny+1 
+          do j = 1,ny+1
+             cff=1./dyv(j,i)
              do k = 1,nz
-                py(k,j,i) = -one / dyv(j,i) * (p(k,j,i)-p(k,j-1,i))
+                py(k,j,i) = -(p(k,j,i)-p(k,j-1,i))*cff
              enddo
           enddo
        enddo
@@ -514,11 +517,11 @@ contains
           pz(k,j,i) = 9999999999.
 
           do k = 2,nz !interior levels
-             pz(k,j,i) = -one / dzw(k,j,i) * (p(k,j,i)-p(k-1,j,i))
+             pz(k,j,i) = - (p(k,j,i)-p(k-1,j,i))/dzw(k,j,i)
           enddo
 
           k = nz+1 !surface
-          pz(k,j,i) =  -one / dzw(k,j,i) * (-p(k-1,j,i)) * dirichlet_flag
+          pz(k,j,i) =  p(k-1,j,i)/dzw(k,j,i) * dirichlet_flag
 
        enddo
     enddo
