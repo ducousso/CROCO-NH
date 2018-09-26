@@ -57,7 +57,8 @@ contains
 
     ! residual returns both 'r' and its norm
     call compute_residual(1,rnorm) 
-    res0   = rnorm/bnorm
+    rnorm = rnorm/bnorm
+    res0 = rnorm
     rnorm0 = res0
 
     do while ((nite < solver_maxiter).and.(res0 > solver_prec))
@@ -90,14 +91,17 @@ contains
        ! the rescaled time should be expressed in terms of error reduction,
        ! therefore the ratio rnorm/rnorm0
        perf = (tend-tstart)*(rnpxg*rnpyg)/(-log(rnorm/rnorm0)/log(10._rp))/(rnxg*rnyg*rnzg)
-       write(*,*)'     --- summary ---'
-       write(*,'(A,F8.3,A)')"     time spent to solve :",tend-tstart," s"
-       write(*,'(A,E10.3)') "          error reduction:",-log(rnorm/rnorm0)/log(10._rp)
-       write(*,'(A,E10.3)') "     rescaled performance:",perf
+       write(*,*)'     ---------------'
+       write(*,'(A,ES10.2,A)')"                 norm rhs :",bnorm
+       write(*,'(A,ES10.2,A)')"         initial norm res :",rnorm0
+       write(*,'(A,ES10.2,A)')"         final   norm res :",rnorm
+       write(*,'(A,ES10.2,A)')"       time spent to solve:",tend-tstart," s"
+       write(*,'(A,F5.1,A)')  "           error reduction:",-log(rnorm/rnorm0)/log(10._rp)," digits"
+       write(*,'(A,ES10.2,A)')"      rescaled performance:",perf," s / grid point / digit"
        write(*,*)'     ---------------'
     end if
 
-10  format("     ite = ",I2,": res = ",E10.3," / conv = ",F10.3)
+10  format("      ite = ",I2,": res = ",ES10.2," / conv = ",ES10.2)
 
   end subroutine solve_p
 
