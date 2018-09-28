@@ -837,31 +837,6 @@ contains
   end subroutine define_gather_informations
 
   !---------------------------------------------------------------------
-  ! Pnh = Non-Hydrostatic Pressure in Pascal.
-  !
-  subroutine get_pnh(nx,ny,nz,hl,pdx,pdy,pnh,dt,rho0)
-
-    integer(kind=ip), intent(in) :: nx,ny,nz
-    integer(kind=ip), intent(in) :: hl,pdx,pdy
-
-    real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz), intent(out) :: pnh
-    real(kind=rp)                                               , intent(in)  :: dt
-    real(kind=rp)                                               , intent(in)  :: rho0
-
-    integer(kind=ip) :: i, j, k
-    real(kind=rp):: cff
-    cff = 1./(dt*rho0)
-    do i = 1,nx
-       do j = 1,ny 
-          do k = 1,nz
-             pnh(i,j,k) = grid(1)%p(k,j,i)*cff
-          enddo
-       enddo
-    enddo
-
-  end subroutine get_pnh
-
-  !---------------------------------------------------------------------
   subroutine print_grids()
     integer(kind=ip) :: lev,ierr
 
