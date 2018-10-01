@@ -59,7 +59,7 @@
 !-------------------------------------------------------------------- 
 !
 #ifdef NHMG
-      use nhmg, only : nhmg_solve
+      use nhmg, only : nhmg_solve, get_pnh
       use mg_grids
       use mg_tictoc, only : tic, toc
 #endif
