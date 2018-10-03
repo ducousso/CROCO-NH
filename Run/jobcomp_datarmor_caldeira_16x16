@@ -1,0 +1,557 @@
+#!/bin/bash
+####################################################
+#               COMPILATION JOB                    #
+####################################################
+
+source /usr/share/Modules/3.2.10/init/bash
+module purge
+module load NETCDF/4.3.3.1-mpt-intel2016
+
+#
+# set source, compilation and run directories
+#
+SOURCE=../OCEAN
+SCRDIR=${DATAWORK}/CROCO-NH/Compile
+RUNDIR=`pwd`
+ROOT_DIR=$SOURCE/..
+
+#
+# determine operating system
+#
+OS=`uname`
+echo "OPERATING SYSTEM IS: $OS"
+
+NBPROC="16x16"
+# NBPROC="2x2"
+# NBPROC="32x32" not available on datarmor !
+# NBPROC="32x30"
+
+#
+# compiler options
+#
+LINUX_FC=mpif90
+
+#
+# If needed set your own NETCDF directories
+#
+NETCDFLIB=`nf-config --flibs`
+NETCDFINC=`nf-config --fflags`
+
+#
+# set MPI directories if needed
+#
+#attention au module
+MPIF90="mpif90"
+MPILIB=""
+MPIINC=""
+
+#
+# set OASIS-MCT (or OASIS3) directories if needed
+#
+PRISM_ROOT_DIR=../../../oasis3-mct/compile_oa3-mct
+
+#
+# set XIOS directory if needed
+#
+XIOS_ROOT_DIR=$HOME/xios-1.0
+#
+
+#
+# set NHMG directory if needed
+#
+NHMGPATH=${HOME}/CROCO-NH/NHMG_LIB
+
+# END OF USER'S MODIFICATIONS
+####################################################
+#
+# Use GNU Make command
+#
+MAKE=make
+#
+# clean scratch area
+#
+rm -rf $SCRDIR
+mkdir -p $SCRDIR
+#
+# AGRIF sources directory
+#
+AGRIF_SRC=${ROOT_DIR}/AGRIF
+#
+# COPY command (set here cp, rsink, etc and options)
+#
+COPY="/bin/cp -fup"
+#
+# copy SOURCE code
+#
+${COPY} ${SOURCE}/*.F90 $SCRDIR
+${COPY} ${SOURCE}/*.h90 $SCRDIR
+${COPY} ${SOURCE}/*.F   $SCRDIR
+${COPY} ${SOURCE}/*.h   $SCRDIR
+${COPY} ${SOURCE}/Make* $SCRDIR
+${COPY} ${SOURCE}/testkeys.F $SCRDIR
+${COPY} ${SOURCE}/jobcomp $SCRDIR
+${COPY} ${SOURCE}/amr.in $SCRDIR
+${COPY} ${AGRIF_SRC} $SCRDIR
+${COPY} ${ROOT_DIR}/XIOS/*.F $SCRDIR
+${COPY} ${ROOT_DIR}/PISCES/* $SCRDIR
+${COPY} ${ROOT_DIR}/PISCES/kRGB61* $RUNDIR
+
+#
+# overwrite with local files
+#
+${COPY} *.F90 $SCRDIR
+${COPY} *.h90 $SCRDIR
+${COPY} *.F $SCRDIR
+${COPY} *.h $SCRDIR
+${COPY} Make* $SCRDIR
+${COPY} jobcomp $SCRDIR
+
+#
+# Caldeira special copy
+#
+${COPY} ${ROOT_DIR}/Run/cppdefs_caldeira.h $SCRDIR/cppdefs.h
+${COPY} ${ROOT_DIR}/Run/param_caldeira_${NBPROC}.h   $SCRDIR/param.h
+#
+# Change directory
+#
+cd $SCRDIR
+#
+# generates LDFLAGS1 according to users notifications
+#
+LDFLAGS1="$NETCDFLIB"
+#
+CPPFLAGS1="$NETCDFINC"
+#
+# Set compilation options
+#
+if [[ $OS == Linux ]] ; then           # ===== LINUX =====
+	if [[ $LINUX_FC == mpif90 ]] ; then
+		CPP1="cpp -traditional -DLinux -DIfort"
+		CFT1="$LINUX_FC"
+		FFLAGS1="-O3  -shared-intel -shared-libgcc -mcmodel=large -72 -fno-alias -i4 -r8 -fp-model precise -xHost $NETCDFINC"
+		LDFLAGS1="$LDFLAGS1"
+	elif [[ $LINUX_FC == gfortran ]] ; then
+		CPP1="cpp -traditional -DLinux"
+		CFT1=gfortran
+		FFLAGS1="-O3 -fdefault-real-8 -fdefault-double-8 -mcmodel=medium"
+#		 FFLAGS1="-O0 -g -fdefault-real-8 -fdefault-double-8 -fbacktrace \
+#			-fbounds-check -finit-real=nan -finit-integer=8888"
+		LDFLAGS1="$LDFLAGS1"
+	fi
+elif [[ $OS == Darwin ]] ; then        # ===== DARWIN =====
+	CPP1="cpp -traditional -DLinux"
+	if [[ $DARWIN_FC == gfortran ]] ; then  
+        	CFT1="gfortran"
+        	FFLAGS1="-O4 -fdefault-real-8 -fdefault-double-8"
+#	 	FFLAGS1="-O0 -g -fdefault-real-8 -fdefault-double-8 -fbacktrace \
+#			-fbounds-check -finit-real=nan -finit-integer=8888"
+	else
+		CFT1="ifort"
+		FFLAGS1="-O2 -r8 -i4 -g -72"
+#		FFLAGS1="-O0 -g -traceback -debug all -r8 -i4 -g -72"
+	fi
+elif [[ $OS == AIX ]] ; then           # ===== IBM =====
+	CPP1="/lib/cpp"
+	CFT1="xlf95 -I$HOME/include/"
+	if  [[ $BITS == THIRTYTWO ]] ; then
+		MAKEAGRIF="Makefile.ibm"
+		FFLAGS1="-qfixed -O5 -qstrict -qalias=noaryovrlp -qhot -qrealsize=8 \
+			-qintsize=4 -qarch=auto -qtune=auto -qcache=auto -bmaxdata:0x80000000"
+#		FFLAGS1="-g -qfixed -O2 -qstrict -qalias=noaryovrlp -qrealsize=8 \
+#			-qintsize=4 -qarch=auto -qtune=auto -qcache=auto -bmaxdata:0x80000000"
+	else
+		MAKEAGRIF="Makefile.ibm.64"
+		FFLAGS1="-q64 -qwarn64 -qfixed -qrealsize=8 -qintsize=8 -qhot \
+			-qalias=noaryovrlp -qthreaded -O3 -qarch=pwr4 -qtune=pwr4 -qunroll=yes"
+	fi
+elif [[ $OS == OSF1 ]] ; then          # ===== COMPAQ =====
+	CPP1="/lib/cpp"
+	CFT1="f95"
+	FFLAGS1="-fast -i4 -r8"
+elif [[ $OS == IRIX64 ]] ; then        # ===== SGI =====
+	CPP1="/usr/freeware/bin/cpp -traditional"
+	CFT1="f90"
+	FFLAGS1="-O2"
+elif [[ $OS == SunOS ]] ; then         # ===== SUN ===== :  tested on SunFire 880 (SPARC III)
+	GREP="/usr/xpg4/bin/grep"      #                         and Sun Ultra-60 (SPARC II)
+	CPP1=/lib/cpp
+	CFT1="f95"
+	if [[ $BITS == THIRTYTWO ]] ; then
+		MAKEAGRIF="Makefile.sun"
+		FFLAGS1="-O5 -xtarget=native -xprefetch -xtypemap=real:64,double:128 -xlibmopt"
+	else
+		MAKEAGRIF="Makefile.sun.64"
+		FFLAGS1="-O5 -xtarget=native64 -xprefetch -xtypemap=real:64,double:128 -xlibmopt "
+	fi
+else
+	echo "Unknown Operating System"
+	exit
+fi
+#
+# determine if AGRIF compilation is required
+#
+unset COMPILEAGRIF
+echo ""
+echo "******************************"
+echo "** Checking COMPILEAGRIF... **"
+echo "******************************"
+if $($CPP1 testkeys.F | grep -i -q agrifisdefined) ; then
+	echo " => AGRIF activated"
+	COMPILEAGRIF=TRUE
+	FFLAGS1="$FFLAGS1 -IAGRIF"
+	LDFLAGS1="-LAGRIF -lagrif $LDFLAGS1"
+# we use the AGRIF Makedefs.generic definition
+	${COPY} Makedefs.generic.AGRIF Makedefs.generic
+fi
+#
+# determine if MPI compilation is required
+#
+unset COMPILEMPI
+echo ""
+echo "****************************"
+echo "** Checking COMPILEMPI... **"
+echo "****************************"
+if $($CPP1 testkeys.F | grep -i -q mpiisdefined) ; then
+	echo " => MPI activated"
+	COMPILEMPI=TRUE
+	LDFLAGS1="$LDFLAGS1 $MPILIB"
+	CPPFLAGS1="$CPPFLAGS1 $MPIINC"
+	FFLAGS1="$FFLAGS1 $MPIINC"
+	CFT1="$MPIF90"
+fi
+#
+# determine if NBQ related solvers (BLAS/LAPACK) are required
+#
+unset COMPILENBQ
+echo ""
+echo "****************************"
+echo "** Checking COMPILENBQ... **"
+echo "****************************"
+if $($CPP1 testkeys.F | grep -i -q nbqisdefined) ; then
+	echo " => NBQ activated"
+	COMPILENBQ=TRUE
+	LDFLAGS1="-lblas -llapack $LDFLAGS1"
+	FFLAGS1="$FFLAGS1 -ffree-line-length-none"
+fi
+#
+# determine if NHMG is required
+# and check if a configuration submition is needed.
+# To force a configuration submition, 
+# please remove the "config.log" file in CROCO's NHMG directory.
+# (Nicolas.Grima@univ-brest.fr nov 2107)
+#
+echo ""
+echo "*****************************"
+echo "** Checking COMPILENHMG... **"
+echo "*****************************"
+if $($CPP1 testkeys.F | grep -i -q nhmgisdefined) ; then
+    if [[ $COMPILEAGRIF ]] ; then
+        echo ""
+        echo "*******************************************"
+        echo "** You CAN'T use AGRIF and NHMG together **"
+        echo "*******************************************"
+        echo ""
+        exit
+    fi
+    if [[ ! $COMPILEMPI ]] ; then
+        echo ""
+        echo "******************************************"
+        echo "** You have to activate MPI to use NHMG **"
+        echo "******************************************"
+        echo ""
+        exit
+    fi
+	echo "=> NHMG key is activated in cppdefs.h file"
+
+    # NHMG source directory
+    NHMG_SRCDIR="${RUNDIR}/../NHMG"
+
+    # Transform relative path to absolute path (if needed).
+    # Because configure command accept only absolute path.
+    NHMGPATH=`readlink -f ${NHMGPATH}`
+    echo "NHMGPATH: ${NHMGPATH}"
+
+    # Check if a config.log file exist in CROCO's NHMG directory?
+    if [[ -f ${NHMG_SRCDIR}/config.log ]] ; then
+
+        # Check if exit = 0 in the CROCO's NHMG config.log file ?
+        oexit=`grep -e 'exit' ${NHMG_SRCDIR}/config.log | grep -Po 'exit \K[^ ]+'`
+        # if oexit='0' no configuration is needed except if options are different
+        if [[ ${oexit} == '0' ]] ; then   
+           CONFIGNHMG=FALSE
+
+           # Test if configure options are similar or different !
+           # If one of them is different a configuration step will be made.
+           #
+           # Test prefix
+           oprefix=`grep -e '$ ./configure' ${NHMG_SRCDIR}/config.log | grep -Po 'prefix=\K[^ ]+'`
+           if [[ ! ${oprefix} == ${NHMGPATH} ]] ; then
+               echo "NHMGPATH is different: ${oprefix} <=> ${NHMGPATH}"       
+               CONFIGNHMG=TRUE
+           fi
+           # Test the mpi fortran compiler
+           ompif90=`grep -e '$ ./configure' ${NHMG_SRCDIR}/config.log | grep -Po 'MPI_F90=\K[^ ]+'`
+           if [[ ! ${ompif90} == ${MPIF90} ]] ; then 
+               echo "MPIF90 is different: ${ompif90} <=> ${MPIF90}"  
+               CONFIGNHMG=TRUE
+           fi
+           # Test the mpi include path
+           ompiinc=`grep -e '$ ./configure' ${NHMG_SRCDIR}/config.log | grep -Po 'MPI_INC=\K[^ ]+'`
+           dummy="${MPIINC%% *}"
+           if [[ ! ${ompiinc} == ${dummy} ]] ; then               
+               echo "MPIINC is different: ${ompiinc} <=> ${dummy}" 
+               CONFIGNHMG=TRUE
+           fi
+           # test the mpi library path
+           ompilib=`grep -e '$ ./configure' ${NHMG_SRCDIR}/config.log | grep -Po 'MPI_LIB=\K[^ ]+'`
+           dummy="${MPILIB%% *}"
+           if [[ ! ${ompilib} == ${dummy} ]] ; then
+               echo "MPILIB is different: ${ompilib} <=> ${dummy}"
+               CONFIGNHMG=TRUE
+           fi
+        else
+           echo "oexit: $oexit"
+	       CONFIGNHMG=TRUE       # else configuration is needed
+        fi
+    else
+       CONFIGNHMG=TRUE           # no config.log file => submit ./configure
+    fi
+    echo 'Configure NHMG: '${CONFIGNHMG}
+
+    # Compilation will be made and managed by the command make
+	COMPILENHMG=TRUE
+    echo 'Compile NHMG: '${COMPILENHMG}
+
+	LDFLAGS1="-L${NHMGPATH}/lib -lnhmg $LDFLAGS1"
+	FFLAGS1="-I${NHMGPATH}/include $FFLAGS1"
+fi
+#
+# determine if XIOS compilation is required
+#
+unset COMPILEXIOS
+echo ""
+echo "*****************************"
+echo "** Checking COMPILEXIOS... **"
+echo "*****************************"
+if $($CPP1 testkeys.F | grep -i -q xiosisdefined) ; then
+        echo " => XIOS activated"
+        COMPILEXIOS=TRUE
+        LDFLAGS1="$LDFLAGS1 $XIOS_ROOT_DIR/lib/libxios.a  -lstdc++ -lnetcdff"
+        CPPFLAGS1="$CPPFLAGS1 -I$XIOS_ROOT_DIR/inc"
+        FFLAGS1="$FFLAGS1 -I$XIOS_ROOT_DIR/inc"
+        ln -s $XIOS_ROOT_DIR/bin/xios_server.exe $RUNDIR/.
+        $CPP1 -P -traditional -imacros cppdefs.h  ../field_def.xml_full ../field_def.xml
+fi
+#
+# determine if OASIS compilation is required
+#
+unset COMPILEOASIS
+echo ""
+echo "******************************"
+echo "** Checking COMPILEOASIS... **"
+echo "******************************"
+if $($CPP1 testkeys.F | grep -i -q oacplisdefined) ; then
+    echo " => OASIS activated"
+    CHAN=MPI1
+    if $($CPP1 testkeys.F | grep -i -q oacpl_mctisdefined) ; then
+	echo " => OASIS-MCT activated"
+	LIBPSMILE="${PRISM_ROOT_DIR}/lib/libpsmile.${CHAN}.a \
+		${PRISM_ROOT_DIR}/lib/libmct.a  \
+		${PRISM_ROOT_DIR}/lib/libmpeu.a \
+		${PRISM_ROOT_DIR}/lib/libscrip.a"
+	PSMILE_INCDIR="-I${PRISM_ROOT_DIR}/build/lib/psmile.${CHAN} \
+		-I${PRISM_ROOT_DIR}/build/lib/mct"
+    elif $($CPP1 testkeys.F | grep -i -q oacpl_oa3isdefined) ; then
+	echo " => OASIS3 activated"
+	LIBPSMILE="${PRISM_ROOT_DIR}/lib/libanaisg.a \
+		${PRISM_ROOT_DIR}/lib/libanaism.a \
+		${PRISM_ROOT_DIR}/lib/libclim.${CHAN}.a \
+		${PRISM_ROOT_DIR}/lib/libpsmile.${CHAN}.a \
+		${PRISM_ROOT_DIR}/lib/libfscint.a  \
+		${PRISM_ROOT_DIR}/lib/libmpp_io.a \
+		${PRISM_ROOT_DIR}/lib/libscrip.a"
+	PSMILE_INCDIR="-I${PRISM_ROOT_DIR}/build/lib/psmile.${CHAN} \
+		-I${PRISM_ROOT_DIR}/build/lib/clim.${CHAN} \
+		-I${PRISM_ROOT_DIR}/build/lib/mpp_io"
+    fi
+    COMPILEOASIS=TRUE
+    LDFLAGS1="$LDFLAGS1 $LIBPSMILE"
+    CPPFLAGS1="$CPPFLAGS1 ${PSMILE_INCDIR}"
+    FFLAGS1="$FFLAGS1 ${PSMILE_INCDIR}"
+fi
+#
+# rewrite Makedefs according to previous flags
+# with MPI flags if needed
+#
+rm -f Makedefs
+echo 's?$(FFLAGS1)?'$FFLAGS1'?g' > flags.tmp
+echo 's?$(LDFLAGS1)?'$LDFLAGS1'?g' >> flags.tmp
+echo 's?$(CPP1)?'$CPP1'?g' >> flags.tmp
+echo 's?$(CFT1)?'$CFT1'?g' >> flags.tmp
+echo 's?$(CPPFLAGS1)?'$CPPFLAGS1'?g' >> flags.tmp
+sed -f flags.tmp Makedefs.generic > Makedefs
+rm -f flags.tmp
+
+#
+# clean scratch
+#
+#$MAKE clobber
+
+#
+# compile the precompiling program
+#
+if [[ ! -f ${SCRDIR}/mpc ]] ; then
+    echo ""
+    echo "Compiling  mpc tool..."
+    $MAKE mpc
+fi
+
+#
+# prepare and compile the library
+#
+if [[ $COMPILEAGRIF ]] ; then
+    echo ""
+    echo "***********************"
+    echo "** AGRIF compilation **"
+    echo "***********************"
+#
+# compile the AGRIF librairy
+#
+	if [[ $COMPILEMPI ]] ; then
+		$MAKE -C AGRIF FC="$CFT1" CPP="$CPP1" CPPFLAGS="-DAGRIF_MPI $MPIINC" FFLAGS="$FFLAGS1"
+	else
+		$MAKE -C AGRIF FC="$CFT1" CPP="$CPP1" FFLAGS="$FFLAGS1"
+	fi
+	if [[ $OS == Darwin ]] ; then          # DARWIN
+# run RANLIB on Darwin system
+		ranlib AGRIF/libagrif.a
+	fi
+#
+	$CPP1 amr.in | grep -v -e ! -e '#' -e % -e '*' > amr.scrum
+	mkdir ROMSFILES
+	mv AGRIF/conv ROMSFILES/.
+	mv amr.scrum ROMSFILES/.
+	cd ROMSFILES
+	mkdir AGRIF_MODELFILES
+	mkdir AGRIF_INC
+	cd ..
+	for i in *.h *.h90 ; do
+		echo $i
+		cat cppdefs.h $i | cpp -P | grep -v -e ! -e '#' -e % -e '*' > ROMSFILES/$i
+	done
+	mv -f ROMSFILES/private_scratch_AMR.h ROMSFILES/private_scratch.h
+fi
+
+
+#
+# Configure NHMG library (if needed)
+#
+if [[ $CONFIGNHMG == 'TRUE' ]] ; then
+    echo ""
+    echo "************************"
+    echo "** NHMG configuration **"
+    echo "************************"
+    echo "  - prefix: ", ${NHMGPATH}
+    echo "  - MPI_F90:", ${MPIF90}
+    echo "  - MPI_INC:", ${MPIINC}
+    echo "  - MPI_LIB:", ${MPILIB}
+    wwa=`pwd`
+    cd ${NHMG_SRCDIR}
+    #
+    # To know "configure" available options
+    # please enter "../NHMG/configure --help | grep -e '--enable-'"
+    # If you change here an option, you have to remove the config.log file
+    # in the CROCO's NHMG directory (if it is present).
+    # "rm ../NHMG/config.log"
+    #
+    # Options "--prefix=","--enable-mpicroco","MPI_F90=","MPI_INC", "MPI_LIB"
+    # have to be present and set (they are not options :-)
+    #
+    NETCDF_INC=${NETCDFINC}
+    NETCDF_LIB=${NETCDFLIB}
+    ./configure --prefix="${NHMGPATH}" --enable-netcdf \
+        --enable-mpicroco MPI_F90="${MPIF90}" MPI_INC="${MPIINC}" MPI_LIB="${MPILIB}"
+#  Enables netcdf for NHMG development
+#   ./configure --prefix="${NHMGPATH}" --enable-netcdf \
+#       --enable-mpicroco MPI_F90="${MPIF90}" MPI_INC="${MPIINC}" MPI_LIB="${MPILIB}"
+    ${MAKE} clean AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+    cd ${wwa}
+fi
+
+#
+# Compile NHMG library and install it in NHMGPATH
+#
+if [[ $COMPILENHMG == 'TRUE' ]] ; then
+    echo ""
+    echo "**********************"
+    echo "** NHMG compilation **"
+    echo "**********************"
+    wwa=`pwd`
+    cd ${NHMG_SRCDIR}
+    # make command check timestamp source files and compile them only if it is necessary
+    ${MAKE} install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+    cd ${wwa}
+fi
+
+#
+# determine if OPENMP compilation is needed
+#
+unset COMPILEOMP
+if $($CPP1 testkeys.F | grep -i -q openmp) ; then
+	COMPILEOMP=TRUE
+	if [[ $OS == Linux ]] ; then
+		if [[ $LINUX_FC == gfortran ]] ; then
+			FFLAGS1="$FFLAGS1 -fopenmp"
+		elif [[ $LINUX_FC == ifort || $LINUX_FC == ifc ]] ; then
+			FFLAGS1="$FFLAGS1 -openmp"
+		else
+			FFLAGS1="$FFLAGS1 -openmp"
+		fi
+	elif [[ $OS == Darwin ]] ; then 
+		if [[ $DARWIN_FC == gfortran ]] ; then 
+			FFLAGS1="$FFLAGS1 -fopenmp"
+    		else
+			FFLAGS1="$FFLAGS1 -openmp"
+		fi
+	elif [[ $OS == AIX ]] ; then
+		FFLAGS1="$FFLAGS1 -qsmp=omp"
+		CFT1="xlf95_r"
+	elif [[ $OS == OSF1   ]] ; then
+		FFLAGS1="$FFLAGS1 -omp"
+	elif [[ $OS == IRIX64 ]] ; then
+		FFLAGS1="$FFLAGS1 -mp"
+	elif [[ $OS == SunOS  ]] ; then 
+		FFLAGS1="$FFLAGS1 -openmp"
+	fi
+fi
+
+#
+# rewrite Makedefs according to previous flags
+# with openmp flags if needed
+#
+rm -f Makedefs
+echo 's?$(FFLAGS1)?'$FFLAGS1'?g' > flags.tmp
+echo 's?$(LDFLAGS1)?'$LDFLAGS1'?g' >> flags.tmp
+echo 's?$(CPP1)?'$CPP1'?g' >> flags.tmp
+echo 's?$(CFT1)?'$CFT1'?g' >> flags.tmp
+echo 's?$(CPPFLAGS1)?'$CPPFLAGS1'?g' >> flags.tmp
+sed -f flags.tmp Makedefs.generic > Makedefs
+rm -f flags.tmp
+
+#
+# compile croco
+#
+$MAKE 
+mv croco $RUNDIR/croco_caldeira_${NBPROC}
+#
+#
+#
+if $($CPP1 testkeys.F | grep -i -q nhmgisdefined) ; then
+    echo ""
+    echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    echo "** Please verify your LD_LIBRARY_PATH for NHMG library. "
+    echo "** You can update it using one of these two commands: "
+    echo "** (csh)  setenv LD_LIBRARY_PATH \$LD_LIBRARY_PATH:${NHMGPATH}/lib"
+    echo "** (bash) export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${NHMGPATH}/lib"
+    echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+fi
