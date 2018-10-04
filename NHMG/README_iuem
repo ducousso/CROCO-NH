@@ -87,6 +87,13 @@ Memory check (valgrind):
 -----------------------
 mpirun -np 4 valgrind --leak-check=full --undef-value-errors=yes --log-file=memcheck.%p ./testseamount
 
+-- sep 2018 --
+DOC --> http://valgrind.org/docs/manual/ms-manual.html <--
+export LD_LIBRARY_PATH=/local/tmp/1/grima/lib:$LD_LIBRARY_PATH
+mpirun -np 1 valgrind --tool=massif --stacks=yes  ./croco croco.in.Caldeira
+ms_print massif.out.xxxxx   (xxxxx represents the process ID)
+-- sep 2018 --
+
 Oprofile:
 --------
 /usr/bin/ophelp > oprofile_list_events.txt
