@@ -15,13 +15,19 @@ module nhmg
 
   implicit none
 
-    integer(kind=ip) :: tscount = 1
+  ! Variables declared bellow have implicit SAVE attribut.
+  ! Values are saved when routine is finished and calls again
+
+  ! store the number of nhmg_solve calls
+  integer(kind=ip) :: tscount = 1 
+  ! a counter used to decided if the solver is called or pressure extrapolation
+  integer(kind=ip) :: nite    = 1   
 
 contains
 
   !--------------------------------------------------------------
   subroutine nhmg_init(nx,ny,nz,npxg,npyg)
-      
+
     integer(kind=ip), intent(in) :: nx, ny, nz
     integer(kind=ip), intent(in) :: npxg, npyg
 
@@ -91,9 +97,13 @@ contains
 
     call fill_outer_halos(grid(1)%dz,nx,ny,nz)
 
-    call set_vert_grids()
+    if ((nite >= nskip).or.(tscount <= tstart))  then
 
-    call set_matrices()
+       call set_vert_grids()
+
+       call set_matrices()
+
+    endif
 
     call toc(1,'nhmg_matrices')
 
@@ -153,31 +163,73 @@ contains
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz  ),intent(in)   :: va
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz+1),intent(inout):: wa
 
-    integer(kind=ip) :: i,j,k
+    integer(kind=ip) :: i,j,k, oo
 
     call tic(1,'nhmg_solve')
 
-    !  Fill the rhs for the poisson equation
-    do i = 1,nx
-       do j = 1,ny 
-          do k = 1,nz
-             grid(1)%b(k,j,i) = ua(i+1,j,k) - ua(i,j,k) &
-                              + va(i,j+1,k) - va(i,j,k) &
-                              + wa(i,j,k+1) - wa(i,j,k)
+    ! tstart, corder, ptextrap are defined in mg_namelist.f90
+
+    ! First test, nite >= nskip, is made to avoid an explicit calculation
+    ! of the pressure correction.
+    ! Second test, tscount <= tstart, is made to force the compuation
+    ! of the pressure correction at the begining of the run.
+    if ((nite >= nskip).or.(tscount <= tstart))  then
+
+       !  Fill the rhs for the poisson equation
+       do i = 1,nx
+          do j = 1,ny 
+             do k = 1,nz
+                grid(1)%b(k,j,i) = ua(i+1,j,k) - ua(i,j,k) &
+                     + va(i,j+1,k) - va(i,j,k) &
+                     + wa(i,j,k+1) - wa(i,j,k)
+             enddo
           enddo
        enddo
-    enddo
 
-    !- auto tuning tests if autotune = .true.
-    if ((tscount == autotune_ts).and.(autotune)) then
-       call sb_autotune()  !- test of autotuning
-    end if
+       !- auto tuning tests if autotune = .true.
+       if ((tscount == autotune_ts).and.(autotune)) then
+          call sb_autotune()  !- test of autotuning
+       end if
 
-    call solve_p()   
+       !- SOLVER -!
+       call solve_p()
+       !- SOLVER -!
+
+       ! save pressure correction for extrapolation
+       if ((nskip > 1).and.(mod(tscount-1,nskip)==0)) then
+          grid(1)%phis(:,:,:,corder) = grid(1)%p(:,:,:)
+          corder = corder + 1
+          if (corder > (order + 1)) corder = 1
+          if (tscount >  tstart) extrap_pt(:) = cshift(extrap_pt(:),-1)
+
+          ! TODO: an extrapolation error could be estimated by
+          ! comparison between the explicit calculation of the
+          ! pressure correction and its extrapolation.
+          ! error = grid(1)%p(:,:,:) - extrap_pressure(:,:,:)
+
+       endif
+
+       nite = 1
+
+    else 
+
+       grid(1)%p(:,:,:) = 0._8 !TODO: verify that was not already made
+
+       ! extrapolation !
+       do oo=1,order+1
+          grid(1)%p(:,:,:) = grid(1)%p(:,:,:) + &
+               extrap_coef(oo,nite) * grid(1)%phis(:,:,:,extrap_pt(oo)) 
+       enddo
+
+       nite = nite + 1
+
+    endif
 
     tscount = tscount + 1
 
+    !- APPLY PRESSURE CORRECTION -!
     call correction_uvw()
+    !- APPLY PRESSURE CORRECTION -!
 
     if (netcdf_output) then
        call write_netcdf(grid(1)%b,vname='b',netcdf_file_name='so.nc',rank=myrank,iter=1)
@@ -302,17 +354,17 @@ contains
 !!$
 !!$  end subroutine nhmg_checkdivergence
 
-  !--------------------------------------------------------------
+!--------------------------------------------------------------
 
-  subroutine nhmg_clean()
+subroutine nhmg_clean()
 
-    !   call grids_dealloc()
+  !   call grids_dealloc()
 
-    if (myrank==0) then
-       call print_tictoc(myrank)
-    endif
+ if (myrank==0) then
+    call print_tictoc(myrank)
+ endif
 
-  end subroutine nhmg_clean
+end subroutine nhmg_clean
 
 end module nhmg
 

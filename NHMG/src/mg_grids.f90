@@ -80,6 +80,9 @@ module mg_grids
      real(kind=rp),dimension(:,:,:)  ,pointer :: dv => null()
      real(kind=rp),dimension(:,:,:)  ,pointer :: dw => null()
 
+     ! pressure history to make interpolaion if needed (nskip >1)
+     real(kind=rp),dimension(:,:,:,:),pointer :: phis => null()
+
      character*3 :: coarsening_method
      character*3 :: relaxation_method
      
@@ -242,6 +245,10 @@ contains
     allocate(grid(lev)%du(1:nz  ,0:ny+1,0:nx+1))
     allocate(grid(lev)%dv(1:nz  ,0:ny+1,0:nx+1))
     allocate(grid(lev)%dw(1:nz+1,0:ny+1,0:nx+1))
+
+    if (nskip > 1) then
+       allocate(grid(1)%phis(nz,0:ny+1,0:nx+1,order+1))
+    endif
 
     do lev=1,nlevs ! 
        nx = grid(lev)%nx
