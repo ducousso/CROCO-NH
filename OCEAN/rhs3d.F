@@ -786,7 +786,7 @@
      &      -  fxiomn(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) )
      &  -(v(i,j,k,nrhs)+v(i,j+1,k,nrhs))
      &    * ( fxiomn(i,j) * (1+dzdeta(i,j,k)**2)
-     &      -fetaomn(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) ) )
+     &      +fetaomn(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) ) )
             enddo
          enddo
          do k = 1,N-1
