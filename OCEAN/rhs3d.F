@@ -783,27 +783,27 @@
                FC(i,k) = 0.5*Hz(i,j,k)*(
      &  +(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
      &    * ( fetaomn(i,j) * (1+dzdxi(i,j,k)**2)
-     &      - fxiomn(i,j)*dzdxi(i,j,k)*dzdeta(i,j,k)
-     &      - dzdxi(i,j,k)*fomn(i,j) )
+     &      - fxiomn(i,j)*dzdxi(i,j,k)*dzdeta(i,j,k) )
+!     &      + dzdxi(i,j,k)*fomn(i,j) )
      &  -(v(i,j,k,nrhs)+v(i,j+1,k,nrhs))
      &    * ( fxiomn(i,j) * (1+dzdeta(i,j,k)**2)
-     &       +fetaomn(i,j)*dzdxi(i,j,k)*dzdeta(i,j,k) )
-     &       +dzdeta(i,j,k)*fomn(i,j) )
+     &       +fetaomn(i,j)*dzdxi(i,j,k)*dzdeta(i,j,k) ))
+!     &       +dzdeta(i,j,k)*fomn(i,j) )
             enddo
          enddo
          do k = 1,N-1
             do i=Istr,Iend
                rw(i,j,k) = rw(i,j,k) + 0.5*(FC(i,k)+FC(i,k+1))
      & +wz(i,j,k,nrhs)*0.5*Hz(i,j,k)*(
-     &   fxiomn(i,j)*(dzdeta(i,j,k)+dzdeta(i,j,k+1))
-     & -fetaomn(i,j)*( dzdxi(i,j,k)+ dzdxi(i,j,k+1)) )
+     & -fxiomn(i,j)*(dzdeta(i,j,k)+dzdeta(i,j,k+1))
+     & +fetaomn(i,j)*( dzdxi(i,j,k)+ dzdxi(i,j,k+1)) )
             enddo
          enddo
          do i=Istr,Iend
             rw(i,j,N) = rw(i,j,N) + FC(i,N)
      & +wz(i,j,N,nrhs)*Hz(i,j,N)*(
-     &   fxiomn(i,j)*dzdeta(i,j,N)
-     & -fetaomn(i,j)* dzdxi(i,j,N) )
+     & -fxiomn(i,j)*dzdeta(i,j,N)
+     & +fetaomn(i,j)* dzdxi(i,j,N) )
          enddo
 
 #  endif
