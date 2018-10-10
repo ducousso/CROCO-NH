@@ -783,10 +783,12 @@
                FC(i,k) = 0.5*Hz(i,j,k)*(
      &  +(u(i,j,k,nrhs)+u(i+1,j,k,nrhs))
      &    * ( fetaomn(i,j) * (1+dzdxi(i,j,k)**2)
-     &      -  fxiomn(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) )
+     &      - fxiomn(i,j)*dzdxi(i,j,k)*dzdeta(i,j,k)
+     &      - dzdxi(i,j,k)*fomn(i,j) )
      &  -(v(i,j,k,nrhs)+v(i,j+1,k,nrhs))
      &    * ( fxiomn(i,j) * (1+dzdeta(i,j,k)**2)
-     &      +fetaomn(i,j) * dzdxi(i,j,k)*dzdeta(i,j,k) ) )
+     &       +fetaomn(i,j)*dzdxi(i,j,k)*dzdeta(i,j,k) )
+     &       +dzdeta(i,j,k)*fomn(i,j) )
             enddo
          enddo
          do k = 1,N-1
