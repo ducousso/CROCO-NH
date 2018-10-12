@@ -25,7 +25,7 @@ contains
     integer(kind=ip) :: nx, ny, nz
 
     call tic(lev,'fine2coarse')
-    
+
     nx = grid(lev+1)%nx
     ny = grid(lev+1)%ny
     nz = grid(lev+1)%nz
@@ -81,8 +81,10 @@ contains
 
     integer(kind=ip) :: nxc, nyc, nzc
 
+    integer(kind=ip) :: kk, jj, ii
+
     call tic(lev,'coarse2fine')
-    
+
     nxc = grid(lev+1)%nx
     nyc = grid(lev+1)%ny
     nzc = grid(lev+1)%nz
@@ -120,7 +122,19 @@ contains
 
     call fill_halo(lev,grid(lev)%r)
 
-    grid(lev)%p = grid(lev)%p + grid(lev)%r
+    !!NG sep 2018
+    !! We use do-loops to avoid stack overflow with Intel compiler !!
+	!! It's avoid also a copy in memory due to the fact that we use pointers
+	!! (not necessary considered as contiguous in memory for compilers)
+	!! rather than allocatable arrays in grid structure (derived type).
+    !! old command => grid(lev)%p = grid(lev)%p + grid(lev)%r
+    do ii = lbound(grid(lev)%p,dim=3), ubound(grid(lev)%p,dim=3)
+       do jj = lbound(grid(lev)%p,dim=2), ubound(grid(lev)%p,dim=2)
+          do kk = lbound(grid(lev)%p,dim=1), ubound(grid(lev)%p,dim=1)
+             grid(lev)%p(kk,jj,ii) = grid(lev)%p(kk,jj,ii) + grid(lev)%r(kk,jj,ii)
+          enddo
+       enddo
+    enddo
 
     call toc(lev,'coarse2fine')
 
