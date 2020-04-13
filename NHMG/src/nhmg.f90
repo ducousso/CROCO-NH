@@ -22,16 +22,26 @@ module nhmg
   integer(kind=ip) :: tscount = 1 
   ! a counter used to decided if the solver is called or pressure extrapolation
   integer(kind=ip) :: nite    = 1   
+  
+  integer :: iprec1, iprec2
+  integer :: halo, hl, pdx, pdy
+  integer :: nx, ny, nz
 
 contains
 
   !--------------------------------------------------------------
-  subroutine nhmg_init(nx,ny,nz,npxg,npyg)
+  subroutine nhmg_init(Lm,Mm,N,NP_XI,NP_ETA,padd_X,padd_E)
 
-    integer(kind=ip), intent(in) :: nx, ny, nz
-    integer(kind=ip), intent(in) :: npxg, npyg
+    integer(kind=ip), intent(in) :: Lm,Mm,N,NP_XI,NP_ETA,padd_X,padd_E
 
     call tic(1,'nhmg_init')
+
+    nx = Lm
+    ny = Mm
+    nz = N
+    pdx = padd_X
+    pdy = padd_E
+    hl = halo
 
     call mg_mpi_init()
 
@@ -39,7 +49,7 @@ contains
 
     call read_nhnamelist(vbrank=myrank)
 
-    call define_grids(npxg,npyg,nx,ny,nz)
+    call define_grids(NP_XI,NP_ETA,nx,ny,nz)
 
     call define_neighbours()
 
@@ -50,10 +60,10 @@ contains
   end subroutine nhmg_init
 
   !--------------------------------------------------------------
-  subroutine nhmg_matrices(nx,ny,nz,hl,pdx,pdy,zxa,zya,Hza,z_r,dxa,dya)
+  subroutine nhmg_matrices(zxa,zya,Hza,z_r,dxa,dya)
 
-    integer(kind=ip), intent(in) :: nx,ny,nz
-    integer(kind=ip), intent(in) :: hl,pdx,pdy
+!    integer(kind=ip), intent(in) :: nx,ny,nz
+!    integer(kind=ip), intent(in) :: hl,pdx,pdy
 
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in) :: zxa,zya
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz),intent(in) :: Hza,z_r
@@ -154,10 +164,10 @@ contains
 
   end subroutine fill_outer_halos
   !--------------------------------------------------------------
-  subroutine nhmg_solve(nx,ny,nz,hl,pdx,pdy,ua,va,wa)
+  subroutine nhmg_solve(ua,va,wa)
 
-    integer(kind=ip), intent(in) :: nx,ny,nz
-    integer(kind=ip), intent(in) :: hl,pdx,pdy
+!    integer(kind=ip), intent(in) :: nx,ny,nz
+!    integer(kind=ip), intent(in) :: hl,pdx,pdy
 
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz  ),intent(in)   :: ua
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz  ),intent(in)   :: va
@@ -247,10 +257,10 @@ contains
   !---------------------------------------------------------------------
   ! Pnh = Non-Hydrostatic Pressure (in Pascal)
   !
-  subroutine get_pnh(nx,ny,nz,hl,pdx,pdy,pnh,dt,rho0)
+  subroutine get_pnh(pnh,dt,rho0)
 
-    integer(kind=ip), intent(in) :: nx,ny,nz
-    integer(kind=ip), intent(in) :: hl,pdx,pdy
+!    integer(kind=ip), intent(in) :: nx,ny,nz
+!    integer(kind=ip), intent(in) :: hl,pdx,pdy
 
     real(kind=rp), dimension(1-hl:nx+hl+pdx,1-hl:ny+hl+pdy,1:nz), intent(out) :: pnh
     real(kind=rp)                                               , intent(in)  :: dt
