@@ -179,7 +179,7 @@ contains
        endif
 
        if (rank == 0) then
-          write(*,*)'  Non hydrostatic parameters:'
+          write(*,*)'  Multigrid parameters:'
           write(*,*)'  - solver_prec   : ', solver_prec
           write(*,*)'  - solver_maxiter: ', solver_maxiter
           write(*,*)'  - solver_cycle  : ', trim(solver_cycle)
@@ -196,8 +196,9 @@ contains
           write(*,*)'  - netcdf_output : ', netcdf_output
           write(*,*)'  - output freq   : ', output_freq
           write(*,*)'  - surf neumann  : ', surface_neumann
-          write(*,*)'  - E/W periodic  : ', east_west_perio
-          write(*,*)'  - N/S periodic  : ', north_south_perio
+! these parameters are overwritten in nhmg_init()
+!          write(*,*)'  - E/W periodic  : ', east_west_perio
+!          write(*,*)'  - N/S periodic  : ', north_south_perio
           write(*,*)'  '
 
           if (nskip > 1) then

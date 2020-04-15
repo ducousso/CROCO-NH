@@ -19,6 +19,15 @@ contains
   end subroutine mg_mpi_init
 
   !---------------------------------------------------------------------
+  subroutine mg_mpi_abort()
+
+    integer(kind=ip) :: errcode, ierr
+
+    call mpi_abort(mpi_comm_world, errcode, ierr)
+
+  end subroutine mg_mpi_abort
+
+  !---------------------------------------------------------------------
   subroutine mpi_myrank()
 
     integer(kind=ip) :: ierr

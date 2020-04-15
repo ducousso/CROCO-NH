@@ -26,6 +26,7 @@ module nhmg
   integer :: iprec1, iprec2
   integer :: halo, hl, pdx, pdy
   integer :: nx, ny, nz
+  logical :: ew_perio, ns_perio
 
 contains
 
@@ -33,6 +34,8 @@ contains
   subroutine nhmg_init(Lm,Mm,N,NP_XI,NP_ETA,padd_X,padd_E)
 
     integer(kind=ip), intent(in) :: Lm,Mm,N,NP_XI,NP_ETA,padd_X,padd_E
+    logical :: nx_ok, ny_ok, nz_ok
+    character*60 :: msg
 
     call tic(1,'nhmg_init')
 
@@ -47,8 +50,29 @@ contains
 
     if (myrank==0) write(*,*)' nhmg_init:'
 
+    ! check grid dimensions are in the form 2**p or 3*2**p
+    nx_ok = check_value(nx)
+    ny_ok = check_value(ny)
+    nz_ok = check_value(nz)
+    if ((nx_ok).and.(ny_ok).and.(nz_ok)) then
+       ! values are correct, nothing to say
+    else
+       msg = "Lm, Mm and N should be in the form 2**p or 3*2**p"
+       if (myrank==0) write(*,*) msg
+       call mg_mpi_abort()
+    endif    
+
     call read_nhnamelist(vbrank=myrank)
 
+    ! Copy from nhmg module to mg_namelist module
+    ! TODO: simplify the namelist, the user doesn't need
+    ! to manually set east_west_perio and north_south_perio
+    ! in the namelist file.
+    ! This is done automatically in OCEAN/main.F
+    !
+    east_west_perio = ew_perio
+    north_south_perio = ns_perio
+    
     call define_grids(NP_XI,NP_ETA,nx,ny,nz)
 
     call define_neighbours()
@@ -58,6 +82,24 @@ contains
     call toc(1,'nhmg_init')
 
   end subroutine nhmg_init
+
+  !--------------------------------------------------------------
+  logical function check_value(n0)
+    ! check whether n is in the form 2**p or 3*2**p
+    integer :: n, n0
+    logical :: ok
+    ok = .true.
+    n = n0
+    do while ((n.gt.3).and.(ok))
+       if (mod(n, 2).eq.0) then
+          n = n/2
+       else
+          ok = .false.         
+       endif
+    enddo       
+    check_value = ok
+    return
+  end function check_value
 
   !--------------------------------------------------------------
   subroutine nhmg_matrices(zxa,zya,Hza,z_r,dxa,dya)
