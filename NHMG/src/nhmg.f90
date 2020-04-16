@@ -51,13 +51,24 @@ contains
     if (myrank==0) write(*,*)' nhmg_init:'
 
     ! check grid dimensions are in the form 2**p or 3*2**p
-    nx_ok = check_value(nx)
-    ny_ok = check_value(ny)
-    nz_ok = check_value(nz)
+    nx_ok = check_value(nx, 3)
+    ny_ok = check_value(ny, 3)
+    nz_ok = check_value(nz, 3)
     if ((nx_ok).and.(ny_ok).and.(nz_ok)) then
        ! values are correct, nothing to say
     else
        msg = "Lm, Mm and N should be in the form 2**p or 3*2**p"
+       if (myrank==0) write(*,*) msg
+       call mg_mpi_abort()
+    endif    
+
+    ! check subdomains are in the form 2**p
+    nx_ok = check_value(NP_XI, 1)
+    ny_ok = check_value(NP_ETA, 1)
+    if ((nx_ok).and.(ny_ok)) then
+       ! values are correct, nothing to say
+    else
+       msg = "NP_XI and Np_ETA should be in the form 2**p"
        if (myrank==0) write(*,*) msg
        call mg_mpi_abort()
     endif    
@@ -84,13 +95,15 @@ contains
   end subroutine nhmg_init
 
   !--------------------------------------------------------------
-  logical function check_value(n0)
-    ! check whether n is in the form 2**p or 3*2**p
-    integer :: n, n0
+  logical function check_value(n0, odd)
+    ! check whether n0 is in the form
+    ! odd.eq.1 : 2**p
+    ! odd.eq.3 : 2**p or 3*2**p
+    integer :: n, n0, odd
     logical :: ok
     ok = .true.
     n = n0
-    do while ((n.gt.3).and.(ok))
+    do while ((n.gt.odd).and.(ok))
        if (mod(n, 2).eq.0) then
           n = n/2
        else
